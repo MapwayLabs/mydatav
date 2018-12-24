@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>threejs二维文字适配</title>
+    <script src="../lib/threejs/three.js"></script>
+    <script src="../lib/threejs/js/controls/OrbitControls.js"></script>
+    <script src="./THREE.TextTexture-master/THREE.TextTexture.js"></script>
+    <style>
+        .text-canvas {
+            position: absolute;
+            left: 10px;
+            top: 10px;
+            z-index: 1;
+            background: #fff;
+        }
+    </style>
+</head>
+
+<body>
+    <script>
+        // 画布
+        var renderer = new THREE.WebGLRenderer({
+            antialias: true // 抗锯齿
+        });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+        renderer.domElement.style.backgroundColor = "#000";
+
+        // 场景
+        var scene = new THREE.Scene();
+
+        // 相机
+        var camera = new THREE.PerspectiveCamera(
+            45,
+            window.innerWidth / window.innerHeight,
+            1,
+            1000
+        );
+
+        // OrbitControls
+        var controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.object.position.set(256, 256, 256);
+        controls.target = new THREE.Vector3(0, 0, 0);
+        controls.update();
+
+        // 坐标轴
+        function drawAxis(len) {
+            if (len === undefined) {
+                len = 100;
+            }
+            // x 轴
+            var xline_geom = new THREE.Geometry();
+            xline_geom.vertices.push(new THREE.Vector3(0, 0, 0));
+            xline_geom.vertices.push(new THREE.Vector3(len, 0, 0));
+            var xline_material = new THREE.LineBasicMaterial({
+                color: 0xff0000
+            });
+            var xline = new THREE.Line(xline_geom, xline_material);
+            scene.add(xline);
+
+            // y 轴
+            var yline_geom = new THREE.Geometry();
+            yline_geom.vertices.push(new THREE.Vector3(0, 0, 0));
+            yline_geom.vertices.push(new THREE.Vector3(0, len, 0));
+            var yline_material = new THREE.LineBasicMaterial({
+                color: 0x00ff00
+            });
+            var yline = new THREE.Line(yline_geom, yline_material);
+            scene.add(yline);
+
+            // z 轴
+            var zline_geom = new THREE.Geometry();
+            zline_geom.vertices.push(new THREE.Vector3(0, 0, 0));
+            zline_geom.vertices.push(new THREE.Vector3(0, 0, len));
+            var zline_material = new THREE.LineBasicMaterial({
+                color: 0x0000ff
+            });
+            var zline = new THREE.Line(zline_geom, zline_material);
+            scene.add(zline);
+        }
+        drawAxis(256);
+
+        // 平面
+        var planeGeometry = new THREE.PlaneGeometry(256, 256, 8, 8);
+        var planeMaterial = new THREE.MeshBasicMaterial({
+            wireframe: true,
+            color: 0xffff00,
+            side: THREE.DoubleSide
+        });
+        var plane = new THREE.Mesh(planeGeometry, planeMaterial);
+        plane.rotateX(-Math.PI / 2);
+        scene.add(plane);
+
+        // 文字
+        function wrapNum (num) {
+            var i = 2;
+            while(i < num) {
+                i *= 2;
+            }
+            return i;
+        }
+
+        var canvas = document.createElement("canvas");
+        canvas.className = 'text-canvas';
+        document.body.appendChild(canvas);
+        function drawText(textStr) {
+            // var canvas = document.createElement("canvas");
+            // webgl 规定 canvas 宽高为2的n次幂
+            // canvas.width = 128;
+            // canvas.height = 16;
+            var ctx = canvas.getContext("2d");
+
+            // ctx.fillStyle = renderer.domElement.style.backgroundColor;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // draw
+            ctx.font = "26px Arial";
+            ctx.fillStyle = "green";
+            ctx.textAlign = "center";
+            var textWidth = ctx.measureText(textStr).width;
+            var textHeight = ctx.measureText('国').width;
+            // ctx.fillText(textStr, canvas.width / 2, canvas.height / 2 + 5);
+            // ctx.fillRect(0, 0, canvas.width, canvas.height);
+            canvas.width = wrapNum(textWidth);
+            canvas.height = wrapNum(textHeight);
+            ctx.fillText(textStr, (canvas.width - textWidth) / 2, (canvas.height-textHeight) / 2 + textHeight);
+            var texture = new THREE.Texture(canvas);
+            texture.needsUpdate = true;
+
+            var spriteMaterial = new THREE.SpriteMaterial({
+                map: texture,
+                transparent: true
+            });
+            var sprite = new THREE.Sprite(spriteMaterial);
+            scene.add(sprite);
+            return sprite;
+        }
+        var textSprite = drawText('100');
+        // textSprite.scale.set(200, 200, 1);
+        textSprite.position.set(32, 0, 0);
+        setTextScale(textSprite);
+        
+        function setTextScale(textSprite, poiRect) {
+            poiRect = { w: canvas.width, h: canvas.height }
+            const DEG2RAD = Math.PI / 180;
+            let pos = textSprite.position;
+            let distance = camera.position.distanceTo(pos);
+            let top = Math.tan(camera.fov / 2 * DEG2RAD) * distance;
+            let ratio = 2 * top / window.innerHeight;
+            let scaleX = poiRect.w * ratio;
+            let scaleY = poiRect.h * ratio;
+
+            textSprite.scale.set(scaleX, scaleY, 1);
+        }
+
+        // 文字2
+        let texture = new THREE.TextTexture({
+            fontFamily: '"Microsoft YaHei", Times, serif',
+            fontSize: 32,
+            fontStyle: 'normal',
+            text: '100'
+        });
+        let material = new THREE.SpriteMaterial({map: texture, color: 0xffffbb});
+        let sprite = new THREE.Sprite(material);
+        sprite.scale.setX(texture.imageAspect).multiplyScalar(10);
+        sprite.position.set(32, 0, 32);
+        scene.add(sprite);
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            controls.update();
+
+            setTextScale(textSprite);
+            // setTextScale(sprite, {w: texture.image.width, h: texture.image.height})
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', function () {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        })
+    </script>
+</body>
+
+</html>
