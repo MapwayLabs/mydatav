@@ -5,10 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>threejs-curve-2</title>
-    <script src="../lib/threejs/three.js"></script>
-    <script src="../lib/threejs/js/controls/OrbitControls.js"></script>
-    <script src="../lib/tween.js-master/src/Tween.js"></script>
+    <title>threejs-curve-1</title>
+    <script src="../../lib/threejs/three.js"></script>
+    <script src="../../lib/threejs/js/controls/OrbitControls.js"></script>
+    <script src="../../lib/tween.js-master/src/Tween.js"></script>
     <style>
         html,
         body {
@@ -68,7 +68,7 @@
         });
         
         // 航线1： https://blog.csdn.net/guoweish/article/details/52989098
-        function airLine(startPoint, endPoint, heightLimit, time, lineStyle, offsetPoints) {
+        function airLine(startPoint, endPoint, heightLimit, time, lineStyle) {
             var middleX = (startPoint.x + endPoint.x) / 2;
             var middleY = heightLimit;
             var middleZ = (startPoint.z + endPoint.z) / 2;
@@ -91,34 +91,27 @@
             
             var tweenHandler = function(obj) {
                 var endPointIndex = Math.ceil(obj.endPointIndex);
-                var endOffsetIndex = endPointIndex + offsetPoints;
 
-                if (endOffsetIndex > (points.length-1) ) {
-                    return;
-                }
-
-                var curvePartialData = new THREE.CatmullRomCurve3(points.slice(endPointIndex, endOffsetIndex));
-                line.geometry.vertices = curvePartialData.getPoints(10);
+                var curvePartialData = new THREE.CatmullRomCurve3(points.slice(0, endPointIndex));
+                line.geometry.vertices = curvePartialData.getPoints(50);
                 line.geometry.verticesNeedUpdate = true;
             }
             var tween = new TWEEN.Tween({endPointIndex: 1})
                 .to({endPointIndex: 50}, time)
                 .onUpdate(tweenHandler)
-                .repeat(Infinity)
                 .start();
 
             return line;
         }
-        var startPoint = new THREE.Vector3(-180, 0, 10);
-        var endPoint = new THREE.Vector3(180, 0, 10);
+        var startPoint = new THREE.Vector3(-80, 0, 10);
+        var endPoint = new THREE.Vector3(80, 0, 10);
         var heightLimit = 24;
         var time = 2000;
         var lineStyle = {
             color: 0x00ff00,
             lineWidth: 2
         };
-        var offsetPoints = 4;
-        var line = airLine(startPoint, endPoint, heightLimit, time, lineStyle, offsetPoints);
+        var line = airLine(startPoint, endPoint, heightLimit, time, lineStyle);
         scene.add(line);
     </script>
 </body>
