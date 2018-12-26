@@ -29,7 +29,7 @@
 
 			}
 
-		</script>
+	</script>
 
     <script id="fragmentShader" type="x-shader/x-fragment">
 
@@ -37,11 +37,11 @@
 			varying vec2 vUv;
 
 	      	void main( void ) {
-	       		 vec3 color =  vec3(1.0,1.0,0.0);
+	       		 vec3 color =  vec3(1.0,0.0,0.0);
 	         	 gl_FragColor = vec4(color,sin(4.5*(vUv.x*2.0 + (time*1.0))));
 	        }
 
-		</script>
+	</script>
     <script>
         var renderer, scene, camera, control;
 
@@ -140,13 +140,17 @@
             var middleX = (startPoint.x + endPoint.x) / 2;
             var middleY = (startPoint.y + endPoint.y) / 2 + heightLimit;
             var middleZ = 0;
+            var middlePoint = new THREE.Vector3(middleX, middleY, middleZ);
 
-            var curve3 = new THREE.SplineCurve3([startPoint,
-                new THREE.Vector3(middleX, middleY, middleZ),
+            var curve = new THREE.CatmullRomCurve3([
+                startPoint,
+                middlePoint,
                 endPoint
             ]);
 
-            var geometry = new THREE.TubeGeometry(curve3, 100, 0.5, 4, false);
+            var points = curve.getPoints(50);
+            var geometry = new THREE.Geometry();
+            geometry.vertices = points;
 
             var shaderMaterial = new THREE.ShaderMaterial({
                 uniforms: uniforms,
@@ -156,7 +160,7 @@
                 alphaTest: 0.8
             })
 
-            var line = new THREE.Mesh(geometry, shaderMaterial);
+            var line = new THREE.Line(geometry, shaderMaterial);
 
             return line;
         }
