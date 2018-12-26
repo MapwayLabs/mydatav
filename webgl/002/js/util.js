@@ -1,4 +1,4 @@
-export default {
+export const Util = {
     hasClass: function (el, className) {
         return el.classList ? el.classList.contains(className) : new RegExp('(^|\\s)' + className + '(\\s|$)').test(el.className)
     },
@@ -61,64 +61,6 @@ export default {
         } catch (e) {
             return false;
         }
-    },
-    // getBoundingRect
-    getBoundingRect: function (geojson) {
-        var bound = {
-            xmin: 180,
-            xmax: -180,
-            ymin: 90,
-            ymax: -90,
-            width: function () {
-                return (this.xmax - this.xmin);
-            },
-            height: function () {
-                return (this.ymax - this.ymin);
-            },
-            center: function () {
-                var tx = (this.xmax - this.xmin) / 2;
-                var ty = (this.ymax - this.ymin) / 2;
-                return [tx + this.xmin, ty + this.ymin];
-            }
-        }
-        var features = [];
-        var polygons = [];
-        if (geojson.type === "FeatureCollection") {
-            features = geojson.features;
-        } else if (geojson.type === "Feature") {
-            features.push(geojson);
-        }
-        features.forEach(f => {
-            if (f.geometry.type === "Polygon") {
-                polygons.push(f.geometry.coordinates);
-            } else if (f.geometry.type === "MultiPolygon") {
-                for (var i = 0, len = f.geometry.coordinates.length; i < len; i++) {
-                    polygons.push(f.geometry.coordinates[i]);
-                }
-            }
-        });
-        for (var i = 0, len = polygons.length; i < len; i++) {
-            var seg = polygons[i];
-            for (var j = 0; j < seg.length; j++) {
-                var coords = seg[j];
-                for (var k = 0; k < coords.length; k++) {
-                    var coord = coords[k];
-                    if (coord[0] < bound.xmin) {
-                        bound.xmin = coord[0];
-                    }
-                    if (coord[0] > bound.xmax) {
-                        bound.xmax = coord[0];
-                    }
-                    if (coord[1] < bound.ymin) {
-                        bound.ymin = coord[1];
-                    }
-                    if (coord[1] > bound.ymax) {
-                        bound.ymax = coord[1];
-                    }
-                }
-            }
-        }
-        return bound;
     },
     // 获取一个颜色的高亮或更暗色 https://css-tricks.com/snippets/javascript/lighten-darken-color/
     lightenDarkenColor: function (col, amt) {

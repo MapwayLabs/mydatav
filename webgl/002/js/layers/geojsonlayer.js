@@ -1,10 +1,9 @@
-import Layer from './layer'
-import Util from '../util'
-
-export default class GeoJSONLayer extends Layer {
+import { Layer } from './layer'
+import  { Util } from '../util'
+export class GeoJSONLayer extends Layer {
     constructor(data, options) {
         super(data, options);
-        var defaultOptions = {
+        const defaultOptions = {
             isExtrude: true, // 是否拉伸面
             depth: 0.6, // 拉伸厚度
             isAreaText: true, // 是否显示地区名称
@@ -19,5 +18,15 @@ export default class GeoJSONLayer extends Layer {
             }
         };
         this.options = Util.extend(defaultOptions, options);
+    }
+    onAdd(map) {
+        Layer.prototype.onAdd.call(this, map);
+        this._draw();
+    }
+    onRemove(map) {
+        Layer.prototype.onRemove.call(this, map);
+    }
+    _draw() {
+        
     }
 }

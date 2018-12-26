@@ -1,22 +1,21 @@
-import Util from '../util'
-
-export default class Layer {
+import { Util } from '../util'
+import  { EventEmiter } from '../eventemiter'
+export class Layer extends EventEmiter {
     constructor(data, options) {
-        var defaultOptions = {}
-        this.options = Util.extend(defaultOptions, options)
-        this._data = data
-        this._container = new THREE.Group()
+        super();
+        var defaultOptions = {};
+        this.options = Util.extend(defaultOptions, options);
+        this._data = data;
+        this._container = new THREE.Group();
     }
-
     getContainer() {
-        return this._container
+        return this._container;
     }
-
     getData() {
-        return this._data
+        return this._data;
     }
     onAdd(map) {
-        this._map = map
+        this._map = map;
     }
     onRemove(map) {}
 }
