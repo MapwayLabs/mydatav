@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>threejs-curve-4</title>
+    <script src="../../lib/threejs/three.js"></script>
+    <script src="../../lib/threejs/js/controls/OrbitControls.js"></script>
+    <script src="../../lib/tween.js-master/src/Tween.js"></script>
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <script id="vertexShader" type="x-shader/x-vertex">
+        varying vec2 vUv;
+
+			void main()	{
+                vUv = uv;
+				vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+				gl_Position = projectionMatrix * mvPosition;
+
+			}
+
+		</script>
+
+    <script id="fragmentShader" type="x-shader/x-fragment">
+
+        uniform float time;
+			varying vec2 vUv;
+
+	      	void main( void ) {
+	       		 vec3 color =  vec3(1.0,1.0,0.0);
+	         	 gl_FragColor = vec4(color,sin(4.5*(vUv.x*2.0 + (time*1.0))));
+	        }
+
+		</script>
+    <script>
+        var renderer, scene, camera, control;
+
+        function init() {
+            // 画布
+            renderer = new THREE.WebGLRenderer({
+                antialias: true // 抗锯齿
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+            renderer.domElement.style.backgroundColor = "#000";
+
+            // 场景
+            scene = new THREE.Scene();
+
+            // 相机
+            camera = new THREE.PerspectiveCamera(
+                45,
+                window.innerWidth / window.innerHeight,
+                1,
+                1000
+            );
+
+            // OrbitControls
+            control = new THREE.OrbitControls(camera, renderer.domElement);
+            control.object.position.set(256, 256, 256);
+            control.target = new THREE.Vector3(0, 0, 0);
+            control.update();
+
+        }
+        init();
+
+        // 坐标轴
+        function drawAxis(len) {
+            if (len === undefined) {
+                len = 100;
+            }
+            // x 轴
+            var xline_geom = new THREE.Geometry();
+            xline_geom.vertices.push(new THREE.Vector3(0, 0, 0));
+            xline_geom.vertices.push(new THREE.Vector3(len, 0, 0));
+            var xline_material = new THREE.LineBasicMaterial({
+                color: 0xff0000
+            });
+            var xline = new THREE.Line(xline_geom, xline_material);
+            scene.add(xline);
+
+            // y 轴
+            var yline_geom = new THREE.Geometry();
+            yline_geom.vertices.push(new THREE.Vector3(0, 0, 0));
+            yline_geom.vertices.push(new THREE.Vector3(0, len, 0));
+            var yline_material = new THREE.LineBasicMaterial({
+                color: 0x00ff00
+            });
+            var yline = new THREE.Line(yline_geom, yline_material);
+            scene.add(yline);
+
+            // z 轴
+            var zline_geom = new THREE.Geometry();
+            zline_geom.vertices.push(new THREE.Vector3(0, 0, 0));
+            zline_geom.vertices.push(new THREE.Vector3(0, 0, len));
+            var zline_material = new THREE.LineBasicMaterial({
+                color: 0x0000ff
+            });
+            var zline = new THREE.Line(zline_geom, zline_material);
+            scene.add(zline);
+        }
+        drawAxis(256);
+
+        var uniforms = {
+            time: {
+                type: "f",
+                value: 1.0
+            }
+        };
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            control.update();
+            TWEEN.update();
+            uniforms.time.value += 0.01;
+
+            renderer.render(scene, camera);
+        }
+        // animate();
+
+        window.addEventListener('resize', function () {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // 航线1： https://blog.csdn.net/guoweish/article/details/52989098
+        function airLine(startPoint, endPoint, heightLimit, time, lineStyle, offsetPoints) {
+            var middleX = (startPoint.x + endPoint.x) / 2;
+            var middleY = (startPoint.y + endPoint.y) / 2 + heightLimit;
+            var middleZ = 0;
+
+            var curve3 = new THREE.SplineCurve3([startPoint,
+                new THREE.Vector3(middleX, middleY, middleZ),
+                endPoint
+            ]);
+
+            var geometry = new THREE.TubeGeometry(curve3, 100, 0.5, 4, false);
+
+            var shaderMaterial = new THREE.ShaderMaterial({
+                uniforms: uniforms,
+                vertexShader: document.getElementById('vertexShader').textContent,
+                fragmentShader: document.getElementById('fragmentShader').textContent,
+                transparent: true,
+                alphaTest: 0.8
+            })
+
+            var line = new THREE.Mesh(geometry, shaderMaterial);
+
+            return line;
+        }
+        var startPoint = new THREE.Vector3(0, 0, 0);
+        var endPoint = new THREE.Vector3(256, 0, 0);
+        var heightLimit = 24;
+        var time = 2000;
+        var lineStyle = {
+            color: 0x00ff00,
+            lineWidth: 2
+        };
+        var offsetPoints = 4;
+        var line = airLine(startPoint, endPoint, heightLimit, time, lineStyle, offsetPoints);
+        scene.add(line);
+        animate();
+    </script>
+</body>
+
+</html>
