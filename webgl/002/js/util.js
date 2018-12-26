@@ -20,6 +20,10 @@ export default {
             el.className = el.className.replace(' ' + className + ' ', ' ')
         }
     },
+    getCmpStyle: function (el) {
+        // FIXEME 兼容性写法
+        return getComputedStyle(el) 
+    },
     extend: function (srcObj) {
         var i, j, len, src
         for (j = 1, len = arguments.length; j < len; j++) {
