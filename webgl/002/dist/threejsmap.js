@@ -229,7 +229,7 @@ class EventEmiter {
 /*!*********************!*\
   !*** ./js/index.js ***!
   \*********************/
-/*! exports provided: Util, ThreeMap, mapHelper, GeoJSONLayer */
+/*! exports provided: Util, ThreeMap, mapHelper, GeoJSONLayer, FlyLineLayer */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -243,6 +243,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _layers_index__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./layers/index */ "./js/layers/index.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "GeoJSONLayer", function() { return _layers_index__WEBPACK_IMPORTED_MODULE_2__["GeoJSONLayer"]; });
 
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "FlyLineLayer", function() { return _layers_index__WEBPACK_IMPORTED_MODULE_2__["FlyLineLayer"]; });
+
 /* harmony import */ var _maphelper__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./maphelper */ "./js/maphelper.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "mapHelper", function() { return _maphelper__WEBPACK_IMPORTED_MODULE_3__["mapHelper"]; });
 
@@ -250,6 +252,93 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
+/***/ }),
+
+/***/ "./js/layers/flylinelayer.js":
+/*!***********************************!*\
+  !*** ./js/layers/flylinelayer.js ***!
+  \***********************************/
+/*! exports provided: FlyLineLayer */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "FlyLineLayer", function() { return FlyLineLayer; });
+/* harmony import */ var _layer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./layer */ "./js/layers/layer.js");
+/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../util */ "./js/util.js");
+/* harmony import */ var _maphelper__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../maphelper */ "./js/maphelper.js");
+/* harmony import */ var _shader_line__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./shader/line */ "./js/layers/shader/line.js");
+
+
+
+
+class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["Layer"] {
+    constructor(data, options) {
+        super(data, options);
+        const defaultOptions = {
+            geojsonLayer: null,
+            lineStyle: { // 飞线样式
+                color: 0x00ff00,
+                lineWidth: 2
+            }
+        };
+        this.options = _util__WEBPACK_IMPORTED_MODULE_1__["Util"].extend(defaultOptions, options);
+
+        this.uniforms = {
+            time: {
+                type: "f",
+                value: 1.0
+            }
+        };
+        this.animate();
+    }
+    onAdd(map) {
+        _layer__WEBPACK_IMPORTED_MODULE_0__["Layer"].prototype.onAdd.call(this, map); 
+        this._draw();
+    }
+    onRemove(map) {
+        _layer__WEBPACK_IMPORTED_MODULE_0__["Layer"].prototype.onRemove.call(this, map);
+    }
+    animate() {
+        requestAnimationFrame(this.animate.bind(this));
+        this.uniforms.time.value += 0.01;
+    }
+    _draw() {
+        this._data.forEach(item => {
+            let f = _maphelper__WEBPACK_IMPORTED_MODULE_2__["mapHelper"].wgs84ToMecator(item.from.split(','));
+            let t = _maphelper__WEBPACK_IMPORTED_MODULE_2__["mapHelper"].wgs84ToMecator(item.to.split(','));
+            let scale = this._map.options.SCALE_RATIO;
+            item.from = f.map(point => point / scale);
+            item.to = t.map(point => point / scale);
+            this._drawFlyLine(item.from, item.to, 2 / scale);
+        });
+    }
+    _drawFlyLine(startPoint, endPoint, heightLimit) {
+        let middleX = ( startPoint[0] + endPoint[0] ) / 2;
+        let middleY = ( startPoint[1] + endPoint[1] ) / 2 + heightLimit;
+        let middleZ = 0;
+        let startVector = new THREE.Vector3(startPoint[0], startPoint[1], 0);
+        let middleVector = new THREE.Vector3(middleX, middleY, middleZ);
+        let endVector = new THREE.Vector3(endPoint[0], endPoint[1], 0);
+
+        let curve = new THREE.CatmullRomCurve3([startVector, middleVector, endVector]);
+
+        let geometry = new THREE.TubeGeometry(curve, 100, 0.1, 4, false);
+
+        let shaderMaterial = new THREE.ShaderMaterial({
+            uniforms: this.uniforms,
+            vertexShader: _shader_line__WEBPACK_IMPORTED_MODULE_3__["lineShader"].vertexShader,
+            fragmentShader: _shader_line__WEBPACK_IMPORTED_MODULE_3__["lineShader"].fragmentShader,
+            transparent: true,
+            alphaTest: 0.8
+        });
+
+        let line = new THREE.Mesh(geometry, shaderMaterial);
+
+        this._container.add(line);
+    }
+}
 
 /***/ }),
 
@@ -528,13 +617,17 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["Layer"] {
 /*!****************************!*\
   !*** ./js/layers/index.js ***!
   \****************************/
-/*! exports provided: GeoJSONLayer */
+/*! exports provided: GeoJSONLayer, FlyLineLayer */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _geojsonlayer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./geojsonlayer */ "./js/layers/geojsonlayer.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "GeoJSONLayer", function() { return _geojsonlayer__WEBPACK_IMPORTED_MODULE_0__["GeoJSONLayer"]; });
+
+/* harmony import */ var _flylinelayer__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./flylinelayer */ "./js/layers/flylinelayer.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "FlyLineLayer", function() { return _flylinelayer__WEBPACK_IMPORTED_MODULE_1__["FlyLineLayer"]; });
+
 
 
 
@@ -572,6 +665,36 @@ class Layer extends _eventemiter__WEBPACK_IMPORTED_MODULE_1__["EventEmiter"] {
         this._map = map;
     }
     onRemove(map) {}
+}
+
+/***/ }),
+
+/***/ "./js/layers/shader/line.js":
+/*!**********************************!*\
+  !*** ./js/layers/shader/line.js ***!
+  \**********************************/
+/*! exports provided: lineShader */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "lineShader", function() { return lineShader; });
+const lineShader = {
+    vertexShader: 
+    `varying vec2 vUv;
+     void main()	{
+        vUv = uv;
+        vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+        gl_Position = projectionMatrix * mvPosition;
+
+     }`,
+    fragmentShader: 
+    `uniform float time;
+     varying vec2 vUv;
+     void main( void ) {
+        vec3 color =  vec3(1.0,0,0.0);
+        gl_FragColor = vec4(color,sin(4.5*(vUv.x*2.0 + (time*1.0))));
+      }`
 }
 
 /***/ }),
@@ -626,6 +749,7 @@ const mapHelper = {
 
 		return [ point[0] * d / r, phi * d ];
     },
+    // 根据geojson数据获取geo对象在墨卡托投影平面的范围
     getBounds(geojson) {
         // 中国和世界范围写死，避免大量计算
         if (geojson === 'world') {

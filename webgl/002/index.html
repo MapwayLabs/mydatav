@@ -29,9 +29,16 @@
             // map.setView();
             map.options.type = 'plane'
             map.options.region = 'xxx'
-            window.geojsonLayer = new TMap.GeoJSONLayer(data);
+            var geoOptions = {
+                isExtrude: false
+            };
+            window.geojsonLayer = new TMap.GeoJSONLayer(data, geoOptions);
             map.addLayer(window.geojsonLayer);
             map.setView(window.geojsonLayer.getBounds());
+            $.getJSON('../../data/flyline.json', function(fdata) {
+                let fl = new TMap.FlyLineLayer(fdata);
+                map.addLayer(fl);
+            });
             // window.barLayer = new BarChartLayer(Data, {
             //     isNormalizeData: false
             // }, window.geojsonLayer.getData())
