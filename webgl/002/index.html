@@ -9,15 +9,31 @@
     <script src="../../lib/threejs/three.js"></script>
     <script src="../../lib/threejs/js/controls/OrbitControls.js"></script>
     <script src="./dist/threejsmap.js"></script>
+    <script src="../../lib/jquery.min.js"></script>
     <style>
-        html, body {
+        html,
+        body {
             margin: 0;
             padding: 0;
+            height: 100%;
         }
     </style>
 </head>
 
 <body>
+    <div id="threemap" style="position: relative; width: 100%; height: 100%;"></div>
+    <script>
+        const map = new TMap.ThreeMap('threemap');
+        // ./china_province.json  geo-china-beijing.json
+        $.getJSON('../../data/china_province.json', function (data) {
+            window.geojsonLayer = new TMap.GeoJSONLayer(data);
+            map.addLayer(window.geojsonLayer)
+            // window.barLayer = new BarChartLayer(Data, {
+            //     isNormalizeData: false
+            // }, window.geojsonLayer.getData())
+            // map.addLayer(window.barLayer)
+        });
+    </script>
 </body>
 
 </html>

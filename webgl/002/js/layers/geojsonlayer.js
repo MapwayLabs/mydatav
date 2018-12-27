@@ -1,5 +1,13 @@
-import { Layer } from './layer'
-import  { Util } from '../util'
+import {
+    Layer
+} from './layer'
+import {
+    Util
+} from '../util'
+import {
+    mapHelper
+} from '../maphelper'
+
 export class GeoJSONLayer extends Layer {
     constructor(data, options) {
         super(data, options);
@@ -12,7 +20,7 @@ export class GeoJSONLayer extends Layer {
             strokeOpacity: 0.5, // 地区边缘线的透明度
             textColor: 'rgba(0, 0, 0, 0.8)',
             material: {
-                color:0x00ff00,
+                color: 0x00ff00,
                 // opacity: 0.5,
                 side: THREE.DoubleSide
             }
@@ -21,12 +29,173 @@ export class GeoJSONLayer extends Layer {
     }
     onAdd(map) {
         Layer.prototype.onAdd.call(this, map);
-        this._draw();
+        this.draw();
     }
     onRemove(map) {
         Layer.prototype.onRemove.call(this, map);
     }
-    _draw() {
-        
+    createFeatureArray(json) {
+        var feature_array = [];
+        var temp_feature;
+
+        if (json.type == 'Feature') {
+            feature_array.push(json);
+        } else if (json.type == 'FeatureCollection') {
+            for (var feature_num = 0; feature_num < json.features.length; feature_num++) {
+                feature_array.push(json.features[feature_num]);
+            }
+        } else if (json.type == 'GeometryCollection') {
+            for (var geom_num = 0; geom_num < json.geometries.length; geom_num++) {
+                temp_feature = {
+                    geometry: json.geometries[geom_num]
+                }
+                feature_array.push(temp_feature);
+            }
+        } else {
+            throw new Error('The geoJSON is not valid.');
+        }
+        return feature_array;
+    }
+    createCoordinateArray(feature) {
+        //Loop through the coordinates and figure out if the points need interpolation.
+        var temp_array = [];
+        var interpolation_array = [];
+
+        for (var point_num = 0; point_num < feature.length; point_num++) {
+            var point1 = feature[point_num];
+            var point2 = feature[point_num - 1];
+
+            if (point_num > 0) {
+                if (this.needsInterpolation(point2, point1)) {
+                    interpolation_array = [point2, point1];
+                    interpolation_array = this.interpolatePoints(interpolation_array);
+
+                    for (var inter_point_num = 0; inter_point_num < interpolation_array.length; inter_point_num++) {
+                        temp_array.push(interpolation_array[inter_point_num]);
+                    }
+                } else {
+                    temp_array.push(point1);
+                }
+            } else {
+                temp_array.push(point1);
+            }
+        }
+        return temp_array;
+    }
+    needsInterpolation(point2, point1) {
+        //If the distance between two latitude and longitude values is
+        //greater than five degrees, return true.
+        var lon1 = point1[0];
+        var lat1 = point1[1];
+        var lon2 = point2[0];
+        var lat2 = point2[1];
+        var lon_distance = Math.abs(lon1 - lon2);
+        var lat_distance = Math.abs(lat1 - lat2);
+
+        if (lon_distance > 5 || lat_distance > 5) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    interpolatePoints(interpolation_array) {
+        //This function is recursive. It will continue to add midpoints to the
+        //interpolation array until needsInterpolation() returns false.
+        var temp_array = [];
+        var point1, point2;
+
+        for (var point_num = 0; point_num < interpolation_array.length - 1; point_num++) {
+            point1 = interpolation_array[point_num];
+            point2 = interpolation_array[point_num + 1];
+
+            if (this.needsInterpolation(point2, point1)) {
+                temp_array.push(point1);
+                temp_array.push(this.getMidpoint(point1, point2));
+            } else {
+                temp_array.push(point1);
+            }
+        }
+
+        temp_array.push(interpolation_array[interpolation_array.length - 1]);
+
+        if (temp_array.length > interpolation_array.length) {
+            temp_array = this.interpolatePoints(temp_array);
+        } else {
+            return temp_array;
+        }
+        return temp_array;
+    }
+    getMidpoint(point1, point2) {
+        var midpoint_lon = (point1[0] + point2[0]) / 2;
+        var midpoint_lat = (point1[1] + point2[1]) / 2;
+        var midpoint = [midpoint_lon, midpoint_lat];
+
+        return midpoint;
+    }
+    convertCoordinates(coordinateArray) {
+        return coordinateArray.map(point => mapHelper.wgs84ToMecator(point));
+    }
+    draw() {
+        var geojson = this._data;
+        var container = this._container;
+
+        var features = this.createFeatureArray(geojson);
+
+        for (let i = 0, len = features.length; i < len; i++) {
+            let feature = features[i];
+            let geometry = feature.geometry;
+            if (geometry.type == 'Point') {
+
+            } else if (geometry.type == 'MultiPoint') {
+
+            } else if (geometry.type == 'LineString') {
+
+            } else if (geometry.type == 'MultiLineString') {
+
+            } else if (geometry.type == 'Polygon') {
+                for (let segment_num = 0; segment_num < geometry.coordinates.length; segment_num++) {
+                    let coordinate_array = this.createCoordinateArray(geometry.coordinates[segment_num]);
+                    let convert_array = this.convertCoordinates(coordinate_array);
+                    this.drawPolygon(convert_array);
+                }
+
+            } else if (geometry.type == 'MultiPolygon') {
+                for (let polygon_num = 0; polygon_num < geometry.coordinates.length; polygon_num++) {
+                    for (let segment_num = 0; segment_num < geometry.coordinates[polygon_num].length; segment_num++) {
+                        let coordinate_array = this.createCoordinateArray(geometry.coordinates[polygon_num][segment_num]);
+                        let convert_array = this.convertCoordinates(coordinate_array);
+                        this.drawPolygon(convert_array);
+                    }
+                }
+            } else {
+                throw new Error('The geoJSON is not valid.');
+            }
+        }
+    }
+    drawPolygon(points) {
+        let shape = new THREE.Shape();
+        for (let i = 0; i < points.length; i++) {
+            let point = points[i];
+            if (i === 0) {
+                shape.moveTo(point[0], point[1]);
+            } else {
+                shape.lineTo(point[0], point[1]);
+            }
+        }
+        shape.closePath();
+        var extrudeSettings = {
+            depth: 1, 
+            bevelEnabled: false   // 是否用斜角
+        };
+        var geometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings);
+        var material = new THREE.MeshPhongMaterial({ color: 0x999999 });
+
+        var mesh = new THREE.Mesh(geometry, material);
+        // drawOutLine(x_values, y_values, z_values, mesh);
+        // mesh.rotateX(-Math.PI/2);
+        // mesh.userData = {
+        //     type: 'area'
+        // };
+        this._container.add(mesh);
     }
 }
