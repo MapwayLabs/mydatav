@@ -38,8 +38,13 @@ export const mapHelper = {
 		return [ point[0] * d / r, phi * d ];
     },
     getBounds(geojson) {
+        // 中国和世界范围写死，避免大量计算
         if (geojson === 'world') {
-            return BOUND;
+            let xmin = -20037508.342789244;
+            let xmax = 20037508.342789244;
+            let ymin = -8037175.40001875;
+            let ymax = 18362426.510304134;
+            return new Bounds(xmin, ymin, xmax, ymax);
         } else if (geojson === 'china') {
             let xmin = 73.4766;
             let xmax = 135.0879;
@@ -63,9 +68,9 @@ export const mapHelper = {
                 features.push(geojson);
             }
             features.forEach(f => {
-                if (f.geometry.type === "Polygon") {
+                if (f.geometry && f.geometry.type === "Polygon") {
                     polygons.push(f.geometry.coordinates);
-                } else if (f.geometry.type === "MultiPolygon") {
+                } else if (f.geometry && f.geometry.type === "MultiPolygon") {
                     for (let i = 0, len = f.geometry.coordinates.length; i < len; i++) {
                         polygons.push(f.geometry.coordinates[i]);
                     }

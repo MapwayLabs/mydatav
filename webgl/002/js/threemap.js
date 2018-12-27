@@ -5,14 +5,15 @@ export class ThreeMap extends EventEmiter {
     constructor(el, options) {
         super();
         var defaultOptions = {
-            containerClassName: 'three-map-container',
+            containerClassName: 'three-map-container', // 地图容器类名
             lightColor: 0xffffff, // 灯光颜色
-            type: '2d', // 2d or 3d
-            region: 'china' // china or world
+            type: 'plane', // plane or sphere ,平面或球面
+            region: 'china', // china or world, 中国或世界地图
+            SCALE_RATIO: 100000 // 地球墨卡托平面缩放比例
         };
         this.options = Util.extend(defaultOptions, options);
     
-        if (this.options.type === '2d') {
+        if (this.options.type === 'plane') {
             if (this.options.region === 'china') {
                 this._fullBound = mapHelper.getBounds('china');
             } else {
@@ -71,7 +72,7 @@ export class ThreeMap extends EventEmiter {
     }
     setView(bounds) {
         const deafultMinDis = 30, defaultMaxDis = 200;
-        if (this.options.type === '2d') {
+        if (this.options.type === 'plane') {
             if (this.options.region === 'world') {
 
             } else if (this.options.region === 'china') {
@@ -167,19 +168,19 @@ export class ThreeMap extends EventEmiter {
         this._orbitControl.minAzimuthAngle = -Math.PI / 2
         // OrbitControls加入后，托管了相机，所以必须通过它来改变相机参数
         // camera.lookAt()失效问题https://stackoverflow.com/questions/10325095/threejs-camera-lookat-has-no-effect-is-there-something-im-doing-wrong
-        // this._orbitControl.object.position.set(105.59873331348234, 44.01266686517651, 27.216466924729595)
-        // this._orbitControl.target = new THREE.Vector3(110, 0, -30)
+        this._orbitControl.object.position.set(0, 0, 100)
+        // this._orbitControl.target = new THREE.Vector3(12245143.987260092, 0, -3482189.0854086173)
         this._orbitControl.saveState()
         this._orbitControl.update()
 
         // 灯光
-        this._scene.add(new THREE.AmbientLight(this.options.lightColor, 0.6));
-        this._light = new THREE.DirectionalLight(this.options.lightColor, 0.8);
-        this._light2 = new THREE.DirectionalLight(this.options.lightColor, 0.1);
-        this._light.position.set(-1, 1, 1);
-        this._light2.position.set(1, 1, 1);
-        this._scene.add(this._light);
-        this._scene.add(this._light2);
+        // this._scene.add(new THREE.AmbientLight(this.options.lightColor, 0.6));
+        // this._light = new THREE.DirectionalLight(this.options.lightColor, 0.8);
+        // this._light2 = new THREE.DirectionalLight(this.options.lightColor, 0.1);
+        // this._light.position.set(-1, 1, 1);
+        // this._light2.position.set(1, 1, 1);
+        // this._scene.add(this._light);
+        // this._scene.add(this._light2);
 
         // animate
         this._animate();

@@ -23,4 +23,11 @@ export class Bounds {
         let ty = (this.ymax - this.ymin) / 2;
         return [tx + this.xmin, ty + this.ymin];
     }
+    scale(m) {
+        this.xmin *= m;
+        this.ymin *= m;
+        this.xmax *= m;
+        this.ymax *= m;
+        return this;
+    }
 }

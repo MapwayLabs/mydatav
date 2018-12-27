@@ -25,7 +25,10 @@
     <script>
         const map = new TMap.ThreeMap('threemap');
         // ./china_province.json  geo-china-beijing.json
-        $.getJSON('../../data/china_province.json', function (data) {
+        $.getJSON('../../data/world2.json', function (data) {
+            // map.setView();
+            map.options.type = 'plane'
+            map.options.region = 'world'
             window.geojsonLayer = new TMap.GeoJSONLayer(data);
             map.addLayer(window.geojsonLayer)
             // window.barLayer = new BarChartLayer(Data, {
