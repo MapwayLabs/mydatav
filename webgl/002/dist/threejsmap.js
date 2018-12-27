@@ -121,10 +121,10 @@ class Bounds {
         }
     }
     getWidth() {
-        return (this.xmax - this.xmin);
+        return Math.abs(this.xmax - this.xmin);
     }
     getHeight() {
-        return (this.ymax - this.ymin);
+        return Math.abs(this.ymax - this.ymin);
     }
     getCenter() {
         let tx = (this.xmax - this.xmin) / 2;
@@ -269,7 +269,6 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-
 class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["Layer"] {
     constructor(data, options) {
         super(data, options);
@@ -278,10 +277,14 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["Layer"] {
             depth: 0.6, // 拉伸厚度
             isAreaText: true, // 是否显示地区名称
             fillColor: '#ddd', // 地区面块的填充色
-            strokeColor: '#000', // 地区边缘线的颜色
-            strokeOpacity: 0.5, // 地区边缘线的透明度
-            textColor: 'rgba(0, 0, 0, 0.8)',
-            material: {
+            // strokeColor: '#000', // 地区边缘线的颜色
+            // strokeOpacity: 0.5, // 地区边缘线的透明度
+            textColor: 'rgba(0, 0, 0, 0.8)', // 文字颜色
+            lineMaterial: {
+                color: 0x0000ff,
+                linewidth: 1.5
+            },
+            areaMaterial: { // 面材质配置
                 color: 0x00ff00,
                 // opacity: 0.5,
                 side: THREE.DoubleSide
@@ -429,7 +432,6 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["Layer"] {
     }
     _draw() {
         var geojson = this._data;
-        var container = this._container;
 
         var features = this.createFeatureArray(geojson);
 
@@ -465,6 +467,23 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["Layer"] {
             }
         }
     }
+    drawOutLine(points, mesh) {
+        // 画轮廓线
+        // 因为面是画在xy平面的，然后通过旋转而来，为了保持一致，轮廓线也绘制在xy平面，这样变换就能与面同步
+        let line_geom = new THREE.Geometry();
+        for (let i = 0, len=points.length; i < len ; i++) {
+            line_geom.vertices.push(new THREE.Vector3(points[i][0], points[i][1], 0));
+        }
+        let line_material = new THREE.LineBasicMaterial(this.options.lineMaterial);
+        // line_material.transparent = false;
+        // line_material.opacity = this.options.strokeOpacity;
+        let line = new THREE.Line(line_geom, line_material);
+        if (this.options.isExtrude) {
+            line.translateZ(this.options.depth);
+        }
+        line.renderOrder = 98;
+        mesh.add(line);
+    }
     drawPolygon(points) {
         let shape = new THREE.Shape();
         for (let i = 0; i < points.length; i++) {
@@ -476,27 +495,29 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["Layer"] {
             }
         }
         shape.closePath();
-        var extrudeSettings = {
-            depth: 1, 
-            bevelEnabled: false   // 是否用斜角
+
+        let geometry, material;
+
+        if (this.options.isExtrude) {
+            // 拉伸
+            let extrudeSettings = {
+                depth: this.options.depth, 
+                bevelEnabled: false   // 是否用斜角
+            };
+            geometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings);
+            material = new THREE.MeshPhongMaterial(this.options.areaMaterial);
+        } else {
+            // 不拉伸
+            geometry = new THREE.ShapeBufferGeometry(shape);
+            material = new THREE.MeshBasicMaterial(this.options.areaMaterial);
+        }
+        
+        let mesh = new THREE.Mesh(geometry, material);
+        this.drawOutLine(points, mesh);
+        // mesh.rotateX(-Math.PI/2);
+        mesh.userData = {
+            type: 'area'
         };
-        var geometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings);
-        var material = new THREE.MeshPhongMaterial({ color: 0x00ff00 });
-
-        var mesh = new THREE.Mesh(geometry, material);
-
-
-            //   var geometry = new THREE.ShapeBufferGeometry(shape);
-            // var material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-
-            // var mesh = new THREE.Mesh(geometry, material);
-        // drawOutLine(x_values, y_values, z_values, mesh);
-        mesh.rotateX(-Math.PI/2);
-        mesh.translateX(-this._center[0]);
-        mesh.translateY(-this._center[1]);
-        // mesh.userData = {
-        //     type: 'area'
-        // };
         this._container.add(mesh);
     }
 }
@@ -696,7 +717,12 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["EventEmiter"] 
             lightColor: 0xffffff, // 灯光颜色
             type: 'plane', // plane or sphere ,平面或球面
             region: 'china', // china or world, 中国或世界地图
-            SCALE_RATIO: 100000 // 地球墨卡托平面缩放比例
+            SCALE_RATIO: 100000, // 地球墨卡托平面缩放比例
+            camera: {
+                fov: 45,
+                near: 0.1,
+                far: 2000
+            }
         };
         this.options = _util__WEBPACK_IMPORTED_MODULE_1__["Util"].extend(defaultOptions, options);
     
@@ -758,46 +784,21 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["EventEmiter"] 
         this._orbitControl.reset()
     }
     setView(bounds) {
-        const deafultMinDis = 30, defaultMaxDis = 200;
         if (this.options.type === 'plane') {
-            if (this.options.region === 'world') {
-
-            } else if (this.options.region === 'china') {
-                this._orbitControl.minDistance = deafultMinDis;
-                this._orbitControl.maxDistance = defaultMaxDis;
-                this._orbitControl.object.position.set(109.58688917016474, 16.051696751000303, -9.408028404329741);
-                this._orbitControl.target = new THREE.Vector3(106.61608780527186, -6.091, -47.26487677586227);
-            } else {
-                // other
-                let center = bounds.getCenter();
-                let opt = this.getOptimalDistance(bounds);
-                this._orbitControl.minDistance = deafultMinDis * opt.ratio;
-                this._orbitControl.maxDistance = defaultMaxDis * opt.ratio;
-                this._orbitControl.object.position.set(center[0], opt.d, -center[1]);
-                this._orbitControl.target = new THREE.Vector3(center[0], 0, -center[1]);
-            }
+            let cameraOptions = this.options.camera;
+            let a = (Math.PI / 180) * (cameraOptions.fov / 2);
+            // let b = Math.max(bounds.getWidth(), bounds.getHeight()) / 2;
+            let b = bounds.getHeight() / 2;
+            let distance = b / Math.tan(a);
+            let center = bounds.getCenter();
+            this._orbitControl.object.position.set(0, 0, distance);
+            this._orbitControl.object.translateX(center[0]);
+            this._orbitControl.object.translateY(center[1]);
+            this._orbitControl.target = new THREE.Vector3(center[0], center[1], 0);
         } else {
-            // 3d
+            // sphere
         }
         this._orbitControl.update();
-    }
-    // 将区域 bounds 和 全国 bounds 进行对比，找到相机合适的距离，以自动适配范围
-    // 计算方式根据视角组成的相似三角形
-    getOptimalDistance(bounds) {
-        if (!bounds) {
-            return {
-                d: 60,
-                ratio: 1
-            }
-        }
-        var h0 = 35.464 // 全国区域外包矩形高度
-        var d0 = 60 // 全国区域相机初始距离，TODO 待优化，暂时写死
-        var h1 = bounds.getHeight()
-        var d1 = h1 * d0 / h0
-        return {
-            d: d1, // 实际距离
-            ratio: d1 / d0 // 距离比例
-        }
     }
     getContainerElement() {
         return this._el;
@@ -843,7 +844,8 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["EventEmiter"] 
         this._scene = new THREE.Scene();
 
         // 相机
-        this._camera = new THREE.PerspectiveCamera(45, size.width / size.height, 1, 1000)
+        let cameraOptions = this.options.camera;
+        this._camera = new THREE.PerspectiveCamera(cameraOptions.fov, size.width / size.height, cameraOptions.near, cameraOptions.far)
 
         // 控件
         this._orbitControl = new THREE.OrbitControls(this._camera, this._renderer.domElement)
@@ -855,7 +857,7 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["EventEmiter"] 
         this._orbitControl.minAzimuthAngle = -Math.PI / 2
         // OrbitControls加入后，托管了相机，所以必须通过它来改变相机参数
         // camera.lookAt()失效问题https://stackoverflow.com/questions/10325095/threejs-camera-lookat-has-no-effect-is-there-something-im-doing-wrong
-        this._orbitControl.object.position.set(0, 0, 100)
+        // this._orbitControl.object.position.set(0, 0, 100)
         // this._orbitControl.target = new THREE.Vector3(12245143.987260092, 0, -3482189.0854086173)
         this._orbitControl.saveState()
         this._orbitControl.update()

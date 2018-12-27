@@ -13,10 +13,10 @@ export class Bounds {
         }
     }
     getWidth() {
-        return (this.xmax - this.xmin);
+        return Math.abs(this.xmax - this.xmin);
     }
     getHeight() {
-        return (this.ymax - this.ymin);
+        return Math.abs(this.ymax - this.ymin);
     }
     getCenter() {
         let tx = (this.xmax - this.xmin) / 2;

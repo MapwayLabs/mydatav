@@ -1,13 +1,6 @@
-import {
-    Layer
-} from './layer'
-import {
-    Util
-} from '../util'
-import {
-    mapHelper
-} from '../maphelper'
-
+import { Layer } from './layer';
+import { Util } from '../util';
+import { mapHelper } from '../maphelper';
 export class GeoJSONLayer extends Layer {
     constructor(data, options) {
         super(data, options);
@@ -16,10 +9,14 @@ export class GeoJSONLayer extends Layer {
             depth: 0.6, // 拉伸厚度
             isAreaText: true, // 是否显示地区名称
             fillColor: '#ddd', // 地区面块的填充色
-            strokeColor: '#000', // 地区边缘线的颜色
-            strokeOpacity: 0.5, // 地区边缘线的透明度
-            textColor: 'rgba(0, 0, 0, 0.8)',
-            material: {
+            // strokeColor: '#000', // 地区边缘线的颜色
+            // strokeOpacity: 0.5, // 地区边缘线的透明度
+            textColor: 'rgba(0, 0, 0, 0.8)', // 文字颜色
+            lineMaterial: {
+                color: 0x0000ff,
+                linewidth: 1.5
+            },
+            areaMaterial: { // 面材质配置
                 color: 0x00ff00,
                 // opacity: 0.5,
                 side: THREE.DoubleSide
@@ -28,11 +25,18 @@ export class GeoJSONLayer extends Layer {
         this.options = Util.extend(defaultOptions, options);
     }
     onAdd(map) {
-        Layer.prototype.onAdd.call(this, map);
-        this.draw();
+        Layer.prototype.onAdd.call(this, map); 
+        this._initBoundsAndCenter();
+        this._draw();
     }
     onRemove(map) {
         Layer.prototype.onRemove.call(this, map);
+    }
+    getBounds() {
+        return this._bounds;
+    }
+    getCenter() {
+        return this._center;
     }
     createFeatureArray(json) {
         var feature_array = [];
@@ -133,17 +137,40 @@ export class GeoJSONLayer extends Layer {
         return midpoint;
     }
     convertCoordinates(coordinateArray) {
-        return coordinateArray.map(point => mapHelper.wgs84ToMecator(point));
+        return coordinateArray.map(lnglat => {
+            let mecatorPoint = mapHelper.wgs84ToMecator(lnglat);
+            return mecatorPoint.map(p => p / this._map.options.SCALE_RATIO);
+        });
     }
-    draw() {
+    _initBoundsAndCenter() {
+        let mecatorBounds;
+        let mapOptions = this._map.options;
+        if (mapOptions.type === 'plane') {
+            if (mapOptions.region === 'world') {
+                mecatorBounds = mapHelper.getBounds('world');
+            } else if (mapOptions.region === 'china') {
+                mecatorBounds = mapHelper.getBounds('china');
+            } else {
+                mecatorBounds = mapHelper.getBounds(this._data);
+            }
+        } else {
+            // sphere
+        }
+        if (mecatorBounds) {
+            let scale = mapOptions.SCALE_RATIO;
+            this._bounds = mecatorBounds.scale(1/scale);
+            this._center = this._bounds.getCenter();
+        }
+    }
+    _draw() {
         var geojson = this._data;
-        var container = this._container;
 
         var features = this.createFeatureArray(geojson);
 
         for (let i = 0, len = features.length; i < len; i++) {
             let feature = features[i];
             let geometry = feature.geometry;
+            if (geometry == null) continue;
             if (geometry.type == 'Point') {
 
             } else if (geometry.type == 'MultiPoint') {
@@ -172,6 +199,23 @@ export class GeoJSONLayer extends Layer {
             }
         }
     }
+    drawOutLine(points, mesh) {
+        // 画轮廓线
+        // 因为面是画在xy平面的，然后通过旋转而来，为了保持一致，轮廓线也绘制在xy平面，这样变换就能与面同步
+        let line_geom = new THREE.Geometry();
+        for (let i = 0, len=points.length; i < len ; i++) {
+            line_geom.vertices.push(new THREE.Vector3(points[i][0], points[i][1], 0));
+        }
+        let line_material = new THREE.LineBasicMaterial(this.options.lineMaterial);
+        // line_material.transparent = false;
+        // line_material.opacity = this.options.strokeOpacity;
+        let line = new THREE.Line(line_geom, line_material);
+        if (this.options.isExtrude) {
+            line.translateZ(this.options.depth);
+        }
+        line.renderOrder = 98;
+        mesh.add(line);
+    }
     drawPolygon(points) {
         let shape = new THREE.Shape();
         for (let i = 0; i < points.length; i++) {
@@ -183,19 +227,29 @@ export class GeoJSONLayer extends Layer {
             }
         }
         shape.closePath();
-        var extrudeSettings = {
-            depth: 1, 
-            bevelEnabled: false   // 是否用斜角
-        };
-        var geometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings);
-        var material = new THREE.MeshPhongMaterial({ color: 0x999999 });
 
-        var mesh = new THREE.Mesh(geometry, material);
-        // drawOutLine(x_values, y_values, z_values, mesh);
+        let geometry, material;
+
+        if (this.options.isExtrude) {
+            // 拉伸
+            let extrudeSettings = {
+                depth: this.options.depth, 
+                bevelEnabled: false   // 是否用斜角
+            };
+            geometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings);
+            material = new THREE.MeshPhongMaterial(this.options.areaMaterial);
+        } else {
+            // 不拉伸
+            geometry = new THREE.ShapeBufferGeometry(shape);
+            material = new THREE.MeshBasicMaterial(this.options.areaMaterial);
+        }
+        
+        let mesh = new THREE.Mesh(geometry, material);
+        this.drawOutLine(points, mesh);
         // mesh.rotateX(-Math.PI/2);
-        // mesh.userData = {
-        //     type: 'area'
-        // };
+        mesh.userData = {
+            type: 'area'
+        };
         this._container.add(mesh);
     }
 }

@@ -37,6 +37,7 @@ export const mapHelper = {
 
 		return [ point[0] * d / r, phi * d ];
     },
+    // 根据geojson数据获取geo对象在墨卡托投影平面的范围
     getBounds(geojson) {
         // 中国和世界范围写死，避免大量计算
         if (geojson === 'world') {

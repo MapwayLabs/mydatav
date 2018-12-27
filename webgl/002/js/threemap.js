@@ -9,7 +9,12 @@ export class ThreeMap extends EventEmiter {
             lightColor: 0xffffff, // 灯光颜色
             type: 'plane', // plane or sphere ,平面或球面
             region: 'china', // china or world, 中国或世界地图
-            SCALE_RATIO: 100000 // 地球墨卡托平面缩放比例
+            SCALE_RATIO: 100000, // 地球墨卡托平面缩放比例
+            camera: {
+                fov: 45,
+                near: 0.1,
+                far: 2000
+            }
         };
         this.options = Util.extend(defaultOptions, options);
     
@@ -71,46 +76,21 @@ export class ThreeMap extends EventEmiter {
         this._orbitControl.reset()
     }
     setView(bounds) {
-        const deafultMinDis = 30, defaultMaxDis = 200;
         if (this.options.type === 'plane') {
-            if (this.options.region === 'world') {
-
-            } else if (this.options.region === 'china') {
-                this._orbitControl.minDistance = deafultMinDis;
-                this._orbitControl.maxDistance = defaultMaxDis;
-                this._orbitControl.object.position.set(109.58688917016474, 16.051696751000303, -9.408028404329741);
-                this._orbitControl.target = new THREE.Vector3(106.61608780527186, -6.091, -47.26487677586227);
-            } else {
-                // other
-                let center = bounds.getCenter();
-                let opt = this.getOptimalDistance(bounds);
-                this._orbitControl.minDistance = deafultMinDis * opt.ratio;
-                this._orbitControl.maxDistance = defaultMaxDis * opt.ratio;
-                this._orbitControl.object.position.set(center[0], opt.d, -center[1]);
-                this._orbitControl.target = new THREE.Vector3(center[0], 0, -center[1]);
-            }
+            let cameraOptions = this.options.camera;
+            let a = (Math.PI / 180) * (cameraOptions.fov / 2);
+            // let b = Math.max(bounds.getWidth(), bounds.getHeight()) / 2;
+            let b = bounds.getHeight() / 2;
+            let distance = b / Math.tan(a);
+            let center = bounds.getCenter();
+            this._orbitControl.object.position.set(0, 0, distance);
+            this._orbitControl.object.translateX(center[0]);
+            this._orbitControl.object.translateY(center[1]);
+            this._orbitControl.target = new THREE.Vector3(center[0], center[1], 0);
         } else {
-            // 3d
+            // sphere
         }
         this._orbitControl.update();
-    }
-    // 将区域 bounds 和 全国 bounds 进行对比，找到相机合适的距离，以自动适配范围
-    // 计算方式根据视角组成的相似三角形
-    getOptimalDistance(bounds) {
-        if (!bounds) {
-            return {
-                d: 60,
-                ratio: 1
-            }
-        }
-        var h0 = 35.464 // 全国区域外包矩形高度
-        var d0 = 60 // 全国区域相机初始距离，TODO 待优化，暂时写死
-        var h1 = bounds.getHeight()
-        var d1 = h1 * d0 / h0
-        return {
-            d: d1, // 实际距离
-            ratio: d1 / d0 // 距离比例
-        }
     }
     getContainerElement() {
         return this._el;
@@ -156,7 +136,8 @@ export class ThreeMap extends EventEmiter {
         this._scene = new THREE.Scene();
 
         // 相机
-        this._camera = new THREE.PerspectiveCamera(45, size.width / size.height, 1, 1000)
+        let cameraOptions = this.options.camera;
+        this._camera = new THREE.PerspectiveCamera(cameraOptions.fov, size.width / size.height, cameraOptions.near, cameraOptions.far)
 
         // 控件
         this._orbitControl = new THREE.OrbitControls(this._camera, this._renderer.domElement)
@@ -168,7 +149,7 @@ export class ThreeMap extends EventEmiter {
         this._orbitControl.minAzimuthAngle = -Math.PI / 2
         // OrbitControls加入后，托管了相机，所以必须通过它来改变相机参数
         // camera.lookAt()失效问题https://stackoverflow.com/questions/10325095/threejs-camera-lookat-has-no-effect-is-there-something-im-doing-wrong
-        this._orbitControl.object.position.set(0, 0, 100)
+        // this._orbitControl.object.position.set(0, 0, 100)
         // this._orbitControl.target = new THREE.Vector3(12245143.987260092, 0, -3482189.0854086173)
         this._orbitControl.saveState()
         this._orbitControl.update()
