@@ -6,7 +6,7 @@ export class GeoJSONLayer extends Layer {
         super(data, options);
         const defaultOptions = {
             isExtrude: true, // 是否拉伸面
-            depth: 0.6, // 拉伸厚度
+            depth: 16, // 拉伸厚度
             isAreaText: true, // 是否显示地区名称
             fillColor: '#ddd', // 地区面块的填充色
             // strokeColor: '#000', // 地区边缘线的颜色
@@ -246,7 +246,7 @@ export class GeoJSONLayer extends Layer {
         
         let mesh = new THREE.Mesh(geometry, material);
         this.drawOutLine(points, mesh);
-        // mesh.rotateX(-Math.PI/2);
+        mesh.rotateX(-Math.PI/2);
         mesh.userData = {
             type: 'area'
         };

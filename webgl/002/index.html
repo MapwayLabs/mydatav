@@ -27,10 +27,10 @@
         // ./china_province.json  geo-china-beijing.json world2
         $.getJSON('../../data/world2.json', function (data) {
             // map.setView();
-            map.options.type = 'plane'
-            map.options.region = 'xxx'
+            map.options.type = 'plane';
+            map.options.region = 'world';
             var geoOptions = {
-                isExtrude: false
+                isExtrude: true
             };
             window.geojsonLayer = new TMap.GeoJSONLayer(data, geoOptions);
             map.addLayer(window.geojsonLayer);

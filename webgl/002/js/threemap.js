@@ -77,16 +77,21 @@ export class ThreeMap extends EventEmiter {
     }
     setView(bounds) {
         if (this.options.type === 'plane') {
-            let cameraOptions = this.options.camera;
-            let a = (Math.PI / 180) * (cameraOptions.fov / 2);
-            // let b = Math.max(bounds.getWidth(), bounds.getHeight()) / 2;
-            let b = bounds.getHeight() / 2;
-            let distance = b / Math.tan(a);
-            let center = bounds.getCenter();
-            this._orbitControl.object.position.set(0, 0, distance);
-            this._orbitControl.object.translateX(center[0]);
-            this._orbitControl.object.translateY(center[1]);
-            this._orbitControl.target = new THREE.Vector3(center[0], center[1], 0);
+            if (this.options.region === 'world') {
+                this._orbitControl.object.position.set(16.42515, 369.562538, 333.99466);
+                this._orbitControl.target = new THREE.Vector3(10.06448, 51.62625, 6.71498);
+            } else {
+                let cameraOptions = this.options.camera;
+                let a = (Math.PI / 180) * (cameraOptions.fov / 2);
+                // let b = Math.max(bounds.getWidth(), bounds.getHeight()) / 2;
+                let b = bounds.getHeight() / 2;
+                let distance = b / Math.tan(a);
+                let center = bounds.getCenter();
+                this._orbitControl.object.position.set(0, 0, distance);
+                this._orbitControl.object.translateX(center[0]);
+                this._orbitControl.object.translateY(center[1]);
+                this._orbitControl.target = new THREE.Vector3(center[0], center[1], 0);
+            }
         } else {
             // sphere
         }
@@ -155,13 +160,13 @@ export class ThreeMap extends EventEmiter {
         this._orbitControl.update()
 
         // 灯光
-        // this._scene.add(new THREE.AmbientLight(this.options.lightColor, 0.6));
-        // this._light = new THREE.DirectionalLight(this.options.lightColor, 0.8);
-        // this._light2 = new THREE.DirectionalLight(this.options.lightColor, 0.1);
-        // this._light.position.set(-1, 1, 1);
-        // this._light2.position.set(1, 1, 1);
-        // this._scene.add(this._light);
-        // this._scene.add(this._light2);
+        this._scene.add(new THREE.AmbientLight(this.options.lightColor, 0.6));
+        this._light = new THREE.DirectionalLight(this.options.lightColor, 0.8);
+        this._light2 = new THREE.DirectionalLight(this.options.lightColor, 0.1);
+        this._light.position.set(-1, 1, 1);
+        this._light2.position.set(1, 1, 1);
+        this._scene.add(this._light);
+        this._scene.add(this._light2);
 
         // animate
         this._animate();

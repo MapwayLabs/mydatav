@@ -363,7 +363,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["Layer"] {
         super(data, options);
         const defaultOptions = {
             isExtrude: true, // 是否拉伸面
-            depth: 0.6, // 拉伸厚度
+            depth: 16, // 拉伸厚度
             isAreaText: true, // 是否显示地区名称
             fillColor: '#ddd', // 地区面块的填充色
             // strokeColor: '#000', // 地区边缘线的颜色
@@ -603,7 +603,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["Layer"] {
         
         let mesh = new THREE.Mesh(geometry, material);
         this.drawOutLine(points, mesh);
-        // mesh.rotateX(-Math.PI/2);
+        mesh.rotateX(-Math.PI/2);
         mesh.userData = {
             type: 'area'
         };
@@ -909,16 +909,21 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["EventEmiter"] 
     }
     setView(bounds) {
         if (this.options.type === 'plane') {
-            let cameraOptions = this.options.camera;
-            let a = (Math.PI / 180) * (cameraOptions.fov / 2);
-            // let b = Math.max(bounds.getWidth(), bounds.getHeight()) / 2;
-            let b = bounds.getHeight() / 2;
-            let distance = b / Math.tan(a);
-            let center = bounds.getCenter();
-            this._orbitControl.object.position.set(0, 0, distance);
-            this._orbitControl.object.translateX(center[0]);
-            this._orbitControl.object.translateY(center[1]);
-            this._orbitControl.target = new THREE.Vector3(center[0], center[1], 0);
+            if (this.options.region === 'world') {
+                this._orbitControl.object.position.set(16.42515, 369.562538, 333.99466);
+                this._orbitControl.target = new THREE.Vector3(10.06448, 51.62625, 6.71498);
+            } else {
+                let cameraOptions = this.options.camera;
+                let a = (Math.PI / 180) * (cameraOptions.fov / 2);
+                // let b = Math.max(bounds.getWidth(), bounds.getHeight()) / 2;
+                let b = bounds.getHeight() / 2;
+                let distance = b / Math.tan(a);
+                let center = bounds.getCenter();
+                this._orbitControl.object.position.set(0, 0, distance);
+                this._orbitControl.object.translateX(center[0]);
+                this._orbitControl.object.translateY(center[1]);
+                this._orbitControl.target = new THREE.Vector3(center[0], center[1], 0);
+            }
         } else {
             // sphere
         }
@@ -987,13 +992,13 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["EventEmiter"] 
         this._orbitControl.update()
 
         // 灯光
-        // this._scene.add(new THREE.AmbientLight(this.options.lightColor, 0.6));
-        // this._light = new THREE.DirectionalLight(this.options.lightColor, 0.8);
-        // this._light2 = new THREE.DirectionalLight(this.options.lightColor, 0.1);
-        // this._light.position.set(-1, 1, 1);
-        // this._light2.position.set(1, 1, 1);
-        // this._scene.add(this._light);
-        // this._scene.add(this._light2);
+        this._scene.add(new THREE.AmbientLight(this.options.lightColor, 0.6));
+        this._light = new THREE.DirectionalLight(this.options.lightColor, 0.8);
+        this._light2 = new THREE.DirectionalLight(this.options.lightColor, 0.1);
+        this._light.position.set(-1, 1, 1);
+        this._light2.position.set(1, 1, 1);
+        this._scene.add(this._light);
+        this._scene.add(this._light2);
 
         // animate
         this._animate();
