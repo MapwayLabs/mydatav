@@ -1,15 +1,17 @@
 import { EventEmiter } from './eventemiter'
 import { Util } from './util'
-import { mapHelper } from './maphelper'
+import { mapHelper, CRS } from './maphelper'
+
 export class ThreeMap extends EventEmiter {
     constructor(el, options) {
         super();
         var defaultOptions = {
-            containerClassName: 'three-map-container', // 地图容器类名
-            lightColor: 0xffffff, // 灯光颜色
+            crs: CRS.epsg3857, // 地图采用的地理坐标系 EPSG:4326: 经纬度，EPSG:3857: 墨卡托
+            SCALE_RATIO: 100000, // 地球墨卡托平面缩放比例
             type: 'plane', // plane or sphere ,平面或球面
             region: 'china', // china or world, 中国或世界地图
-            SCALE_RATIO: 100000, // 地球墨卡托平面缩放比例
+            containerClassName: 'three-map-container', // 地图容器类名
+            lightColor: 0xffffff, // 灯光颜色
             camera: {
                 fov: 45,
                 near: 0.1,
@@ -20,9 +22,9 @@ export class ThreeMap extends EventEmiter {
     
         if (this.options.type === 'plane') {
             if (this.options.region === 'china') {
-                this._fullBound = mapHelper.getBounds('china');
+                this._fullBound = mapHelper.getBounds('china', this.options.crs);
             } else {
-                this._fullBound = mapHelper.getBounds('world');
+                this._fullBound = mapHelper.getBounds('world', this.options.crs);
             }
         }
 

@@ -1,6 +1,6 @@
 import { Layer } from './layer';
 import { Util } from '../util';
-import { mapHelper } from '../maphelper';
+import { mapHelper, CRS } from '../maphelper';
 import { lineShader } from './shader/line';
 export class FlyLineLayer extends Layer {
     constructor(data, options) {
@@ -35,12 +35,18 @@ export class FlyLineLayer extends Layer {
     }
     _draw() {
         this._data.forEach(item => {
-            let f = mapHelper.wgs84ToMecator(item.from.split(','));
-            let t = mapHelper.wgs84ToMecator(item.to.split(','));
-            let scale = this._map.options.SCALE_RATIO;
-            item.from = f.map(point => point / scale);
-            item.to = t.map(point => point / scale);
-            this._drawFlyLine(item.from, item.to, 2 / scale);
+            let f = item.from.split(',').map(p => Number(p));
+            let t = item.to.split(',').map(p => Number(p));
+            let h = 2;
+            if (this._map.options.crs === CRS.epsg3857) {
+                let scale = this._map.options.SCALE_RATIO;
+                f = mapHelper.wgs84ToMecator(f);
+                t = mapHelper.wgs84ToMecator(t);
+                f = f.map(point => point / scale);
+                t = t.map(point => point / scale);
+                h = h / scale;
+            }
+            this._drawFlyLine(f, t, h);
         });
     }
     _drawFlyLine(startPoint, endPoint, heightLimit) {

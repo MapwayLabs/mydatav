@@ -1,6 +1,6 @@
 import { Layer } from './layer';
 import { Util } from '../util';
-import { mapHelper } from '../maphelper';
+import { mapHelper, CRS } from '../maphelper';
 export class GeoJSONLayer extends Layer {
     constructor(data, options) {
         super(data, options);
@@ -143,23 +143,28 @@ export class GeoJSONLayer extends Layer {
         });
     }
     _initBoundsAndCenter() {
-        let mecatorBounds;
+        let bounds;
         let mapOptions = this._map.options;
         if (mapOptions.type === 'plane') {
             if (mapOptions.region === 'world') {
-                mecatorBounds = mapHelper.getBounds('world');
+                bounds = mapHelper.getBounds('world', mapOptions.crs);
             } else if (mapOptions.region === 'china') {
-                mecatorBounds = mapHelper.getBounds('china');
+                bounds = mapHelper.getBounds('china', mapOptions.crs);
             } else {
-                mecatorBounds = mapHelper.getBounds(this._data);
+                bounds = mapHelper.getBounds(this._data, mapOptions.crs);
             }
         } else {
             // sphere
         }
-        if (mecatorBounds) {
-            let scale = mapOptions.SCALE_RATIO;
-            this._bounds = mecatorBounds.scale(1/scale);
-            this._center = this._bounds.getCenter();
+        if (bounds) {
+            if (mapOptions.crs === CRS.epsg4326) {
+                this._bounds = bounds;
+                this._center = bounds.getCenter();
+            } else {
+                let scale = mapOptions.SCALE_RATIO;
+                this._bounds = bounds.scale(1/scale);
+                this._center = this._bounds.getCenter();
+            }
         }
     }
     _draw() {
@@ -182,7 +187,10 @@ export class GeoJSONLayer extends Layer {
             } else if (geometry.type == 'Polygon') {
                 for (let segment_num = 0; segment_num < geometry.coordinates.length; segment_num++) {
                     let coordinate_array = this.createCoordinateArray(geometry.coordinates[segment_num]);
-                    let convert_array = this.convertCoordinates(coordinate_array);
+                    let convert_array = coordinate_array;
+                    if (this._map.options.crs === CRS.epsg3857) {
+                        convert_array = this.convertCoordinates(coordinate_array);
+                    }
                     this.drawPolygon(convert_array);
                 }
 
@@ -190,7 +198,10 @@ export class GeoJSONLayer extends Layer {
                 for (let polygon_num = 0; polygon_num < geometry.coordinates.length; polygon_num++) {
                     for (let segment_num = 0; segment_num < geometry.coordinates[polygon_num].length; segment_num++) {
                         let coordinate_array = this.createCoordinateArray(geometry.coordinates[polygon_num][segment_num]);
-                        let convert_array = this.convertCoordinates(coordinate_array);
+                        let convert_array = coordinate_array;
+                        if (this._map.options.crs === CRS.epsg3857) {
+                            convert_array = this.convertCoordinates(coordinate_array);
+                        }
                         this.drawPolygon(convert_array);
                     }
                 }

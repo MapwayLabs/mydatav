@@ -229,7 +229,7 @@ class EventEmiter {
 /*!*********************!*\
   !*** ./js/index.js ***!
   \*********************/
-/*! exports provided: Util, ThreeMap, mapHelper, GeoJSONLayer, FlyLineLayer */
+/*! exports provided: Util, ThreeMap, CRS, mapHelper, GeoJSONLayer, FlyLineLayer */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -246,6 +246,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "FlyLineLayer", function() { return _layers_index__WEBPACK_IMPORTED_MODULE_2__["FlyLineLayer"]; });
 
 /* harmony import */ var _maphelper__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./maphelper */ "./js/maphelper.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "CRS", function() { return _maphelper__WEBPACK_IMPORTED_MODULE_3__["CRS"]; });
+
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "mapHelper", function() { return _maphelper__WEBPACK_IMPORTED_MODULE_3__["mapHelper"]; });
 
 
@@ -306,12 +308,18 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["Layer"] {
     }
     _draw() {
         this._data.forEach(item => {
-            let f = _maphelper__WEBPACK_IMPORTED_MODULE_2__["mapHelper"].wgs84ToMecator(item.from.split(','));
-            let t = _maphelper__WEBPACK_IMPORTED_MODULE_2__["mapHelper"].wgs84ToMecator(item.to.split(','));
-            let scale = this._map.options.SCALE_RATIO;
-            item.from = f.map(point => point / scale);
-            item.to = t.map(point => point / scale);
-            this._drawFlyLine(item.from, item.to, 2 / scale);
+            let f = item.from.split(',').map(p => Number(p));
+            let t = item.to.split(',').map(p => Number(p));
+            let h = 2;
+            if (this._map.options.crs === _maphelper__WEBPACK_IMPORTED_MODULE_2__["CRS"].epsg3857) {
+                let scale = this._map.options.SCALE_RATIO;
+                f = _maphelper__WEBPACK_IMPORTED_MODULE_2__["mapHelper"].wgs84ToMecator(f);
+                t = _maphelper__WEBPACK_IMPORTED_MODULE_2__["mapHelper"].wgs84ToMecator(t);
+                f = f.map(point => point / scale);
+                t = t.map(point => point / scale);
+                h = h / scale;
+            }
+            this._drawFlyLine(f, t, h);
         });
     }
     _drawFlyLine(startPoint, endPoint, heightLimit) {
@@ -500,23 +508,28 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["Layer"] {
         });
     }
     _initBoundsAndCenter() {
-        let mecatorBounds;
+        let bounds;
         let mapOptions = this._map.options;
         if (mapOptions.type === 'plane') {
             if (mapOptions.region === 'world') {
-                mecatorBounds = _maphelper__WEBPACK_IMPORTED_MODULE_2__["mapHelper"].getBounds('world');
+                bounds = _maphelper__WEBPACK_IMPORTED_MODULE_2__["mapHelper"].getBounds('world', mapOptions.crs);
             } else if (mapOptions.region === 'china') {
-                mecatorBounds = _maphelper__WEBPACK_IMPORTED_MODULE_2__["mapHelper"].getBounds('china');
+                bounds = _maphelper__WEBPACK_IMPORTED_MODULE_2__["mapHelper"].getBounds('china', mapOptions.crs);
             } else {
-                mecatorBounds = _maphelper__WEBPACK_IMPORTED_MODULE_2__["mapHelper"].getBounds(this._data);
+                bounds = _maphelper__WEBPACK_IMPORTED_MODULE_2__["mapHelper"].getBounds(this._data, mapOptions.crs);
             }
         } else {
             // sphere
         }
-        if (mecatorBounds) {
-            let scale = mapOptions.SCALE_RATIO;
-            this._bounds = mecatorBounds.scale(1/scale);
-            this._center = this._bounds.getCenter();
+        if (bounds) {
+            if (mapOptions.crs === _maphelper__WEBPACK_IMPORTED_MODULE_2__["CRS"].epsg4326) {
+                this._bounds = bounds;
+                this._center = bounds.getCenter();
+            } else {
+                let scale = mapOptions.SCALE_RATIO;
+                this._bounds = bounds.scale(1/scale);
+                this._center = this._bounds.getCenter();
+            }
         }
     }
     _draw() {
@@ -539,7 +552,10 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["Layer"] {
             } else if (geometry.type == 'Polygon') {
                 for (let segment_num = 0; segment_num < geometry.coordinates.length; segment_num++) {
                     let coordinate_array = this.createCoordinateArray(geometry.coordinates[segment_num]);
-                    let convert_array = this.convertCoordinates(coordinate_array);
+                    let convert_array = coordinate_array;
+                    if (this._map.options.crs === _maphelper__WEBPACK_IMPORTED_MODULE_2__["CRS"].epsg3857) {
+                        convert_array = this.convertCoordinates(coordinate_array);
+                    }
                     this.drawPolygon(convert_array);
                 }
 
@@ -547,7 +563,10 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["Layer"] {
                 for (let polygon_num = 0; polygon_num < geometry.coordinates.length; polygon_num++) {
                     for (let segment_num = 0; segment_num < geometry.coordinates[polygon_num].length; segment_num++) {
                         let coordinate_array = this.createCoordinateArray(geometry.coordinates[polygon_num][segment_num]);
-                        let convert_array = this.convertCoordinates(coordinate_array);
+                        let convert_array = coordinate_array;
+                        if (this._map.options.crs === _maphelper__WEBPACK_IMPORTED_MODULE_2__["CRS"].epsg3857) {
+                            convert_array = this.convertCoordinates(coordinate_array);
+                        }
                         this.drawPolygon(convert_array);
                     }
                 }
@@ -703,11 +722,12 @@ const lineShader = {
 /*!*************************!*\
   !*** ./js/maphelper.js ***!
   \*************************/
-/*! exports provided: mapHelper */
+/*! exports provided: CRS, mapHelper */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "CRS", function() { return CRS; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "mapHelper", function() { return mapHelper; });
 /* harmony import */ var _bounds__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./bounds */ "./js/bounds.js");
 
@@ -716,6 +736,10 @@ const R = 6378137; // 地球半径（米）
 const R_MINOR = 6356752.314245179;
 const BOUND = new _bounds__WEBPACK_IMPORTED_MODULE_0__["Bounds"](-20037508.34279, -15496570.73972, 20037508.34279, 18764656.23138);
 
+const CRS = {
+    epsg4326: 'EPSG:4326',
+    epsg3857: 'EPSG:3857'
+}
 const mapHelper = {
     // 经纬度转墨卡托
     wgs84ToMecator(lnglat) {
@@ -750,28 +774,39 @@ const mapHelper = {
 		return [ point[0] * d / r, phi * d ];
     },
     // 根据geojson数据获取geo对象在墨卡托投影平面的范围
-    getBounds(geojson) {
+    getBounds(geojson, crs) {
+        crs = crs || CRS.epsg4326;
         // 中国和世界范围写死，避免大量计算
         if (geojson === 'world') {
-            let xmin = -20037508.342789244;
-            let xmax = 20037508.342789244;
-            let ymin = -8037175.40001875;
-            let ymax = 18362426.510304134;
-            return new _bounds__WEBPACK_IMPORTED_MODULE_0__["Bounds"](xmin, ymin, xmax, ymax);
+            let xmin = -180;
+            let ymin = -85;
+            let xmax = 180;
+            let ymax = 85;
+            let lb = [xmin, ymin];
+            let rt = [xmax, ymax];
+            if (crs === CRS.epsg3857) {
+                lb = this.wgs84ToMecator(lb);
+                rt = this.wgs84ToMecator(rt);
+            }
+            return new _bounds__WEBPACK_IMPORTED_MODULE_0__["Bounds"](lb, rt);
         } else if (geojson === 'china') {
             let xmin = 73.4766;
             let xmax = 135.0879;
             let ymin = 18.1055;
             let ymax = 53.5693;
-            let lb = this.wgs84ToMecator([xmin, ymin]);
-            let rt = this.wgs84ToMecator([xmax, ymax]);
+            let lb = [xmin, ymin];
+            let rt = [xmax, ymax];
+            if (crs === CRS.epsg3857) {
+                lb = this.wgs84ToMecator(lb);
+                rt = this.wgs84ToMecator(rt);
+            }
             return new _bounds__WEBPACK_IMPORTED_MODULE_0__["Bounds"](lb, rt);
         } else {
             let bound = {
-                xmin: BOUND.xmax,
-                xmax: BOUND.xmin,
-                ymin: BOUND.ymax,
-                ymax: BOUND.ymin
+                xmin: 180,
+                xmax: -180,
+                ymin: 90,
+                ymax: -90
             };
             let features = [];
             let polygons = [];
@@ -794,7 +829,7 @@ const mapHelper = {
                 for (let j = 0; j < seg.length; j++) {
                     let coords = seg[j];
                     for (let k = 0; k < coords.length; k++) {
-                        let coord = this.wgs84ToMecator(coords[k]);
+                        let coord = coords[k];
                         if (coord[0] < bound.xmin) {
                             bound.xmin = coord[0];
                         }
@@ -810,7 +845,13 @@ const mapHelper = {
                     }
                 }
             }
-            return new _bounds__WEBPACK_IMPORTED_MODULE_0__["Bounds"](bound.xmin, bound.ymin, bound.xmax, bound.ymax);
+            let lb = [bound.xmin, bound.ymin];
+            let rt = [bound.xmax, bound.ymax];
+            if (crs === CRS.epsg3857) {
+                lb = this.wgs84ToMecator(lb);
+                rt = this.wgs84ToMecator(rt);
+            }
+            return new _bounds__WEBPACK_IMPORTED_MODULE_0__["Bounds"](lb, rt);
         }
     }
 }
@@ -833,15 +874,17 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
 class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["EventEmiter"] {
     constructor(el, options) {
         super();
         var defaultOptions = {
-            containerClassName: 'three-map-container', // 地图容器类名
-            lightColor: 0xffffff, // 灯光颜色
+            crs: _maphelper__WEBPACK_IMPORTED_MODULE_2__["CRS"].epsg3857, // EPSG:4326: 经纬度，EPSG:3857: 墨卡托
+            SCALE_RATIO: 100000, // 地球墨卡托平面缩放比例
             type: 'plane', // plane or sphere ,平面或球面
             region: 'china', // china or world, 中国或世界地图
-            SCALE_RATIO: 100000, // 地球墨卡托平面缩放比例
+            containerClassName: 'three-map-container', // 地图容器类名
+            lightColor: 0xffffff, // 灯光颜色
             camera: {
                 fov: 45,
                 near: 0.1,
@@ -852,9 +895,9 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["EventEmiter"] 
     
         if (this.options.type === 'plane') {
             if (this.options.region === 'china') {
-                this._fullBound = _maphelper__WEBPACK_IMPORTED_MODULE_2__["mapHelper"].getBounds('china');
+                this._fullBound = _maphelper__WEBPACK_IMPORTED_MODULE_2__["mapHelper"].getBounds('china', this.options.crs);
             } else {
-                this._fullBound = _maphelper__WEBPACK_IMPORTED_MODULE_2__["mapHelper"].getBounds('world');
+                this._fullBound = _maphelper__WEBPACK_IMPORTED_MODULE_2__["mapHelper"].getBounds('world', this.options.crs);
             }
         }
 

@@ -4,6 +4,10 @@ const R = 6378137; // 地球半径（米）
 const R_MINOR = 6356752.314245179;
 const BOUND = new Bounds(-20037508.34279, -15496570.73972, 20037508.34279, 18764656.23138);
 
+export const CRS = {
+    epsg4326: 'EPSG:4326',
+    epsg3857: 'EPSG:3857'
+}
 export const mapHelper = {
     // 经纬度转墨卡托
     wgs84ToMecator(lnglat) {
@@ -38,28 +42,39 @@ export const mapHelper = {
 		return [ point[0] * d / r, phi * d ];
     },
     // 根据geojson数据获取geo对象在墨卡托投影平面的范围
-    getBounds(geojson) {
+    getBounds(geojson, crs) {
+        crs = crs || CRS.epsg4326;
         // 中国和世界范围写死，避免大量计算
         if (geojson === 'world') {
-            let xmin = -20037508.342789244;
-            let xmax = 20037508.342789244;
-            let ymin = -8037175.40001875;
-            let ymax = 18362426.510304134;
-            return new Bounds(xmin, ymin, xmax, ymax);
+            let xmin = -180;
+            let ymin = -85;
+            let xmax = 180;
+            let ymax = 85;
+            let lb = [xmin, ymin];
+            let rt = [xmax, ymax];
+            if (crs === CRS.epsg3857) {
+                lb = this.wgs84ToMecator(lb);
+                rt = this.wgs84ToMecator(rt);
+            }
+            return new Bounds(lb, rt);
         } else if (geojson === 'china') {
             let xmin = 73.4766;
             let xmax = 135.0879;
             let ymin = 18.1055;
             let ymax = 53.5693;
-            let lb = this.wgs84ToMecator([xmin, ymin]);
-            let rt = this.wgs84ToMecator([xmax, ymax]);
+            let lb = [xmin, ymin];
+            let rt = [xmax, ymax];
+            if (crs === CRS.epsg3857) {
+                lb = this.wgs84ToMecator(lb);
+                rt = this.wgs84ToMecator(rt);
+            }
             return new Bounds(lb, rt);
         } else {
             let bound = {
-                xmin: BOUND.xmax,
-                xmax: BOUND.xmin,
-                ymin: BOUND.ymax,
-                ymax: BOUND.ymin
+                xmin: 180,
+                xmax: -180,
+                ymin: 90,
+                ymax: -90
             };
             let features = [];
             let polygons = [];
@@ -82,7 +97,7 @@ export const mapHelper = {
                 for (let j = 0; j < seg.length; j++) {
                     let coords = seg[j];
                     for (let k = 0; k < coords.length; k++) {
-                        let coord = this.wgs84ToMecator(coords[k]);
+                        let coord = coords[k];
                         if (coord[0] < bound.xmin) {
                             bound.xmin = coord[0];
                         }
@@ -98,7 +113,13 @@ export const mapHelper = {
                     }
                 }
             }
-            return new Bounds(bound.xmin, bound.ymin, bound.xmax, bound.ymax);
+            let lb = [bound.xmin, bound.ymin];
+            let rt = [bound.xmax, bound.ymax];
+            if (crs === CRS.epsg3857) {
+                lb = this.wgs84ToMecator(lb);
+                rt = this.wgs84ToMecator(rt);
+            }
+            return new Bounds(lb, rt);
         }
     }
 }
