@@ -39,7 +39,10 @@
             map.addLayer(window.geojsonLayer);
             map.setView(window.geojsonLayer.getBounds());
             $.getJSON('../../data/flyline.json', function(fdata) {
-                let fl = new TMap.FlyLineLayer(fdata);
+                let flOptions = {
+                    geojsonLayer: window.geojsonLayer
+                };
+                let fl = new TMap.FlyLineLayer(fdata, flOptions);
                 map.addLayer(fl);
             });
             // window.barLayer = new BarChartLayer(Data, {

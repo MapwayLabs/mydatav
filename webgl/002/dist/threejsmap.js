@@ -310,29 +310,34 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["Layer"] {
         this._data.forEach(item => {
             let f = item.from.split(',').map(p => Number(p));
             let t = item.to.split(',').map(p => Number(p));
-            let h = 2;
+            let h = 42;
             if (this._map.options.crs === _maphelper__WEBPACK_IMPORTED_MODULE_2__["CRS"].epsg3857) {
                 let scale = this._map.options.SCALE_RATIO;
                 f = _maphelper__WEBPACK_IMPORTED_MODULE_2__["mapHelper"].wgs84ToMecator(f);
                 t = _maphelper__WEBPACK_IMPORTED_MODULE_2__["mapHelper"].wgs84ToMecator(t);
                 f = f.map(point => point / scale);
                 t = t.map(point => point / scale);
-                h = h / scale;
+                // h = h / scale;
             }
             this._drawFlyLine(f, t, h);
         });
     }
     _drawFlyLine(startPoint, endPoint, heightLimit) {
+        let geojsonLayer = this.options.geojsonLayer;
+        let depth = 0;
+        if (geojsonLayer && geojsonLayer.options.isExtrude) {
+            depth = geojsonLayer.options.depth
+        }
         let middleX = ( startPoint[0] + endPoint[0] ) / 2;
-        let middleY = ( startPoint[1] + endPoint[1] ) / 2 + heightLimit;
-        let middleZ = 0;
-        let startVector = new THREE.Vector3(startPoint[0], startPoint[1], 0);
+        let middleY = ( startPoint[1] + endPoint[1] ) / 2;
+        let middleZ = 0 + depth + heightLimit;
+        let startVector = new THREE.Vector3(startPoint[0], startPoint[1], 0 + depth);
         let middleVector = new THREE.Vector3(middleX, middleY, middleZ);
-        let endVector = new THREE.Vector3(endPoint[0], endPoint[1], 0);
+        let endVector = new THREE.Vector3(endPoint[0], endPoint[1], 0 + depth);
 
         let curve = new THREE.CatmullRomCurve3([startVector, middleVector, endVector]);
 
-        let geometry = new THREE.TubeGeometry(curve, 100, 0.1, 4, false);
+        let geometry = new THREE.TubeGeometry(curve, 100, 0.4, 4, false);
 
         let shaderMaterial = new THREE.ShaderMaterial({
             uniforms: this.uniforms,
@@ -341,8 +346,9 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["Layer"] {
             transparent: true,
             alphaTest: 0.8
         });
-
+        
         let line = new THREE.Mesh(geometry, shaderMaterial);
+        line.rotateX(-Math.PI/2);
 
         this._container.add(line);
     }
@@ -378,7 +384,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["Layer"] {
             // strokeOpacity: 0.5, // 地区边缘线的透明度
             textColor: 'rgba(0, 0, 0, 0.8)', // 文字颜色
             lineMaterial: {
-                color: 0x0000ff,
+                color: 0x999999,
                 linewidth: 1.5
             },
             areaMaterial: { // 面材质配置
@@ -879,7 +885,7 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["EventEmiter"] 
     constructor(el, options) {
         super();
         var defaultOptions = {
-            crs: _maphelper__WEBPACK_IMPORTED_MODULE_2__["CRS"].epsg3857, // EPSG:4326: 经纬度，EPSG:3857: 墨卡托
+            crs: _maphelper__WEBPACK_IMPORTED_MODULE_2__["CRS"].epsg3857, // 地图采用的地理坐标系 EPSG:4326: 经纬度，EPSG:3857: 墨卡托
             SCALE_RATIO: 100000, // 地球墨卡托平面缩放比例
             type: 'plane', // plane or sphere ,平面或球面
             region: 'china', // china or world, 中国或世界地图

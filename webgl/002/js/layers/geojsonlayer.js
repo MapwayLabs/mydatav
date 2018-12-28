@@ -13,7 +13,7 @@ export class GeoJSONLayer extends Layer {
             // strokeOpacity: 0.5, // 地区边缘线的透明度
             textColor: 'rgba(0, 0, 0, 0.8)', // 文字颜色
             lineMaterial: {
-                color: 0x0000ff,
+                color: 0x999999,
                 linewidth: 1.5
             },
             areaMaterial: { // 面材质配置
