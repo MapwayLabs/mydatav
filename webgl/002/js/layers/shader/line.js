@@ -1,17 +1,37 @@
 export const lineShader = {
-    vertexShader: 
-    `varying vec2 vUv;
-     void main()	{
-        vUv = uv;
-        vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
-        gl_Position = projectionMatrix * mvPosition;
+   vertexShader: `
+      attribute float dist;
+      attribute float distAll;
+      attribute float start;
+      attribute vec4 colors;
 
-     }`,
-    fragmentShader: 
-    `uniform float time;
-     varying vec2 vUv;
-     void main( void ) {
-        vec3 color =  vec3(1.0,0,0.0);
-        gl_FragColor = vec4(color,sin(4.5*(vUv.x*2.0 + (time*1.0))));
+      uniform float speed;
+      uniform float trailLength;
+      uniform float time;
+      uniform float period;
+
+      varying vec4 v_Color;
+      varying float v_Percent;
+
+      void main()	{
+         vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+         gl_Position = projectionMatrix * mvPosition;
+            
+         float t = mod((time + start) / period, 1. + trailLength) - trailLength;
+         float trailLen = distAll * trailLength;
+         v_Percent = (dist - t * distAll) / trailLen;
+         v_Color = colors;
+      }`,
+   fragmentShader: `            
+      uniform vec4 baseColor;
+      varying vec4 v_Color;
+      varying float v_Percent;
+
+      void main( void ) {
+        if (v_Percent > 1.0 || v_Percent < 0.0) {
+            discard;
+        }
+        gl_FragColor = baseColor * v_Color;
+        gl_FragColor.a *= v_Percent;
       }`
 }

@@ -7,18 +7,21 @@ export class FlyLineLayer extends Layer {
         super(data, options);
         const defaultOptions = {
             geojsonLayer: null,
-            lineStyle: { // 飞线样式
-                color: 0x00ff00,
-                lineWidth: 2
-            }
+            lineColor: 0x0000ff,
+            lineOpacity: 1.0,
+            // lineStyle: { // 飞线样式
+            //     color: 0x00ff00,
+            //     lineWidth: 2
+            // }
         };
         this.options = Util.extend(defaultOptions, options);
 
         this.uniforms = {
-            time: {
-                type: "f",
-                value: 1.0
-            }
+            baseColor: {value: [1.0, 1.0, 1.0, 1.0]},
+            time: {value: 0},
+            speed: {value: 0},
+            period: {value: 1500},
+            trailLength: {value:1.0}
         };
         this.animate();
     }
@@ -28,10 +31,13 @@ export class FlyLineLayer extends Layer {
     }
     onRemove(map) {
         Layer.prototype.onRemove.call(this, map);
+        if (this._animateId) {
+            window.cancelAnimationFrame(this._animateId);
+        }
     }
-    animate() {
-        requestAnimationFrame(this.animate.bind(this));
-        this.uniforms.time.value += 0.01;
+    animate(time) {
+        this._animateId = requestAnimationFrame(this.animate.bind(this));
+        this.uniforms.time.value  = time;
     }
     _draw() {
         this._data.forEach(item => {
@@ -64,7 +70,36 @@ export class FlyLineLayer extends Layer {
 
         let curve = new THREE.CatmullRomCurve3([startVector, middleVector, endVector]);
 
-        let geometry = new THREE.TubeGeometry(curve, 100, 0.4, 4, false);
+        const points = curve.getPoints(50);
+
+        let verticeArr = []; // 顶点数组
+        let colorArr = []; // 颜色数组
+        let distArr = []; // 距离原点距离数组
+        let disAllArr = []; // 总距离数组
+        let startArr = []; // 起始位置数组
+        
+        let dist = 0;
+        for (let i = 0, len = points.length; i < len; i++) {
+            verticeArr.push(points[i].x, points[i].y, points[i].z);
+            let lineColor = new THREE.Color(this.options.lineColor);
+            colorArr.push(lineColor.r, lineColor.g, lineColor.b, this.options.lineOpacity);
+            if (i > 0) {
+                dist += points[i].distanceTo(points[i-1]);
+            }
+            distArr.push(dist);
+        }
+        let randomStart = Math.random() * this.uniforms.period.value;
+        for (let i = 0, len = points.length; i < len; i++) {
+            disAllArr.push(dist);
+            startArr.push(randomStart);
+        }
+        
+        let geometry = new THREE.BufferGeometry();
+        geometry.addAttribute('position', new THREE.BufferAttribute( new Float32Array(verticeArr), 3 ));
+        geometry.addAttribute('colors', new THREE.BufferAttribute( new Float32Array(colorArr), 4 ));
+        geometry.addAttribute('dist', new THREE.BufferAttribute( new Float32Array(distArr), 1 ));
+        geometry.addAttribute('distAll', new THREE.BufferAttribute( new Float32Array(disAllArr), 1 ));
+        geometry.addAttribute('start', new THREE.BufferAttribute( new Float32Array(startArr), 1 ));
 
         let shaderMaterial = new THREE.ShaderMaterial({
             uniforms: this.uniforms,
@@ -74,7 +109,7 @@ export class FlyLineLayer extends Layer {
             alphaTest: 0.8
         });
         
-        let line = new THREE.Mesh(geometry, shaderMaterial);
+        let line = new THREE.Line(geometry, shaderMaterial);
         line.rotateX(-Math.PI/2);
 
         this._container.add(line);

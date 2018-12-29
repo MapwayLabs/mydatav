@@ -255,6 +255,8 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+// export {default} from './util';
+
 /***/ }),
 
 /***/ "./js/layers/flylinelayer.js":
@@ -280,18 +282,21 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["Layer"] {
         super(data, options);
         const defaultOptions = {
             geojsonLayer: null,
-            lineStyle: { // 飞线样式
-                color: 0x00ff00,
-                lineWidth: 2
-            }
+            lineColor: 0x0000ff,
+            lineOpacity: 1.0,
+            // lineStyle: { // 飞线样式
+            //     color: 0x00ff00,
+            //     lineWidth: 2
+            // }
         };
         this.options = _util__WEBPACK_IMPORTED_MODULE_1__["Util"].extend(defaultOptions, options);
 
         this.uniforms = {
-            time: {
-                type: "f",
-                value: 1.0
-            }
+            baseColor: {value: [1.0, 1.0, 1.0, 1.0]},
+            time: {value: 0},
+            speed: {value: 0},
+            period: {value: 1500},
+            trailLength: {value:1.0}
         };
         this.animate();
     }
@@ -301,10 +306,13 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["Layer"] {
     }
     onRemove(map) {
         _layer__WEBPACK_IMPORTED_MODULE_0__["Layer"].prototype.onRemove.call(this, map);
+        if (this._animateId) {
+            window.cancelAnimationFrame(this._animateId);
+        }
     }
-    animate() {
-        requestAnimationFrame(this.animate.bind(this));
-        this.uniforms.time.value += 0.01;
+    animate(time) {
+        this._animateId = requestAnimationFrame(this.animate.bind(this));
+        this.uniforms.time.value  = time;
     }
     _draw() {
         this._data.forEach(item => {
@@ -337,7 +345,39 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["Layer"] {
 
         let curve = new THREE.CatmullRomCurve3([startVector, middleVector, endVector]);
 
-        let geometry = new THREE.TubeGeometry(curve, 100, 0.4, 4, false);
+        const points = curve.getPoints(50);
+
+        let verticeArr = []; // 顶点数组
+        let colorArr = []; // 颜色数组
+        let distArr = []; // 距离原点距离数组
+        let disAllArr = []; // 总距离数组
+        let startArr = []; // 起始位置数组
+        
+        let dist = 0;
+        for (let i = 0, len = points.length; i < len; i++) {
+            verticeArr.push(points[i].x, points[i].y, points[i].z);
+            let lineColor = new THREE.Color(this.options.lineColor);
+            colorArr.push(lineColor.r, lineColor.g, lineColor.b, this.options.lineOpacity);
+            if (i > 0) {
+                dist += points[i].distanceTo(points[i-1]);
+            }
+            distArr.push(dist);
+        }
+        let randomStart = Math.random() * this.uniforms.period.value;
+        for (let i = 0, len = points.length; i < len; i++) {
+            disAllArr.push(dist);
+            startArr.push(randomStart);
+        }
+        
+        let geometry = new THREE.BufferGeometry();
+        geometry.addAttribute('position', new THREE.BufferAttribute( new Float32Array(verticeArr), 3 ));
+        geometry.addAttribute('colors', new THREE.BufferAttribute( new Float32Array(colorArr), 4 ));
+        geometry.addAttribute('dist', new THREE.BufferAttribute( new Float32Array(distArr), 1 ));
+        geometry.addAttribute('distAll', new THREE.BufferAttribute( new Float32Array(disAllArr), 1 ));
+        geometry.addAttribute('start', new THREE.BufferAttribute( new Float32Array(startArr), 1 ));
+
+
+        // let geometry = new THREE.TubeGeometry(curve, 100, 0.4, 4, false);
 
         let shaderMaterial = new THREE.ShaderMaterial({
             uniforms: this.uniforms,
@@ -347,7 +387,7 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["Layer"] {
             alphaTest: 0.8
         });
         
-        let line = new THREE.Mesh(geometry, shaderMaterial);
+        let line = new THREE.Line(geometry, shaderMaterial);
         line.rotateX(-Math.PI/2);
 
         this._container.add(line);
@@ -705,20 +745,40 @@ class Layer extends _eventemiter__WEBPACK_IMPORTED_MODULE_1__["EventEmiter"] {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "lineShader", function() { return lineShader; });
 const lineShader = {
-    vertexShader: 
-    `varying vec2 vUv;
-     void main()	{
-        vUv = uv;
-        vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
-        gl_Position = projectionMatrix * mvPosition;
+   vertexShader: `
+      attribute float dist;
+      attribute float distAll;
+      attribute float start;
+      attribute vec4 colors;
 
-     }`,
-    fragmentShader: 
-    `uniform float time;
-     varying vec2 vUv;
-     void main( void ) {
-        vec3 color =  vec3(1.0,0,0.0);
-        gl_FragColor = vec4(color,sin(4.5*(vUv.x*2.0 + (time*1.0))));
+      uniform float speed;
+      uniform float trailLength;
+      uniform float time;
+      uniform float period;
+
+      varying vec4 v_Color;
+      varying float v_Percent;
+
+      void main()	{
+         vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+         gl_Position = projectionMatrix * mvPosition;
+            
+         float t = mod((time + start) / period, 1. + trailLength) - trailLength;
+         float trailLen = distAll * trailLength;
+         v_Percent = (dist - t * distAll) / trailLen;
+         v_Color = colors;
+      }`,
+   fragmentShader: `            
+      uniform vec4 baseColor;
+      varying vec4 v_Color;
+      varying float v_Percent;
+
+      void main( void ) {
+        if (v_Percent > 1.0 || v_Percent < 0.0) {
+            discard;
+        }
+        gl_FragColor = baseColor * v_Color;
+        gl_FragColor.a *= v_Percent;
       }`
 }
 
