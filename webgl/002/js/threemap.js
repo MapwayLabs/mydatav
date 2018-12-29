@@ -1,5 +1,5 @@
 import { EventEmiter } from './eventemiter'
-import { Util } from './util'
+import * as Util from './util'
 import { mapHelper, CRS } from './maphelper'
 
 export class ThreeMap extends EventEmiter {

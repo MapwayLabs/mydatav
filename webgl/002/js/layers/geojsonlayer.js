@@ -1,5 +1,5 @@
 import { Layer } from './layer';
-import { Util } from '../util';
+import * as Util from '../util';
 import { mapHelper, CRS } from '../maphelper';
 export class GeoJSONLayer extends Layer {
     constructor(data, options) {

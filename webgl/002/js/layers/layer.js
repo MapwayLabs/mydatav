@@ -1,4 +1,4 @@
-import { Util } from '../util'
+import * as Util from '../util'
 import  { EventEmiter } from '../eventemiter'
 export class Layer extends EventEmiter {
     constructor(data, options) {

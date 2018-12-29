@@ -234,22 +234,21 @@ class EventEmiter {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./util */ "./js/util.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "Util", function() { return _util__WEBPACK_IMPORTED_MODULE_0__["Util"]; });
+/* harmony import */ var _threemap__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./threemap */ "./js/threemap.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ThreeMap", function() { return _threemap__WEBPACK_IMPORTED_MODULE_0__["ThreeMap"]; });
 
-/* harmony import */ var _threemap__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./threemap */ "./js/threemap.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ThreeMap", function() { return _threemap__WEBPACK_IMPORTED_MODULE_1__["ThreeMap"]; });
+/* harmony import */ var _layers_index__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./layers/index */ "./js/layers/index.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "GeoJSONLayer", function() { return _layers_index__WEBPACK_IMPORTED_MODULE_1__["GeoJSONLayer"]; });
 
-/* harmony import */ var _layers_index__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./layers/index */ "./js/layers/index.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "GeoJSONLayer", function() { return _layers_index__WEBPACK_IMPORTED_MODULE_2__["GeoJSONLayer"]; });
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "FlyLineLayer", function() { return _layers_index__WEBPACK_IMPORTED_MODULE_1__["FlyLineLayer"]; });
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "FlyLineLayer", function() { return _layers_index__WEBPACK_IMPORTED_MODULE_2__["FlyLineLayer"]; });
+/* harmony import */ var _maphelper__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./maphelper */ "./js/maphelper.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "CRS", function() { return _maphelper__WEBPACK_IMPORTED_MODULE_2__["CRS"]; });
 
-/* harmony import */ var _maphelper__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./maphelper */ "./js/maphelper.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "CRS", function() { return _maphelper__WEBPACK_IMPORTED_MODULE_3__["CRS"]; });
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "mapHelper", function() { return _maphelper__WEBPACK_IMPORTED_MODULE_2__["mapHelper"]; });
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "mapHelper", function() { return _maphelper__WEBPACK_IMPORTED_MODULE_3__["mapHelper"]; });
-
+/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./util */ "./js/util.js");
+/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "Util", function() { return _util__WEBPACK_IMPORTED_MODULE_3__; });
 
 
 
@@ -289,7 +288,7 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["Layer"] {
             //     lineWidth: 2
             // }
         };
-        this.options = _util__WEBPACK_IMPORTED_MODULE_1__["Util"].extend(defaultOptions, options);
+        this.options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](defaultOptions, options);
 
         this.uniforms = {
             baseColor: {value: [1.0, 1.0, 1.0, 1.0]},
@@ -376,9 +375,6 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["Layer"] {
         geometry.addAttribute('distAll', new THREE.BufferAttribute( new Float32Array(disAllArr), 1 ));
         geometry.addAttribute('start', new THREE.BufferAttribute( new Float32Array(startArr), 1 ));
 
-
-        // let geometry = new THREE.TubeGeometry(curve, 100, 0.4, 4, false);
-
         let shaderMaterial = new THREE.ShaderMaterial({
             uniforms: this.uniforms,
             vertexShader: _shader_line__WEBPACK_IMPORTED_MODULE_3__["lineShader"].vertexShader,
@@ -433,7 +429,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["Layer"] {
                 side: THREE.DoubleSide
             }
         };
-        this.options = _util__WEBPACK_IMPORTED_MODULE_1__["Util"].extend(defaultOptions, options);
+        this.options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](defaultOptions, options);
     }
     onAdd(map) {
         _layer__WEBPACK_IMPORTED_MODULE_0__["Layer"].prototype.onAdd.call(this, map); 
@@ -716,7 +712,7 @@ class Layer extends _eventemiter__WEBPACK_IMPORTED_MODULE_1__["EventEmiter"] {
     constructor(data, options) {
         super();
         var defaultOptions = {};
-        this.options = _util__WEBPACK_IMPORTED_MODULE_0__["Util"].extend(defaultOptions, options);
+        this.options = _util__WEBPACK_IMPORTED_MODULE_0__["extend"](defaultOptions, options);
         this._data = data;
         this._container = new THREE.Group();
     }
@@ -957,7 +953,7 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["EventEmiter"] 
                 far: 2000
             }
         };
-        this.options = _util__WEBPACK_IMPORTED_MODULE_1__["Util"].extend(defaultOptions, options);
+        this.options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](defaultOptions, options);
     
         if (this.options.type === 'plane') {
             if (this.options.region === 'china') {
@@ -977,7 +973,7 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["EventEmiter"] 
         return this._fullBound;
     }
     addLayer(layer) {
-        var id = _util__WEBPACK_IMPORTED_MODULE_1__["Util"].stamp(layer);
+        var id = _util__WEBPACK_IMPORTED_MODULE_1__["stamp"](layer);
         if (this._layers[id]) {
             return this;
         }
@@ -990,7 +986,7 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["EventEmiter"] 
         return this;
     }
     removeLayer(layer) {
-        var id = _util__WEBPACK_IMPORTED_MODULE_1__["Util"].stamp(layer);
+        var id = _util__WEBPACK_IMPORTED_MODULE_1__["stamp"](layer);
         if (!this._layers[id]) {
             return this;
         }
@@ -1003,7 +999,7 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["EventEmiter"] 
         return this;
     }
     hasLayer(layer) {
-        return !!layer && (_util__WEBPACK_IMPORTED_MODULE_1__["Util"].stamp(layer) in this._layers);
+        return !!layer && (_util__WEBPACK_IMPORTED_MODULE_1__["stamp"](layer) in this._layers);
     }
     clearLayers() {
         for (var id in this._layers) {
@@ -1042,7 +1038,7 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["EventEmiter"] 
         return this._el;
     }
     getContainerSize() {
-        const compStyle = _util__WEBPACK_IMPORTED_MODULE_1__["Util"].getCmpStyle(this._el);
+        const compStyle = _util__WEBPACK_IMPORTED_MODULE_1__["getCmpStyle"](this._el);
         let width = parseInt(compStyle.width);
         let height = parseInt(compStyle.height);
         return { width, height };
@@ -1057,7 +1053,7 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["EventEmiter"] 
         this._el.style.height = '100%';
         this._el.style.margin = 0;
         this._el.style.padding = 0;
-        _util__WEBPACK_IMPORTED_MODULE_1__["Util"].addClass(this._el, this.options.containerClassName);
+        _util__WEBPACK_IMPORTED_MODULE_1__["addClass"](this._el, this.options.containerClassName);
 
         this._container.appendChild(this._el);
     }
@@ -1154,106 +1150,124 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["EventEmiter"] 
 /*!********************!*\
   !*** ./js/util.js ***!
   \********************/
-/*! exports provided: Util */
+/*! exports provided: hasClass, addClass, removeClass, getCmpStyle, extend, stamp, inherit, isNullOrUdf, getRandomColor, isWebGLAvailable, lightenDarkenColor */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Util", function() { return Util; });
-const Util = {
-    hasClass: function (el, className) {
-        return el.classList ? el.classList.contains(className) : new RegExp('(^|\\s)' + className + '(\\s|$)').test(el.className)
-    },
-    addClass: function (el, className) {
-        if (el.classList !== undefined) {
-            var list = className.split(' ')
-            for (var i = 0, len = list.length; i < len; i++) {
-                el.classList.add(list[i])
-            }
-        } else if (!this.hasClass(el, className)) {
-            el.className = (el.className ? el.className + ' ' : '') + className
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "hasClass", function() { return hasClass; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "addClass", function() { return addClass; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "removeClass", function() { return removeClass; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getCmpStyle", function() { return getCmpStyle; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "extend", function() { return extend; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "stamp", function() { return stamp; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "inherit", function() { return inherit; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isNullOrUdf", function() { return isNullOrUdf; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getRandomColor", function() { return getRandomColor; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isWebGLAvailable", function() { return isWebGLAvailable; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "lightenDarkenColor", function() { return lightenDarkenColor; });
+function hasClass(el, className) {
+    return el.classList ? el.classList.contains(className) : new RegExp('(^|\\s)' + className + '(\\s|$)').test(el.className);
+}
+
+function addClass(el, className) {
+    if (el.classList !== undefined) {
+        var list = className.split(' ');
+        for (var i = 0, len = list.length; i < len; i++) {
+            el.classList.add(list[i]);
         }
-    },
-    removeClass: function (el, className) {
-        if (el.classList !== undefined) {
-            el.classList.remove(className)
-        } else {
-            el.className = ' ' + el.className + ' '
-            el.className = el.className.replace(' ' + className + ' ', ' ')
-        }
-    },
-    getCmpStyle: function (el) {
-        // FIXEME 兼容性写法
-        return getComputedStyle(el) 
-    },
-    extend: function (srcObj) {
-        var i, j, len, src
-        for (j = 1, len = arguments.length; j < len; j++) {
-            src = arguments[j]
-            for (var i in src) {
-                srcObj[i] = src[i]
-            }
-        }
-        return srcObj
-    },
-    stamp: function (obj) {
-        if (!this.lastId) this.lastId = 0
-        obj.__objstampid__ = obj.__objstampid__ || ++this.lastId
-        return obj.__objstampid__
-    },
-    inherit: function (parentClass, childClass) {
-        var tempClass = function () {}
-        tempClass.prototype = parentClass.prototype
-        childClass.prototype = new tempClass()
-        childClass.prototype.constructor = childClass
-    },
-    isNullOrUdf: function (val) {
-        return val === undefined || val === null
-    },
-    getRandomColor: function () {
-        return '#' + (function getColor(color) {
-            return (color += '0123456789abcdef' [Math.floor(Math.random() * 16)]) &&
-                (color.length == 6) ? color : getColor(color);
-        })('');
-    },
-    isWebGLAvailable: function () {
-        try {
-            var canvas = document.createElement('canvas');
-            return !!(window.WebGLRenderingContext && (canvas.getContext('webgl') || canvas.getContext('experimental-webgl')));
-        } catch (e) {
-            return false;
-        }
-    },
-    // 获取一个颜色的高亮或更暗色 https://css-tricks.com/snippets/javascript/lighten-darken-color/
-    lightenDarkenColor: function (col, amt) {
-
-        var usePound = false;
-
-        if (col[0] == "#") {
-            col = col.slice(1);
-            usePound = true;
-        }
-
-        var num = parseInt(col, 16);
-
-        var r = (num >> 16) + amt;
-
-        if (r > 255) r = 255;
-        else if (r < 0) r = 0;
-
-        var b = ((num >> 8) & 0x00FF) + amt;
-
-        if (b > 255) b = 255;
-        else if (b < 0) b = 0;
-
-        var g = (num & 0x0000FF) + amt;
-
-        if (g > 255) g = 255;
-        else if (g < 0) g = 0;
-
-        return (usePound ? "#" : "") + (g | (b << 8) | (r << 16)).toString(16);
-
+    } else if (!hasClass(el, className)) {
+        el.className = (el.className ? el.className + ' ' : '') + className;
     }
+}
+
+function removeClass(el, className) {
+    if (el.classList !== undefined) {
+        el.classList.remove(className);
+    } else {
+        el.className = ' ' + el.className + ' ';
+        el.className = el.className.replace(' ' + className + ' ', ' ');
+    }
+}
+
+function getCmpStyle(el) {
+    // FIXEME 兼容性写法
+    return getComputedStyle(el);
+}
+
+function extend(srcObj) {
+    var i, j, len, src;
+    for (j = 1, len = arguments.length; j < len; j++) {
+        src = arguments[j];
+        for (var i in src) {
+            srcObj[i] = src[i];
+        }
+    }
+    return srcObj;
+}
+
+var lastId;
+function stamp(obj) {
+    if (lastId == null) lastId = 0;
+    obj.__objstampid__ = obj.__objstampid__ || ++lastId;
+    return obj.__objstampid__;
+}
+
+function inherit (parentClass, childClass) {
+    var tempClass = function () {};
+    tempClass.prototype = parentClass.prototype;
+    childClass.prototype = new tempClass();
+    childClass.prototype.constructor = childClass;
+}
+
+function isNullOrUdf(val) {
+    return val == null;
+}
+
+function getRandomColor () {
+    return '#' + (function getColor(color) {
+        return (color += '0123456789abcdef' [Math.floor(Math.random() * 16)]) &&
+            (color.length == 6) ? color : getColor(color);
+    })('');
+}
+
+function isWebGLAvailable () {
+    try {
+        var canvas = document.createElement('canvas');
+        return !!(window.WebGLRenderingContext && (canvas.getContext('webgl') || canvas.getContext('experimental-webgl')));
+    } catch (e) {
+        return false;
+    }
+}
+
+// 获取一个颜色的高亮或更暗色 https://css-tricks.com/snippets/javascript/lighten-darken-color/
+function lightenDarkenColor(col, amt) {
+
+    var usePound = false;
+
+    if (col[0] == "#") {
+        col = col.slice(1);
+        usePound = true;
+    }
+
+    var num = parseInt(col, 16);
+
+    var r = (num >> 16) + amt;
+
+    if (r > 255) r = 255;
+    else if (r < 0) r = 0;
+
+    var b = ((num >> 8) & 0x00FF) + amt;
+
+    if (b > 255) b = 255;
+    else if (b < 0) b = 0;
+
+    var g = (num & 0x0000FF) + amt;
+
+    if (g > 255) g = 255;
+    else if (g < 0) g = 0;
+
+    return (usePound ? "#" : "") + (g | (b << 8) | (r << 16)).toString(16);
 }
 
 /***/ })

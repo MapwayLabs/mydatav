@@ -1,5 +1,5 @@
 import { Layer } from './layer';
-import { Util } from '../util';
+import * as Util from '../util';
 import { mapHelper, CRS } from '../maphelper';
 import { lineShader } from './shader/line';
 export class FlyLineLayer extends Layer {
