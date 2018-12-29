@@ -1,4 +1,4 @@
-export class Bounds {
+export default class Bounds {
     constructor (xmin, ymin, xmax, ymax) {
         if (Array.isArray(xmin)) {
             this.xmin = xmin[0];

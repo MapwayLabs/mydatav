@@ -1,8 +1,8 @@
-import { Layer } from './layer';
+import Layer from './layer';
 import * as Util from '../util';
 import { mapHelper, CRS } from '../maphelper';
 import { lineShader } from './shader/line';
-export class FlyLineLayer extends Layer {
+export default class FlyLineLayer extends Layer {
     constructor(data, options) {
         super(data, options);
         const defaultOptions = {

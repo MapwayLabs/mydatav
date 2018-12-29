@@ -1,8 +1,8 @@
-import { EventEmiter } from './eventemiter'
+import EventEmiter from './eventemiter'
 import * as Util from './util'
 import { mapHelper, CRS } from './maphelper'
 
-export class ThreeMap extends EventEmiter {
+export default class ThreeMap extends EventEmiter {
     constructor(el, options) {
         super();
         var defaultOptions = {

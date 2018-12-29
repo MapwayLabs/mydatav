@@ -100,12 +100,12 @@ return /******/ (function(modules) { // webpackBootstrap
 /*!**********************!*\
   !*** ./js/bounds.js ***!
   \**********************/
-/*! exports provided: Bounds */
+/*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Bounds", function() { return Bounds; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Bounds; });
 class Bounds {
     constructor (xmin, ymin, xmax, ymax) {
         if (Array.isArray(xmin)) {
@@ -146,12 +146,12 @@ class Bounds {
 /*!***************************!*\
   !*** ./js/eventemiter.js ***!
   \***************************/
-/*! exports provided: EventEmiter */
+/*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "EventEmiter", function() { return EventEmiter; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return EventEmiter; });
 class EventEmiter {
     constructor() {
         this._events = {};
@@ -229,32 +229,35 @@ class EventEmiter {
 /*!*********************!*\
   !*** ./js/index.js ***!
   \*********************/
-/*! exports provided: Util, ThreeMap, CRS, mapHelper, GeoJSONLayer, FlyLineLayer */
+/*! exports provided: ThreeMap, GeoJSONLayer, FlyLineLayer, mapHelper, Util */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _threemap__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./threemap */ "./js/threemap.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ThreeMap", function() { return _threemap__WEBPACK_IMPORTED_MODULE_0__["ThreeMap"]; });
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ThreeMap", function() { return _threemap__WEBPACK_IMPORTED_MODULE_0__["default"]; });
 
-/* harmony import */ var _layers_index__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./layers/index */ "./js/layers/index.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "GeoJSONLayer", function() { return _layers_index__WEBPACK_IMPORTED_MODULE_1__["GeoJSONLayer"]; });
+/* harmony import */ var _layers_geojsonlayer__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./layers/geojsonlayer */ "./js/layers/geojsonlayer.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "GeoJSONLayer", function() { return _layers_geojsonlayer__WEBPACK_IMPORTED_MODULE_1__["default"]; });
 
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "FlyLineLayer", function() { return _layers_index__WEBPACK_IMPORTED_MODULE_1__["FlyLineLayer"]; });
+/* harmony import */ var _layers_flylinelayer__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./layers/flylinelayer */ "./js/layers/flylinelayer.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "FlyLineLayer", function() { return _layers_flylinelayer__WEBPACK_IMPORTED_MODULE_2__["default"]; });
 
-/* harmony import */ var _maphelper__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./maphelper */ "./js/maphelper.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "CRS", function() { return _maphelper__WEBPACK_IMPORTED_MODULE_2__["CRS"]; });
-
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "mapHelper", function() { return _maphelper__WEBPACK_IMPORTED_MODULE_2__["mapHelper"]; });
-
-/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./util */ "./js/util.js");
-/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "Util", function() { return _util__WEBPACK_IMPORTED_MODULE_3__; });
+/* harmony import */ var _maphelper__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./maphelper */ "./js/maphelper.js");
+/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "mapHelper", function() { return _maphelper__WEBPACK_IMPORTED_MODULE_3__; });
+/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./util */ "./js/util.js");
+/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "Util", function() { return _util__WEBPACK_IMPORTED_MODULE_4__; });
 
 
 
 
 
-// export {default} from './util';
+
+
+
+
+
+
 
 /***/ }),
 
@@ -262,12 +265,12 @@ __webpack_require__.r(__webpack_exports__);
 /*!***********************************!*\
   !*** ./js/layers/flylinelayer.js ***!
   \***********************************/
-/*! exports provided: FlyLineLayer */
+/*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "FlyLineLayer", function() { return FlyLineLayer; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return FlyLineLayer; });
 /* harmony import */ var _layer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./layer */ "./js/layers/layer.js");
 /* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../util */ "./js/util.js");
 /* harmony import */ var _maphelper__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../maphelper */ "./js/maphelper.js");
@@ -276,7 +279,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["Layer"] {
+class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
     constructor(data, options) {
         super(data, options);
         const defaultOptions = {
@@ -300,11 +303,11 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["Layer"] {
         this.animate();
     }
     onAdd(map) {
-        _layer__WEBPACK_IMPORTED_MODULE_0__["Layer"].prototype.onAdd.call(this, map); 
+        _layer__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.onAdd.call(this, map); 
         this._draw();
     }
     onRemove(map) {
-        _layer__WEBPACK_IMPORTED_MODULE_0__["Layer"].prototype.onRemove.call(this, map);
+        _layer__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.onRemove.call(this, map);
         if (this._animateId) {
             window.cancelAnimationFrame(this._animateId);
         }
@@ -396,19 +399,19 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["Layer"] {
 /*!***********************************!*\
   !*** ./js/layers/geojsonlayer.js ***!
   \***********************************/
-/*! exports provided: GeoJSONLayer */
+/*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "GeoJSONLayer", function() { return GeoJSONLayer; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return GeoJSONLayer; });
 /* harmony import */ var _layer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./layer */ "./js/layers/layer.js");
 /* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../util */ "./js/util.js");
 /* harmony import */ var _maphelper__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../maphelper */ "./js/maphelper.js");
 
 
 
-class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["Layer"] {
+class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
     constructor(data, options) {
         super(data, options);
         const defaultOptions = {
@@ -432,12 +435,12 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["Layer"] {
         this.options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](defaultOptions, options);
     }
     onAdd(map) {
-        _layer__WEBPACK_IMPORTED_MODULE_0__["Layer"].prototype.onAdd.call(this, map); 
+        _layer__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.onAdd.call(this, map); 
         this._initBoundsAndCenter();
         this._draw();
     }
     onRemove(map) {
-        _layer__WEBPACK_IMPORTED_MODULE_0__["Layer"].prototype.onRemove.call(this, map);
+        _layer__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.onRemove.call(this, map);
     }
     getBounds() {
         return this._bounds;
@@ -674,41 +677,21 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["Layer"] {
 
 /***/ }),
 
-/***/ "./js/layers/index.js":
-/*!****************************!*\
-  !*** ./js/layers/index.js ***!
-  \****************************/
-/*! exports provided: GeoJSONLayer, FlyLineLayer */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _geojsonlayer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./geojsonlayer */ "./js/layers/geojsonlayer.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "GeoJSONLayer", function() { return _geojsonlayer__WEBPACK_IMPORTED_MODULE_0__["GeoJSONLayer"]; });
-
-/* harmony import */ var _flylinelayer__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./flylinelayer */ "./js/layers/flylinelayer.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "FlyLineLayer", function() { return _flylinelayer__WEBPACK_IMPORTED_MODULE_1__["FlyLineLayer"]; });
-
-
-
-
-/***/ }),
-
 /***/ "./js/layers/layer.js":
 /*!****************************!*\
   !*** ./js/layers/layer.js ***!
   \****************************/
-/*! exports provided: Layer */
+/*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Layer", function() { return Layer; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Layer; });
 /* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../util */ "./js/util.js");
 /* harmony import */ var _eventemiter__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../eventemiter */ "./js/eventemiter.js");
 
 
-class Layer extends _eventemiter__WEBPACK_IMPORTED_MODULE_1__["EventEmiter"] {
+class Layer extends _eventemiter__WEBPACK_IMPORTED_MODULE_1__["default"] {
     constructor(data, options) {
         super();
         var defaultOptions = {};
@@ -796,7 +779,7 @@ __webpack_require__.r(__webpack_exports__);
 
 const R = 6378137; // 地球半径（米）
 const R_MINOR = 6356752.314245179;
-const BOUND = new _bounds__WEBPACK_IMPORTED_MODULE_0__["Bounds"](-20037508.34279, -15496570.73972, 20037508.34279, 18764656.23138);
+const BOUND = new _bounds__WEBPACK_IMPORTED_MODULE_0__["default"](-20037508.34279, -15496570.73972, 20037508.34279, 18764656.23138);
 
 const CRS = {
     epsg4326: 'EPSG:4326',
@@ -850,7 +833,7 @@ const mapHelper = {
                 lb = this.wgs84ToMecator(lb);
                 rt = this.wgs84ToMecator(rt);
             }
-            return new _bounds__WEBPACK_IMPORTED_MODULE_0__["Bounds"](lb, rt);
+            return new _bounds__WEBPACK_IMPORTED_MODULE_0__["default"](lb, rt);
         } else if (geojson === 'china') {
             let xmin = 73.4766;
             let xmax = 135.0879;
@@ -862,7 +845,7 @@ const mapHelper = {
                 lb = this.wgs84ToMecator(lb);
                 rt = this.wgs84ToMecator(rt);
             }
-            return new _bounds__WEBPACK_IMPORTED_MODULE_0__["Bounds"](lb, rt);
+            return new _bounds__WEBPACK_IMPORTED_MODULE_0__["default"](lb, rt);
         } else {
             let bound = {
                 xmin: 180,
@@ -913,7 +896,7 @@ const mapHelper = {
                 lb = this.wgs84ToMecator(lb);
                 rt = this.wgs84ToMecator(rt);
             }
-            return new _bounds__WEBPACK_IMPORTED_MODULE_0__["Bounds"](lb, rt);
+            return new _bounds__WEBPACK_IMPORTED_MODULE_0__["default"](lb, rt);
         }
     }
 }
@@ -924,12 +907,12 @@ const mapHelper = {
 /*!************************!*\
   !*** ./js/threemap.js ***!
   \************************/
-/*! exports provided: ThreeMap */
+/*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ThreeMap", function() { return ThreeMap; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ThreeMap; });
 /* harmony import */ var _eventemiter__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./eventemiter */ "./js/eventemiter.js");
 /* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./util */ "./js/util.js");
 /* harmony import */ var _maphelper__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./maphelper */ "./js/maphelper.js");
@@ -937,7 +920,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["EventEmiter"] {
+class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
     constructor(el, options) {
         super();
         var defaultOptions = {

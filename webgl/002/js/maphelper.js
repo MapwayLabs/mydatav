@@ -1,4 +1,4 @@
-import { Bounds } from './bounds';
+import Bounds from './bounds';
 
 const R = 6378137; // 地球半径（米）
 const R_MINOR = 6356752.314245179;

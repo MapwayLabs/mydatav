@@ -1,6 +1,6 @@
-import * as Util from '../util'
-import  { EventEmiter } from '../eventemiter'
-export class Layer extends EventEmiter {
+import * as Util from '../util';
+import EventEmiter from '../eventemiter';
+export default class Layer extends EventEmiter {
     constructor(data, options) {
         super();
         var defaultOptions = {};

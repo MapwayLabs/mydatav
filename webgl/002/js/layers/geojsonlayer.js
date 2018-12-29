@@ -1,7 +1,7 @@
-import { Layer } from './layer';
+import Layer from './layer';
 import * as Util from '../util';
 import { mapHelper, CRS } from '../maphelper';
-export class GeoJSONLayer extends Layer {
+export default class GeoJSONLayer extends Layer {
     constructor(data, options) {
         super(data, options);
         const defaultOptions = {
