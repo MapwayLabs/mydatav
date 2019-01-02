@@ -175,7 +175,17 @@ export default class GeoJSONLayer extends Layer {
         for (let i = 0, len = features.length; i < len; i++) {
             let feature = features[i];
             let geometry = feature.geometry;
+            let props = feature.properties;
             if (geometry == null) continue;
+            let center = mapHelper.getNormalizeCenter(feature);
+            let name = props.name;
+            if (center && name) {
+                if (this._map.options.crs === CRS.epsg3857) {
+                    center = mapHelper.wgs84ToMecator(center);
+                    center = mapHelper.scalePoint(center, 1/this._map.options.SCALE_RATIO);
+                }
+                this.drawLabel(center, name);
+            }
             if (geometry.type == 'Point') {
 
             } else if (geometry.type == 'MultiPoint') {
@@ -209,6 +219,66 @@ export default class GeoJSONLayer extends Layer {
                 throw new Error('The geoJSON is not valid.');
             }
         }
+    }
+    getTextSprite(textStr, options) {
+        var options = options || {}
+        var fontWeight = options.fontWeight || 'normal'
+        var fontFamily = options.fontFamily || 'Microsoft YaHei'
+        var fontColor = options.fontColor || '#000'
+        var textAlign = options.textAlign || 'center'
+
+        var canvas = document.createElement("canvas");
+        // webgl 规定 canvas 宽高为2的n次幂
+        canvas.width = 256;
+        canvas.height = 256;
+        var ctx = canvas.getContext("2d");
+
+        // ctx.fillStyle = renderer.domElement.style.backgroundColor;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // draw
+        ctx.font = "16px " + fontWeight + " " + fontFamily;
+        ctx.fillStyle = fontColor;
+        ctx.textAlign = textAlign;
+        var textWidth = ctx.measureText(textStr).width;
+        ctx.fillText(textStr, canvas.width / 2, canvas.height / 2 + 5);
+        // ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        var texture = new THREE.Texture(canvas);
+        texture.needsUpdate = true;
+
+        var spriteMaterial = new THREE.SpriteMaterial({
+            map: texture,
+            transparent:true
+        });
+        var sprite = new THREE.Sprite(spriteMaterial);
+        return sprite;
+    }
+    drawLabel(center, name) {
+        var textSprite = this.getTextSprite(name, {
+            fontColor: '#000'
+        });
+
+        textSprite.userData = {
+            type: 'areaText'
+        }
+        
+        // TODO 数字8为初始化全中国时最佳缩放比，其他区域根据距离比例调整
+        var scaleX = 32, scaleY = 32
+        textSprite.scale.set(scaleX, scaleY, 1);
+
+        if (this.options.isExtrude) {
+            textSprite.position.set(center[0], this.options.depth, -center[1])
+        } else {
+            textSprite.position.set(center[0], 0, -center[1])
+        }
+        textSprite.rotateX(-Math.PI/2);
+
+        // 避免柱子遮挡地名
+        textSprite.renderOrder = 99
+        textSprite.material.depthTest=false
+
+        this._container.add(textSprite);
     }
     drawOutLine(points, mesh) {
         // 画轮廓线

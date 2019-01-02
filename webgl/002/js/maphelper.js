@@ -121,5 +121,23 @@ export const mapHelper = {
             }
             return new Bounds(lb, rt);
         }
+    },
+    getNormalizeCenter(feature) {
+        let props = feature.properties;
+        let center = props && (props.center || props.cp);
+        if (center && typeof center === 'string') {
+            center = center.split(',');
+        }
+        if (Array.isArray(center)) {
+            center = center.map(item => Number(item));
+        }
+        if (center == null) {
+            let bounds = this.getBounds(feature);
+            center = bounds.getCenter();
+        }
+        return center;
+    },
+    scalePoint(point, scale) {
+        return point.map(p => p * scale);
     }
 }
