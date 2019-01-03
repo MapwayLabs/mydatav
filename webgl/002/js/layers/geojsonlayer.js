@@ -22,7 +22,7 @@ export default class GeoJSONLayer extends Layer {
                 side: THREE.DoubleSide
             }
         };
-        this.options = Util.extend(defaultOptions, options);
+        this.options = Util.extend(true, defaultOptions, options);
     }
     onAdd(map) {
         Layer.prototype.onAdd.call(this, map); 

@@ -4,7 +4,7 @@ export default class Layer extends EventEmiter {
     constructor(data, options) {
         super();
         var defaultOptions = {};
-        this.options = Util.extend(defaultOptions, options);
+        this.options = Util.extend(true, defaultOptions, options);
         this._data = data;
         this._container = new THREE.Group();
     }

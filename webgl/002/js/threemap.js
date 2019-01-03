@@ -18,7 +18,7 @@ export default class ThreeMap extends EventEmiter {
                 far: 2000
             }
         };
-        this.options = Util.extend(defaultOptions, options);
+        this.options = Util.extend(true, defaultOptions, options);
     
         if (this.options.type === 'plane') {
             if (this.options.region === 'china') {
