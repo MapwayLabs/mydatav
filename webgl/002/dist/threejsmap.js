@@ -283,9 +283,6 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
     constructor(data, geojsonLayer, options) {
         super(data, options);
         const defaultOptions = {
-            // geojsonLayer: null,
-            // lineColor: 0x0000ff,
-            // lineOpacity: 1.0,
             // 线样式
             lineStyle: {
                 show: true,
@@ -296,6 +293,7 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             // 飞线特效样式
             effect: {
                 show: false,
+                segmentNumber: 1, // 飞线分段数，自然数，默认为1，不分段
                 period: 4, // 尾迹特效的周期
                 constantSpeed: null, // 尾迹特效是否是固定速度，设置后忽略period值
                 trailWidth: 4, // 尾迹宽度
@@ -368,21 +366,7 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         let curve = new THREE.CatmullRomCurve3([startVector, middleVector, endVector]);
         return curve;
     }
-    _drawLine(startPoint, endPoint, heightLimit) {
-        // let geojsonLayer = this.geojsonLayer;
-        // let depth = 0;
-        // if (geojsonLayer && geojsonLayer.options.isExtrude) {
-        //     depth = geojsonLayer.options.depth;
-        // }
-        // let middleX = ( startPoint[0] + endPoint[0] ) / 2;
-        // let middleY = ( startPoint[1] + endPoint[1] ) / 2;
-        // let middleZ = 0 + depth + heightLimit;
-        // let startVector = new THREE.Vector3(startPoint[0], startPoint[1], 0 + depth);
-        // let middleVector = new THREE.Vector3(middleX, middleY, middleZ);
-        // let endVector = new THREE.Vector3(endPoint[0], endPoint[1], 0 + depth);
-
-        // let curve = new THREE.CatmullRomCurve3([startVector, middleVector, endVector]);
-        
+    _drawLine(startPoint, endPoint, heightLimit) {  
         const curve = this._getCurve(startPoint, endPoint, heightLimit);
         const points = curve.getPoints( 50 );
         let geometry = new THREE.BufferGeometry().setFromPoints( points );
@@ -403,26 +387,36 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
 
     }
     _drawFlyLine(startPoint, endPoint, heightLimit) {
-        // let geojsonLayer = this.geojsonLayer;
-        // let depth = 0;
-        // if (geojsonLayer && geojsonLayer.options.isExtrude) {
-        //     depth = geojsonLayer.options.depth;
-        // }
-        // let middleX = ( startPoint[0] + endPoint[0] ) / 2;
-        // let middleY = ( startPoint[1] + endPoint[1] ) / 2;
-        // let middleZ = 0 + depth + heightLimit;
-        // let startVector = new THREE.Vector3(startPoint[0], startPoint[1], 0 + depth);
-        // let middleVector = new THREE.Vector3(middleX, middleY, middleZ);
-        // let endVector = new THREE.Vector3(endPoint[0], endPoint[1], 0 + depth);
-
-        // let curve = new THREE.CatmullRomCurve3([startVector, middleVector, endVector]);
-        
         const curve = this._getCurve(startPoint, endPoint, heightLimit);
         const points = curve.getPoints(50);
-
-        let useConstantSpeed = this.options.effect.constantSpeed != null;
-        let period = this.options.effect.period * 1000;
-
+        let segmentNum = this.options.effect.segmentNumber;
+        if (segmentNum <= 1) {
+            // 不分段
+            this._drawSegment(points);
+        } else {
+            let plen = points.length;
+            let step = Math.floor(plen / segmentNum);
+            if(step > 0) {
+                for (let count = 0; count < segmentNum; count++) {
+                    let startIndex = count * step;
+                    let endIndex = count * step + step + 1;
+                    if (count === segmentNum - 1) {
+                        endIndex = plen - 1;
+                    }
+                    let segPoints = points.slice(startIndex, endIndex);
+                    this._drawSegment(segPoints);
+                }
+            } else {
+                // 分段数大于所有点数时，视为不分段
+                this._drawSegment(points);
+            }
+        }
+    }
+    _drawSegment(points) {
+        let effectOptions = this.options.effect;
+        let useConstantSpeed = effectOptions.constantSpeed != null;
+        let period = effectOptions.period * 1000;
+        
         let verticeArr = []; // 顶点数组
         let colorArr = []; // 颜色数组
         let distArr = []; // 距离原点距离数组
@@ -432,8 +426,8 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         let dist = 0;
         for (let i = 0, len = points.length; i < len; i++) {
             verticeArr.push(points[i].x, points[i].y, points[i].z);
-            let lineColor = new THREE.Color(this.options.effect.trailColor || this.options.lineStyle.color);
-            colorArr.push(lineColor.r, lineColor.g, lineColor.b, this.options.effect.trailOpacity != null ? this.options.effect.trailOpacity : this.options.lineStyle.opacity);
+            let lineColor = new THREE.Color(effectOptions.trailColor || this.options.lineStyle.color);
+            colorArr.push(lineColor.r, lineColor.g, lineColor.b, effectOptions.trailOpacity != null ? effectOptions.trailOpacity : this.options.lineStyle.opacity);
             if (i > 0) {
                 dist += points[i].distanceTo(points[i-1]);
             }
@@ -452,23 +446,22 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         geometry.addAttribute('distAll', new THREE.BufferAttribute( new Float32Array(disAllArr), 1 ));
         geometry.addAttribute('start', new THREE.BufferAttribute( new Float32Array(startArr), 1 ));
         
+        this.uniforms.trailLength.value = effectOptions.trailLength;
+
         let shaderMaterial = new THREE.ShaderMaterial({
             uniforms: this.uniforms,
             vertexShader: _shader_line__WEBPACK_IMPORTED_MODULE_3__["lineShader"].vertexShader,
-            fragmentShader: _shader_line__WEBPACK_IMPORTED_MODULE_3__["lineShader"].fragmentShader,
-            transparent: true,
-            // alphaTest: 0.8
+            fragmentShader: _shader_line__WEBPACK_IMPORTED_MODULE_3__["lineShader"].fragmentShader
         });
         // 由于OpenGL Core Profile与大多数平台上WebGL渲染器的限制，无论如何设置该值，线宽始终为1。
-        // shaderMaterial.linewidth = this.options.effect.trailWidth;
+        // shaderMaterial.linewidth = effectOptions.trailWidth;
 
         if (useConstantSpeed) {
-            this.uniforms.speed.value = this.options.effect.constantSpeed / 1000;
-            shaderMaterial.defines = { CONSTANT_SPEED: this.options.effect.constantSpeed };
+            this.uniforms.speed.value = effectOptions.constantSpeed / 1000;
+            shaderMaterial.defines = { CONSTANT_SPEED: effectOptions.constantSpeed };
         } else {
             this.uniforms.period.value = period;
         }
-        this.uniforms.trailLength.value = this.options.effect.trailLength;
         
         let line = new THREE.Line(geometry, shaderMaterial);
         line.rotateX(-Math.PI/2);
