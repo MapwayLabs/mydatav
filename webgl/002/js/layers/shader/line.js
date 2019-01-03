@@ -17,7 +17,12 @@ export const lineShader = {
          vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
          gl_Position = projectionMatrix * mvPosition;
             
-         float t = mod((time + start) / period, 1. + trailLength) - trailLength;
+         #ifdef CONSTANT_SPEED
+            float t = mod((speed * time + start) / distAll, 1. + trailLength) - trailLength;
+         #else
+            float t = mod((time + start) / period, 1. + trailLength) - trailLength;
+         #endif
+         
          float trailLen = distAll * trailLength;
          v_Percent = (dist - t * distAll) / trailLen;
          v_Color = colors;

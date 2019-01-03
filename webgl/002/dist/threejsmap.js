@@ -280,24 +280,39 @@ __webpack_require__.r(__webpack_exports__);
 
 
 class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
-    constructor(data, options) {
+    constructor(data, geojsonLayer, options) {
         super(data, options);
         const defaultOptions = {
-            geojsonLayer: null,
-            lineColor: 0x0000ff,
-            lineOpacity: 1.0,
-            // lineStyle: { // 飞线样式
-            //     color: 0x00ff00,
-            //     lineWidth: 2
-            // }
+            // geojsonLayer: null,
+            // lineColor: 0x0000ff,
+            // lineOpacity: 1.0,
+            // 线样式
+            lineStyle: {
+                show: true,
+                color: '#0f0',
+                opacity: 0.5,
+                width: 1
+            },
+            // 飞线特效样式
+            effect: {
+                show: false,
+                period: 4, // 尾迹特效的周期
+                constantSpeed: null, // 尾迹特效是否是固定速度，设置后忽略period值
+                trailWidth: 4, // 尾迹宽度
+                trailLength: 0.1, // 尾迹长度，范围 0-1，为线条长度百分比
+                trailColor: null, // 尾迹颜色，默认跟线颜色相同
+                trailOpacity: null // 尾迹不透明度，默认跟线相同
+            }
         };
-        this.options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](defaultOptions, options);
+        this.options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](true, defaultOptions, options);
+
+        this.geojsonLayer = geojsonLayer;
 
         this.uniforms = {
             baseColor: {value: [1.0, 1.0, 1.0, 1.0]},
             time: {value: 0},
             speed: {value: 0},
-            period: {value: 1500},
+            period: {value: 5000},
             trailLength: {value:1.0}
         };
         this.animate();
@@ -329,14 +344,19 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 t = t.map(point => point / scale);
                 // h = h / scale;
             }
-            this._drawFlyLine(f, t, h);
+            if (this.options.lineStyle.show) {
+                this._drawLine(f, t, h);
+            }
+            if (this.options.effect.show) {
+                this._drawFlyLine(f, t, h);
+            }
         });
     }
-    _drawFlyLine(startPoint, endPoint, heightLimit) {
-        let geojsonLayer = this.options.geojsonLayer;
+    _getCurve(startPoint, endPoint, heightLimit) {
+        let geojsonLayer = this.geojsonLayer;
         let depth = 0;
         if (geojsonLayer && geojsonLayer.options.isExtrude) {
-            depth = geojsonLayer.options.depth
+            depth = geojsonLayer.options.depth;
         }
         let middleX = ( startPoint[0] + endPoint[0] ) / 2;
         let middleY = ( startPoint[1] + endPoint[1] ) / 2;
@@ -346,8 +366,62 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         let endVector = new THREE.Vector3(endPoint[0], endPoint[1], 0 + depth);
 
         let curve = new THREE.CatmullRomCurve3([startVector, middleVector, endVector]);
+        return curve;
+    }
+    _drawLine(startPoint, endPoint, heightLimit) {
+        // let geojsonLayer = this.geojsonLayer;
+        // let depth = 0;
+        // if (geojsonLayer && geojsonLayer.options.isExtrude) {
+        //     depth = geojsonLayer.options.depth;
+        // }
+        // let middleX = ( startPoint[0] + endPoint[0] ) / 2;
+        // let middleY = ( startPoint[1] + endPoint[1] ) / 2;
+        // let middleZ = 0 + depth + heightLimit;
+        // let startVector = new THREE.Vector3(startPoint[0], startPoint[1], 0 + depth);
+        // let middleVector = new THREE.Vector3(middleX, middleY, middleZ);
+        // let endVector = new THREE.Vector3(endPoint[0], endPoint[1], 0 + depth);
 
+        // let curve = new THREE.CatmullRomCurve3([startVector, middleVector, endVector]);
+        
+        const curve = this._getCurve(startPoint, endPoint, heightLimit);
+        const points = curve.getPoints( 50 );
+        let geometry = new THREE.BufferGeometry().setFromPoints( points );
+        
+        let options = {
+            color: this.options.lineStyle.color,
+            linewidth: this.options.lineStyle.width
+        };
+        let material = new THREE.LineBasicMaterial( options );
+        material.transparent = true;
+        material.opacity = this.options.lineStyle.opacity;
+        
+        // Create the final object to add to the scene
+        let curveObject = new THREE.Line( geometry, material );
+        curveObject.rotateX(-Math.PI/2);
+
+        this._container.add(curveObject);
+
+    }
+    _drawFlyLine(startPoint, endPoint, heightLimit) {
+        // let geojsonLayer = this.geojsonLayer;
+        // let depth = 0;
+        // if (geojsonLayer && geojsonLayer.options.isExtrude) {
+        //     depth = geojsonLayer.options.depth;
+        // }
+        // let middleX = ( startPoint[0] + endPoint[0] ) / 2;
+        // let middleY = ( startPoint[1] + endPoint[1] ) / 2;
+        // let middleZ = 0 + depth + heightLimit;
+        // let startVector = new THREE.Vector3(startPoint[0], startPoint[1], 0 + depth);
+        // let middleVector = new THREE.Vector3(middleX, middleY, middleZ);
+        // let endVector = new THREE.Vector3(endPoint[0], endPoint[1], 0 + depth);
+
+        // let curve = new THREE.CatmullRomCurve3([startVector, middleVector, endVector]);
+        
+        const curve = this._getCurve(startPoint, endPoint, heightLimit);
         const points = curve.getPoints(50);
+
+        let useConstantSpeed = this.options.effect.constantSpeed != null;
+        let period = this.options.effect.period * 1000;
 
         let verticeArr = []; // 顶点数组
         let colorArr = []; // 颜色数组
@@ -358,14 +432,14 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         let dist = 0;
         for (let i = 0, len = points.length; i < len; i++) {
             verticeArr.push(points[i].x, points[i].y, points[i].z);
-            let lineColor = new THREE.Color(this.options.lineColor);
-            colorArr.push(lineColor.r, lineColor.g, lineColor.b, this.options.lineOpacity);
+            let lineColor = new THREE.Color(this.options.effect.trailColor || this.options.lineStyle.color);
+            colorArr.push(lineColor.r, lineColor.g, lineColor.b, this.options.effect.trailOpacity != null ? this.options.effect.trailOpacity : this.options.lineStyle.opacity);
             if (i > 0) {
                 dist += points[i].distanceTo(points[i-1]);
             }
             distArr.push(dist);
         }
-        let randomStart = Math.random() * this.uniforms.period.value;
+        let randomStart = Math.random() * (useConstantSpeed ? dist : period);
         for (let i = 0, len = points.length; i < len; i++) {
             disAllArr.push(dist);
             startArr.push(randomStart);
@@ -377,14 +451,24 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         geometry.addAttribute('dist', new THREE.BufferAttribute( new Float32Array(distArr), 1 ));
         geometry.addAttribute('distAll', new THREE.BufferAttribute( new Float32Array(disAllArr), 1 ));
         geometry.addAttribute('start', new THREE.BufferAttribute( new Float32Array(startArr), 1 ));
-
+        
         let shaderMaterial = new THREE.ShaderMaterial({
             uniforms: this.uniforms,
             vertexShader: _shader_line__WEBPACK_IMPORTED_MODULE_3__["lineShader"].vertexShader,
             fragmentShader: _shader_line__WEBPACK_IMPORTED_MODULE_3__["lineShader"].fragmentShader,
             transparent: true,
-            alphaTest: 0.8
+            // alphaTest: 0.8
         });
+        // 由于OpenGL Core Profile与大多数平台上WebGL渲染器的限制，无论如何设置该值，线宽始终为1。
+        // shaderMaterial.linewidth = this.options.effect.trailWidth;
+
+        if (useConstantSpeed) {
+            this.uniforms.speed.value = this.options.effect.constantSpeed / 1000;
+            shaderMaterial.defines = { CONSTANT_SPEED: this.options.effect.constantSpeed };
+        } else {
+            this.uniforms.period.value = period;
+        }
+        this.uniforms.trailLength.value = this.options.effect.trailLength;
         
         let line = new THREE.Line(geometry, shaderMaterial);
         line.rotateX(-Math.PI/2);
@@ -812,7 +896,12 @@ const lineShader = {
          vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
          gl_Position = projectionMatrix * mvPosition;
             
-         float t = mod((time + start) / period, 1. + trailLength) - trailLength;
+         #ifdef CONSTANT_SPEED
+            float t = mod((speed * time + start) / distAll, 1. + trailLength) - trailLength;
+         #else
+            float t = mod((time + start) / period, 1. + trailLength) - trailLength;
+         #endif
+         
          float trailLen = distAll * trailLength;
          v_Percent = (dist - t * distAll) / trailLen;
          v_Color = colors;
@@ -1221,7 +1310,7 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
 /*!********************!*\
   !*** ./js/util.js ***!
   \********************/
-/*! exports provided: hasClass, addClass, removeClass, getCmpStyle, extend, stamp, inherit, isNullOrUdf, getRandomColor, isWebGLAvailable, lightenDarkenColor */
+/*! exports provided: hasClass, addClass, removeClass, getCmpStyle, isFunction, isPlainObject, extend, stamp, inherit, isNullOrUdf, getRandomColor, isWebGLAvailable, lightenDarkenColor */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1230,6 +1319,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "addClass", function() { return addClass; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "removeClass", function() { return removeClass; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getCmpStyle", function() { return getCmpStyle; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isFunction", function() { return isFunction; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isPlainObject", function() { return isPlainObject; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "extend", function() { return extend; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "stamp", function() { return stamp; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "inherit", function() { return inherit; });
@@ -1266,15 +1357,114 @@ function getCmpStyle(el) {
     return getComputedStyle(el);
 }
 
-function extend(srcObj) {
-    var i, j, len, src;
-    for (j = 1, len = arguments.length; j < len; j++) {
-        src = arguments[j];
-        for (var i in src) {
-            srcObj[i] = src[i];
+function isFunction( obj ) {
+
+    // Support: Chrome <=57, Firefox <=52
+    // In some browsers, typeof returns "function" for HTML <object> elements
+    // (i.e., `typeof document.createElement( "object" ) === "function"`).
+    // We don't want to classify *any* DOM node as a function.
+    return typeof obj === "function" && typeof obj.nodeType !== "number";
+}
+
+function isPlainObject( obj ) {
+    var proto, Ctor;
+
+    // Detect obvious negatives
+    // Use toString instead of jQuery.type to catch host objects
+    if ( !obj || Object.prototype.toString.call( obj ) !== "[object Object]" ) {
+        return false;
+    }
+
+    proto = Object.getPrototypeOf( obj );
+
+    // Objects with no prototype (e.g., `Object.create( null )`) are plain
+    if ( !proto ) {
+        return true;
+    }
+
+    // Objects with prototype are plain iff they were constructed by a global Object function
+    Ctor = Object.prototype.hasOwnProperty.call( proto, "constructor" ) && proto.constructor;
+    return typeof Ctor === "function" && Object.prototype.hasOwnProperty.toString.call( Ctor ) === Object.prototype.hasOwnProperty.toString.call( Object );
+}
+
+// 浅拷贝
+// export function extend(srcObj) {
+//     var i, j, len, src;
+//     for (j = 1, len = arguments.length; j < len; j++) {
+//         src = arguments[j];
+//         for (var i in src) {
+//             srcObj[i] = src[i];
+//         }
+//     }
+//     return srcObj;
+// }
+
+// 深浅拷贝， 参考jquery
+function extend() {
+    var options, name, src, copy, copyIsArray, clone,
+    target = arguments[ 0 ] || {},
+    i = 1,
+    length = arguments.length,
+    deep = false;
+
+    // Handle a deep copy situation
+    if ( typeof target === "boolean" ) {
+        deep = target;
+
+        // Skip the boolean and the target
+        target = arguments[ i ] || {};
+        i++;
+    }
+
+    // Handle case when target is a string or something (possible in deep copy)
+    if ( typeof target !== "object" && !isFunction( target ) ) {
+        target = {};
+    }
+
+    // Extend jQuery itself if only one argument is passed
+    if ( i === length ) {
+        target = this;
+        i--;
+    }
+
+    for ( ; i < length; i++ ) {
+
+        // Only deal with non-null/undefined values
+        if ( ( options = arguments[ i ] ) != null ) {
+
+            // Extend the base object
+            for ( name in options ) {
+                src = target[ name ];
+                copy = options[ name ];
+
+                // Prevent never-ending loop
+                if ( target === copy ) {
+                    continue;
+                }
+
+                // Recurse if we're merging plain objects or arrays
+                if ( deep && copy && ( isPlainObject( copy ) || ( copyIsArray = Array.isArray( copy ) ) ) ) {
+
+                    if ( copyIsArray ) {
+                        copyIsArray = false;
+                        clone = src && Array.isArray( src ) ? src : [];
+
+                    } else {
+                        clone = src && isPlainObject( src ) ? src : {};
+                    }
+
+                    // Never move original objects, clone them
+                    target[ name ] = extend( deep, clone, copy );
+
+                // Don't bring in undefined values
+                } else if ( copy !== undefined ) {
+                    target[ name ] = copy;
+                }
+            }
         }
     }
-    return srcObj;
+    // Return the modified object
+    return target;
 }
 
 var lastId;

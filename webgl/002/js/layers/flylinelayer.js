@@ -3,24 +3,36 @@ import * as Util from '../util';
 import { mapHelper, CRS } from '../maphelper';
 import { lineShader } from './shader/line';
 export default class FlyLineLayer extends Layer {
-    constructor(data, options) {
+    constructor(data, geojsonLayer, options) {
         super(data, options);
         const defaultOptions = {
-            geojsonLayer: null,
-            lineColor: 0x0000ff,
-            lineOpacity: 1.0,
-            // lineStyle: { // 飞线样式
-            //     color: 0x00ff00,
-            //     lineWidth: 2
-            // }
+            // 线样式
+            lineStyle: {
+                show: true,
+                color: '#0f0',
+                opacity: 0.5,
+                width: 1
+            },
+            // 飞线特效样式
+            effect: {
+                show: false,
+                period: 4, // 尾迹特效的周期
+                constantSpeed: null, // 尾迹特效是否是固定速度，设置后忽略period值
+                trailWidth: 4, // 尾迹宽度
+                trailLength: 0.1, // 尾迹长度，范围 0-1，为线条长度百分比
+                trailColor: null, // 尾迹颜色，默认跟线颜色相同
+                trailOpacity: null // 尾迹不透明度，默认跟线相同
+            }
         };
-        this.options = Util.extend(defaultOptions, options);
+        this.options = Util.extend(true, defaultOptions, options);
+
+        this.geojsonLayer = geojsonLayer;
 
         this.uniforms = {
             baseColor: {value: [1.0, 1.0, 1.0, 1.0]},
             time: {value: 0},
             speed: {value: 0},
-            period: {value: 1500},
+            period: {value: 5000},
             trailLength: {value:1.0}
         };
         this.animate();
@@ -52,14 +64,19 @@ export default class FlyLineLayer extends Layer {
                 t = t.map(point => point / scale);
                 // h = h / scale;
             }
-            this._drawFlyLine(f, t, h);
+            if (this.options.lineStyle.show) {
+                this._drawLine(f, t, h);
+            }
+            if (this.options.effect.show) {
+                this._drawFlyLine(f, t, h);
+            }
         });
     }
-    _drawFlyLine(startPoint, endPoint, heightLimit) {
-        let geojsonLayer = this.options.geojsonLayer;
+    _getCurve(startPoint, endPoint, heightLimit) {
+        let geojsonLayer = this.geojsonLayer;
         let depth = 0;
         if (geojsonLayer && geojsonLayer.options.isExtrude) {
-            depth = geojsonLayer.options.depth
+            depth = geojsonLayer.options.depth;
         }
         let middleX = ( startPoint[0] + endPoint[0] ) / 2;
         let middleY = ( startPoint[1] + endPoint[1] ) / 2;
@@ -69,9 +86,36 @@ export default class FlyLineLayer extends Layer {
         let endVector = new THREE.Vector3(endPoint[0], endPoint[1], 0 + depth);
 
         let curve = new THREE.CatmullRomCurve3([startVector, middleVector, endVector]);
+        return curve;
+    }
+    _drawLine(startPoint, endPoint, heightLimit) {  
+        const curve = this._getCurve(startPoint, endPoint, heightLimit);
+        const points = curve.getPoints( 50 );
+        let geometry = new THREE.BufferGeometry().setFromPoints( points );
+        
+        let options = {
+            color: this.options.lineStyle.color,
+            linewidth: this.options.lineStyle.width
+        };
+        let material = new THREE.LineBasicMaterial( options );
+        material.transparent = true;
+        material.opacity = this.options.lineStyle.opacity;
+        
+        // Create the final object to add to the scene
+        let curveObject = new THREE.Line( geometry, material );
+        curveObject.rotateX(-Math.PI/2);
 
+        this._container.add(curveObject);
+
+    }
+    _drawFlyLine(startPoint, endPoint, heightLimit) {
+        const curve = this._getCurve(startPoint, endPoint, heightLimit);
         const points = curve.getPoints(50);
-
+        
+        let effectOptions = this.options.effect;
+        let useConstantSpeed = effectOptions.constantSpeed != null;
+        let period = effectOptions.period * 1000;
+        
         let verticeArr = []; // 顶点数组
         let colorArr = []; // 颜色数组
         let distArr = []; // 距离原点距离数组
@@ -81,14 +125,14 @@ export default class FlyLineLayer extends Layer {
         let dist = 0;
         for (let i = 0, len = points.length; i < len; i++) {
             verticeArr.push(points[i].x, points[i].y, points[i].z);
-            let lineColor = new THREE.Color(this.options.lineColor);
-            colorArr.push(lineColor.r, lineColor.g, lineColor.b, this.options.lineOpacity);
+            let lineColor = new THREE.Color(effectOptions.trailColor || this.options.lineStyle.color);
+            colorArr.push(lineColor.r, lineColor.g, lineColor.b, effectOptions.trailOpacity != null ? effectOptions.trailOpacity : this.options.lineStyle.opacity);
             if (i > 0) {
                 dist += points[i].distanceTo(points[i-1]);
             }
             distArr.push(dist);
         }
-        let randomStart = Math.random() * this.uniforms.period.value;
+        let randomStart = Math.random() * (useConstantSpeed ? dist : period);
         for (let i = 0, len = points.length; i < len; i++) {
             disAllArr.push(dist);
             startArr.push(randomStart);
@@ -100,14 +144,23 @@ export default class FlyLineLayer extends Layer {
         geometry.addAttribute('dist', new THREE.BufferAttribute( new Float32Array(distArr), 1 ));
         geometry.addAttribute('distAll', new THREE.BufferAttribute( new Float32Array(disAllArr), 1 ));
         geometry.addAttribute('start', new THREE.BufferAttribute( new Float32Array(startArr), 1 ));
+        
+        this.uniforms.trailLength.value = effectOptions.trailLength;
 
         let shaderMaterial = new THREE.ShaderMaterial({
             uniforms: this.uniforms,
             vertexShader: lineShader.vertexShader,
-            fragmentShader: lineShader.fragmentShader,
-            transparent: true,
-            alphaTest: 0.8
+            fragmentShader: lineShader.fragmentShader
         });
+        // 由于OpenGL Core Profile与大多数平台上WebGL渲染器的限制，无论如何设置该值，线宽始终为1。
+        // shaderMaterial.linewidth = effectOptions.trailWidth;
+
+        if (useConstantSpeed) {
+            this.uniforms.speed.value = effectOptions.constantSpeed / 1000;
+            shaderMaterial.defines = { CONSTANT_SPEED: effectOptions.constantSpeed };
+        } else {
+            this.uniforms.period.value = period;
+        }
         
         let line = new THREE.Line(geometry, shaderMaterial);
         line.rotateX(-Math.PI/2);
