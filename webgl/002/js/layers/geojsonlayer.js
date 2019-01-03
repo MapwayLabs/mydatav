@@ -221,11 +221,12 @@ export default class GeoJSONLayer extends Layer {
         }
     }
     getTextSprite(textStr, options) {
-        var options = options || {}
-        var fontWeight = options.fontWeight || 'normal'
-        var fontFamily = options.fontFamily || 'Microsoft YaHei'
-        var fontColor = options.fontColor || '#000'
-        var textAlign = options.textAlign || 'center'
+        var options = options || {};
+        var fontWeight = options.fontWeight || 'normal';
+        var fontFamily = options.fontFamily || 'Microsoft YaHei';
+        var fontColor = options.fontColor || '#000';
+        var textAlign = options.textAlign || 'center';
+        var textBaseline = options.textBaseline || 'middle';
 
         var canvas = document.createElement("canvas");
         // webgl 规定 canvas 宽高为2的n次幂
@@ -240,6 +241,7 @@ export default class GeoJSONLayer extends Layer {
         ctx.font = "16px " + fontWeight + " " + fontFamily;
         ctx.fillStyle = fontColor;
         ctx.textAlign = textAlign;
+        ctx.textBaseline = textBaseline;
         var textWidth = ctx.measureText(textStr).width;
         ctx.fillText(textStr, canvas.width / 2, canvas.height / 2 + 5);
         // ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -255,7 +257,7 @@ export default class GeoJSONLayer extends Layer {
         return sprite;
     }
     drawLabel(center, name) {
-        var textSprite = this.getTextSprite(name, {
+        const textSprite = this.getTextSprite(name, {
             fontColor: '#000'
         });
 
@@ -264,19 +266,19 @@ export default class GeoJSONLayer extends Layer {
         }
         
         // TODO 数字8为初始化全中国时最佳缩放比，其他区域根据距离比例调整
-        var scaleX = 32, scaleY = 32
+        let scaleX = 32, scaleY = 32;
         textSprite.scale.set(scaleX, scaleY, 1);
 
         if (this.options.isExtrude) {
-            textSprite.position.set(center[0], this.options.depth, -center[1])
+            textSprite.position.set(center[0], this.options.depth, -center[1]);
         } else {
-            textSprite.position.set(center[0], 0, -center[1])
+            textSprite.position.set(center[0], 0, -center[1]);
         }
         textSprite.rotateX(-Math.PI/2);
 
         // 避免柱子遮挡地名
-        textSprite.renderOrder = 99
-        textSprite.material.depthTest=false
+        textSprite.renderOrder = 99;
+        textSprite.material.depthTest=false;
 
         this._container.add(textSprite);
     }

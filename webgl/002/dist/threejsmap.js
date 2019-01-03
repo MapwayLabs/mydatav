@@ -407,7 +407,7 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                     this._drawSegment(segPoints);
                 }
             } else {
-                // 分段数大于所有点数时，视为不分段
+                // 分段数大于所有点数时，不分段
                 this._drawSegment(points);
             }
         }
@@ -509,7 +509,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 side: THREE.DoubleSide
             }
         };
-        this.options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](defaultOptions, options);
+        this.options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](true, defaultOptions, options);
     }
     onAdd(map) {
         _layer__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.onAdd.call(this, map); 
@@ -708,11 +708,12 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         }
     }
     getTextSprite(textStr, options) {
-        var options = options || {}
-        var fontWeight = options.fontWeight || 'normal'
-        var fontFamily = options.fontFamily || 'Microsoft YaHei'
-        var fontColor = options.fontColor || '#000'
-        var textAlign = options.textAlign || 'center'
+        var options = options || {};
+        var fontWeight = options.fontWeight || 'normal';
+        var fontFamily = options.fontFamily || 'Microsoft YaHei';
+        var fontColor = options.fontColor || '#000';
+        var textAlign = options.textAlign || 'center';
+        var textBaseline = options.textBaseline || 'middle';
 
         var canvas = document.createElement("canvas");
         // webgl 规定 canvas 宽高为2的n次幂
@@ -727,6 +728,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         ctx.font = "16px " + fontWeight + " " + fontFamily;
         ctx.fillStyle = fontColor;
         ctx.textAlign = textAlign;
+        ctx.textBaseline = textBaseline;
         var textWidth = ctx.measureText(textStr).width;
         ctx.fillText(textStr, canvas.width / 2, canvas.height / 2 + 5);
         // ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -742,7 +744,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         return sprite;
     }
     drawLabel(center, name) {
-        var textSprite = this.getTextSprite(name, {
+        const textSprite = this.getTextSprite(name, {
             fontColor: '#000'
         });
 
@@ -751,19 +753,19 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         }
         
         // TODO 数字8为初始化全中国时最佳缩放比，其他区域根据距离比例调整
-        var scaleX = 32, scaleY = 32
+        let scaleX = 32, scaleY = 32;
         textSprite.scale.set(scaleX, scaleY, 1);
 
         if (this.options.isExtrude) {
-            textSprite.position.set(center[0], this.options.depth, -center[1])
+            textSprite.position.set(center[0], this.options.depth, -center[1]);
         } else {
-            textSprite.position.set(center[0], 0, -center[1])
+            textSprite.position.set(center[0], 0, -center[1]);
         }
         textSprite.rotateX(-Math.PI/2);
 
         // 避免柱子遮挡地名
-        textSprite.renderOrder = 99
-        textSprite.material.depthTest=false
+        textSprite.renderOrder = 99;
+        textSprite.material.depthTest=false;
 
         this._container.add(textSprite);
     }
@@ -842,7 +844,7 @@ class Layer extends _eventemiter__WEBPACK_IMPORTED_MODULE_1__["default"] {
     constructor(data, options) {
         super();
         var defaultOptions = {};
-        this.options = _util__WEBPACK_IMPORTED_MODULE_0__["extend"](defaultOptions, options);
+        this.options = _util__WEBPACK_IMPORTED_MODULE_0__["extend"](true, defaultOptions, options);
         this._data = data;
         this._container = new THREE.Group();
     }
@@ -1106,7 +1108,7 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 far: 2000
             }
         };
-        this.options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](defaultOptions, options);
+        this.options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](true, defaultOptions, options);
     
         if (this.options.type === 'plane') {
             if (this.options.region === 'china') {
