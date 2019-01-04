@@ -5,13 +5,15 @@ export default class EventEmiter {
 
     on(event, cb, context) {
         context = context || this;
-        cb.$context = context;
         if (Array.isArray(event)) {
             for (let i = 0, l = event.length; i < l; i++) {
                 this.on(event[i], cb, context);
             }
         } else {
-            (this._events[event] || (this._events[event] = [])).push(cb);
+            (this._events[event] || (this._events[event] = [])).push({
+                callback: cb,
+                context: context
+            });
         }
         return this;
     }
@@ -49,7 +51,7 @@ export default class EventEmiter {
             let cbs = this._events[event];
             let i = cbs.length;
             while (i--) {
-                if (cb === cbs[i] || cb === cbs[i].fn) {
+                if ((cb === cbs[i].callback || cb === cbs[i].fn) && context === cbs[i].context) {
                     cbs.splice(i, 1);
                     break;
                 }
@@ -63,7 +65,7 @@ export default class EventEmiter {
         let args = Array.prototype.slice.call(arguments, 1);
         if (cbs) {
             for (let i = 0, l = cbs.length; i < l; i++) {
-                cbs[i].apply(cbs[i].$context || this, args);
+                cbs[i].callback.apply(cbs[i].context || this, args);
             }
         }
     }
