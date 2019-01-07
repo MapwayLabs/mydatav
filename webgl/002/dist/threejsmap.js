@@ -969,7 +969,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             type: 'areaText'
         }
         
-        // TODO 数字8为初始化全中国时最佳缩放比，其他区域根据距离比例调整
+        // TODO: 数字8为初始化全中国时最佳缩放比，其他区域根据距离比例调整
         let scaleX = 32, scaleY = 32;
         textSprite.scale.set(scaleX, scaleY, 1);
 

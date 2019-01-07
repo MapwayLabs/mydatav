@@ -125,8 +125,10 @@
             var textHeight = ctx.measureText('国').width;
             // ctx.fillText(textStr, canvas.width / 2, canvas.height / 2 + 5);
             // ctx.fillRect(0, 0, canvas.width, canvas.height);
-            canvas.width = wrapNum(textWidth);
-            canvas.height = wrapNum(textHeight);
+            canvas.width = wrapNum(textWidth)*window.devicePixelRatio;
+            canvas.height = wrapNum(textHeight)*window.devicePixelRatio;
+            canvas.style.width = wrapNum(textWidth) + 'px';
+            canvas.style.height = wrapNum(textHeight) + 'px';
             ctx.fillText(textStr, (canvas.width - textWidth) / 2, (canvas.height-textHeight) / 2 + textHeight);
             var texture = new THREE.Texture(canvas);
             texture.needsUpdate = true;
@@ -158,17 +160,17 @@
         }
 
         // 文字2
-        let texture = new THREE.TextTexture({
-            fontFamily: '"Microsoft YaHei", Times, serif',
-            fontSize: 32,
-            fontStyle: 'normal',
-            text: '100'
-        });
-        let material = new THREE.SpriteMaterial({map: texture, color: 0xffffbb});
-        let sprite = new THREE.Sprite(material);
-        sprite.scale.setX(texture.imageAspect).multiplyScalar(10);
-        sprite.position.set(32, 0, 32);
-        scene.add(sprite);
+        // let texture = new THREE.TextTexture({
+        //     fontFamily: '"Microsoft YaHei", Times, serif',
+        //     fontSize: 32,
+        //     fontStyle: 'normal',
+        //     text: '100'
+        // });
+        // let material = new THREE.SpriteMaterial({map: texture, color: 0xffffbb});
+        // let sprite = new THREE.Sprite(material);
+        // sprite.scale.setX(texture.imageAspect).multiplyScalar(10);
+        // sprite.position.set(32, 0, 32);
+        // scene.add(sprite);
 
         function animate() {
             requestAnimationFrame(animate);
