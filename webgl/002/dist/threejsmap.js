@@ -159,13 +159,15 @@ class EventEmiter {
 
     on(event, cb, context) {
         context = context || this;
-        cb.$context = context;
         if (Array.isArray(event)) {
             for (let i = 0, l = event.length; i < l; i++) {
                 this.on(event[i], cb, context);
             }
         } else {
-            (this._events[event] || (this._events[event] = [])).push(cb);
+            (this._events[event] || (this._events[event] = [])).push({
+                callback: cb,
+                context: context
+            });
         }
         return this;
     }
@@ -203,7 +205,7 @@ class EventEmiter {
             let cbs = this._events[event];
             let i = cbs.length;
             while (i--) {
-                if (cb === cbs[i] || cb === cbs[i].fn) {
+                if ((cb === cbs[i].callback || cb === cbs[i].fn) && context === cbs[i].context) {
                     cbs.splice(i, 1);
                     break;
                 }
@@ -217,7 +219,7 @@ class EventEmiter {
         let args = Array.prototype.slice.call(arguments, 1);
         if (cbs) {
             for (let i = 0, l = cbs.length; i < l; i++) {
-                cbs[i].apply(cbs[i].$context || this, args);
+                cbs[i].callback.apply(cbs[i].context || this, args);
             }
         }
     }
@@ -229,7 +231,7 @@ class EventEmiter {
 /*!*********************!*\
   !*** ./js/index.js ***!
   \*********************/
-/*! exports provided: ThreeMap, GeoJSONLayer, FlyLineLayer, mapHelper, Util */
+/*! exports provided: ThreeMap, GeoJSONLayer, FlyLineLayer, BarLayer, mapHelper, Util */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -243,10 +245,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _layers_flylinelayer__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./layers/flylinelayer */ "./js/layers/flylinelayer.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "FlyLineLayer", function() { return _layers_flylinelayer__WEBPACK_IMPORTED_MODULE_2__["default"]; });
 
-/* harmony import */ var _maphelper__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./maphelper */ "./js/maphelper.js");
-/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "mapHelper", function() { return _maphelper__WEBPACK_IMPORTED_MODULE_3__; });
-/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./util */ "./js/util.js");
-/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "Util", function() { return _util__WEBPACK_IMPORTED_MODULE_4__; });
+/* harmony import */ var _layers_barlayer__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./layers/barlayer */ "./js/layers/barlayer.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "BarLayer", function() { return _layers_barlayer__WEBPACK_IMPORTED_MODULE_3__["default"]; });
+
+/* harmony import */ var _maphelper__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./maphelper */ "./js/maphelper.js");
+/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "mapHelper", function() { return _maphelper__WEBPACK_IMPORTED_MODULE_4__; });
+/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./util */ "./js/util.js");
+/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "Util", function() { return _util__WEBPACK_IMPORTED_MODULE_5__; });
 
 
 
@@ -258,6 +263,207 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
+
+
+/***/ }),
+
+/***/ "./js/layers/barlayer.js":
+/*!*******************************!*\
+  !*** ./js/layers/barlayer.js ***!
+  \*******************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return BarLayer; });
+/* harmony import */ var _layer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./layer */ "./js/layers/layer.js");
+/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../util */ "./js/util.js");
+/* harmony import */ var _maphelper__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../maphelper */ "./js/maphelper.js");
+
+
+
+
+class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
+    constructor (data, geojsonLayer, options) {
+        super(data, options);
+
+        const defaultOptions = {
+            barStyle: {
+                width: 1, // 底边长
+                minHeight: 3, // 最小高度
+                maxHeight: 12, // 最大高度
+                bevelThickness: 0.1,
+                bevelSize: 0.08,
+                defaultColor: ['#f00'],
+                grandientColor: null,
+                enumColor: null
+            },
+            barText: {
+                show: true,
+                fontSize: 12,
+                fontFamily: 'Microsoft YaHei',
+                fontColor: '#000'
+            },
+            barTooltip: {
+                show: true
+            }
+        };
+        this.options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](true, defaultOptions, options);
+
+        this.geojsonLayer = geojsonLayer;
+
+        this._barData = {
+            data: null,
+            vals: null,
+            min: null,
+            max: null
+        };
+
+        this._initBarData();
+        this._initMinMax();
+    }
+    onAdd(map) {
+        _layer__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.onAdd.call(this, map); 
+        this._draw();
+    }
+    onRemove(map) {
+        _layer__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.onRemove.call(this, map);
+    }
+    isMatch(featureIdVal, feature) {
+        if (featureIdVal == null || feature == null || _util__WEBPACK_IMPORTED_MODULE_1__["isEmptyObject"](feature)) {
+            return false;
+        }
+        featureIdVal = String(featureIdVal);
+        if (featureIdVal === String(feature.id)) {
+            return true;
+        }
+        let props = feature.properties;
+        if (props == null || _util__WEBPACK_IMPORTED_MODULE_1__["isEmptyObject"](props)) {
+            return false;
+        }
+        if ( featureIdVal === String(props.id) || new RegExp(props.name).test(featureIdVal)) {
+            return true;
+        }
+        return false;
+    }
+    _initBarData() {
+        const features = this.geojsonLayer.getFeatures();
+        const x = this._data.x;
+        const y = this._data.y;
+        
+        let barData = [];
+        let vals = [];
+        features.forEach(f => {
+            let props = f.properties;
+            let xlength = x.data.length;
+            let i = 0;
+            for (; i < xlength; i++) {
+                let ismatch = this.isMatch(x.data[i], f);
+                if (ismatch) {
+                    let tempobj = {
+                        id: props.id || f.id,
+                        name: props.name,
+                        center: _maphelper__WEBPACK_IMPORTED_MODULE_2__["mapHelper"].getNormalizeCenter(f),
+                        value: Number(y.data[i])
+                    };
+                    barData.push(tempobj);
+                    vals.push(Number(tempobj.value));
+                    // 给 feature 打上标签，表示在它之上有柱子
+                    f.hasBarData = true;
+                    break;
+                }
+            }
+            // 当前 feature 上没有柱子
+            if (i === xlength) {
+                // 给 feature 打上标签，表示在它之上没有柱子
+                f.hasBarData = false;
+            }
+        });
+
+        this._barData.data = barData;
+        this._barData.vals = vals;
+    }
+    _initMinMax() {
+        if (this._barData.vals == null || !this._barData.vals.length) {return;}
+        const min = Math.min(...this._barData.vals);
+        const max = Math.max(...this._barData.vals);
+        this._barData.min = min;
+        this._barData.max = max;
+    }
+    getBarHeight(item) {
+        let xmin = this._barData.min;
+        let xmax = this._barData.max;
+        let ymin = this.options.barStyle.minHeight;
+        let ymax = this.options.barStyle.maxHeight;
+        let barHeight = _util__WEBPACK_IMPORTED_MODULE_1__["normalizeValue"](item.value, xmin, xmax, ymin, ymax);
+        return barHeight;
+    }
+    getBarColor(item, index) {
+        const barStyle = this.options.barStyle;
+        let color = "#fff";
+        let cLen = barStyle.defaultColor.length;
+        if (barStyle.grandientColor) {
+            let xmin = this._barData.min;
+            let xmax = this._barData.max;
+            let ymin = 1;
+            let ymax = 256;
+            let num = _util__WEBPACK_IMPORTED_MODULE_1__["normalizeValue"](item.value, xmin, xmax, ymin, ymax);
+            color = _util__WEBPACK_IMPORTED_MODULE_1__["getInterPolateColor"](num, barStyle.grandientColor);
+        } else if (barStyle.enumColor) {
+           let enumcolor = barStyle.enumColor[item.name] || barStyle.enumColor[item.id];
+           color = enumcolor && enumcolor.color;
+           if(!color){
+            color = barStyle.defaultColor[index % cLen]
+           }
+        } else {
+            color = barStyle.defaultColor[index % cLen]
+        }
+        return color;
+    }
+    _draw() {
+        if (this._barData.data == null || !this._barData.data.length) {return;}
+        this._barData.data.forEach((item, index) => {
+            let barHeight = this.getBarHeight(item);
+            let barColor = this.getBarColor(item, index);
+            let yoffset = this.geojsonLayer.getDepth();
+            let projCenter = this._map.convertCoord(item.center);
+            let bar = this._createBar(projCenter, barHeight, barColor, yoffset);
+            bar.userData = item;
+            this._container.add(bar);
+            // this._drawBarText(item);
+        });
+    }
+    _createBar(center, height, color, yoffset) {
+        const barStyle = this.options.barStyle;
+        const halfWidth = barStyle.width / 2;
+
+        const shape = new THREE.Shape();
+        shape.moveTo(-halfWidth, -halfWidth);
+        shape.lineTo(-halfWidth, halfWidth);
+        shape.lineTo(halfWidth, halfWidth);
+        shape.lineTo(halfWidth, -halfWidth);
+        shape.lineTo(-halfWidth, -halfWidth);
+  
+        const extrudeSettings = {
+          curveSegments: 0,
+          steps: 0,
+          depth: height,
+          bevelEnabled: true,
+          bevelThickness: barStyle.bevelThickness,
+          bevelSize: barStyle.bevelSize,
+          bevelSegments: 100
+        };
+        const geometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings);
+        const material = new THREE.MeshPhongMaterial({ color: color });
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.position.set(center[0], yoffset, -center[1]);
+        mesh.rotateX(-Math.PI / 2);
+        return mesh;
+    }
+    _drawBarText(item) {}
+}
 
 /***/ }),
 
@@ -525,6 +731,16 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
     getCenter() {
         return this._center;
     }
+    getFeatures() {
+        return this._features || [];
+    }
+    getDepth() {
+        if (this.options.isExtrude) {
+            return this.options.depth;
+        } else {
+            return 0;
+        }
+    }
     createFeatureArray(json) {
         var feature_array = [];
         var temp_feature;
@@ -658,6 +874,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         var geojson = this._data;
 
         var features = this.createFeatureArray(geojson);
+        this._features = features;
 
         for (let i = 0, len = features.length; i < len; i++) {
             let feature = features[i];
@@ -1161,6 +1378,18 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
             this.removeLayer(this._layers[id]);
         }
     }
+    convertCoord(lnglat) {
+        if (this.options.type === 'plane') {
+            if (this.options.crs === _maphelper__WEBPACK_IMPORTED_MODULE_2__["CRS"].epsg3857) {
+                let point = _maphelper__WEBPACK_IMPORTED_MODULE_2__["mapHelper"].wgs84ToMecator(lnglat);
+                return _maphelper__WEBPACK_IMPORTED_MODULE_2__["mapHelper"].scalePoint(point, 1/this.options.SCALE_RATIO);
+            } else {
+                return lnglat;
+            }
+        } else {
+            // sphere
+        }
+    }
     updateSize() {
         this._onContainerResize()
     }
@@ -1305,7 +1534,7 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
 /*!********************!*\
   !*** ./js/util.js ***!
   \********************/
-/*! exports provided: hasClass, addClass, removeClass, getCmpStyle, isFunction, isPlainObject, extend, stamp, inherit, isNullOrUdf, getRandomColor, isWebGLAvailable, lightenDarkenColor */
+/*! exports provided: hasClass, addClass, removeClass, getCmpStyle, isFunction, isPlainObject, isEmptyObject, extend, stamp, inherit, isNullOrUdf, getRandomColor, isWebGLAvailable, normalizeValue, getInterPolateColor, lightenDarkenColor */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1316,12 +1545,15 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getCmpStyle", function() { return getCmpStyle; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isFunction", function() { return isFunction; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isPlainObject", function() { return isPlainObject; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isEmptyObject", function() { return isEmptyObject; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "extend", function() { return extend; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "stamp", function() { return stamp; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "inherit", function() { return inherit; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isNullOrUdf", function() { return isNullOrUdf; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getRandomColor", function() { return getRandomColor; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isWebGLAvailable", function() { return isWebGLAvailable; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "normalizeValue", function() { return normalizeValue; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getInterPolateColor", function() { return getInterPolateColor; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "lightenDarkenColor", function() { return lightenDarkenColor; });
 function hasClass(el, className) {
     return el.classList ? el.classList.contains(className) : new RegExp('(^|\\s)' + className + '(\\s|$)').test(el.className);
@@ -1380,6 +1612,15 @@ function isPlainObject( obj ) {
     // Objects with prototype are plain iff they were constructed by a global Object function
     Ctor = Object.prototype.hasOwnProperty.call( proto, "constructor" ) && proto.constructor;
     return typeof Ctor === "function" && Object.prototype.hasOwnProperty.toString.call( Ctor ) === Object.prototype.hasOwnProperty.toString.call( Object );
+}
+
+function isEmptyObject( obj ) {
+    var name;
+
+    for ( name in obj ) {
+        return false;
+    }
+    return true;
 }
 
 // 浅拷贝
@@ -1494,6 +1735,44 @@ function isWebGLAvailable () {
     } catch (e) {
         return false;
     }
+}
+
+/**
+ * 获取归一化的值，归一到区间[ymin, ymax]
+ * xmax, xmin 目前数据的最大、最小值
+ * ymax, ymin 目标区间的最大、最小值
+ */
+function normalizeValue(value, xmin, xmax, ymin, ymax) {
+    if (xmax === 0 && xmin === 0) {
+        return ymin;
+    }
+    if (xmin === xmax) {
+        return (ymax + ymin) / 2;
+    }
+    return ymin + (ymax - ymin) * (value - xmin) / (xmax - xmin);
+}
+
+// 获取渐变色
+var imgData;
+function getInterPolateColor(num, g) {
+    g = g || [
+        { value: 1, color: '#EF6064'},
+        { value: 0, color: '#FFA9A9'}
+    ]
+    if (imgData == null) {
+        const canvas = document.createElement('canvas');
+        canvas.height = 1;
+        canvas.width = 256;
+        const ctx = canvas.getContext('2d');
+        const grandient = ctx.createLinearGradient(0, 0, 256, 0);
+        g.forEach(item => {
+            grandient.addColorStop(item.value, item.color);
+        })
+        ctx.fillStyle = grandient;
+        ctx.fillRect(0, 0, 256, 1);
+        imgData = ctx.getImageData(0, 0, 256, 1).data;
+    }
+    return `rgba(${imgData[4 * (num-1)]},${imgData[4 * (num-1)+1]},${imgData[4 * (num-1)+2]},${imgData[4 * (num-1)+3]})`
 }
 
 // 获取一个颜色的高亮或更暗色 https://css-tricks.com/snippets/javascript/lighten-darken-color/

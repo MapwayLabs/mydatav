@@ -38,6 +38,16 @@ export default class GeoJSONLayer extends Layer {
     getCenter() {
         return this._center;
     }
+    getFeatures() {
+        return this._features || [];
+    }
+    getDepth() {
+        if (this.options.isExtrude) {
+            return this.options.depth;
+        } else {
+            return 0;
+        }
+    }
     createFeatureArray(json) {
         var feature_array = [];
         var temp_feature;
@@ -171,6 +181,7 @@ export default class GeoJSONLayer extends Layer {
         var geojson = this._data;
 
         var features = this.createFeatureArray(geojson);
+        this._features = features;
 
         for (let i = 0, len = features.length; i < len; i++) {
             let feature = features[i];

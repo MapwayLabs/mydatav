@@ -71,6 +71,18 @@ export default class ThreeMap extends EventEmiter {
             this.removeLayer(this._layers[id]);
         }
     }
+    convertCoord(lnglat) {
+        if (this.options.type === 'plane') {
+            if (this.options.crs === CRS.epsg3857) {
+                let point = mapHelper.wgs84ToMecator(lnglat);
+                return mapHelper.scalePoint(point, 1/this.options.SCALE_RATIO);
+            } else {
+                return lnglat;
+            }
+        } else {
+            // sphere
+        }
+    }
     updateSize() {
         this._onContainerResize()
     }
