@@ -289,7 +289,7 @@ export default class GeoJSONLayer extends Layer {
 
         // 避免柱子遮挡地名
         textSprite.renderOrder = 99;
-        textSprite.material.depthTest=false;
+        textSprite.material.depthTest=false; // 是否采用深度测试，必须加
 
         this._container.add(textSprite);
     }
