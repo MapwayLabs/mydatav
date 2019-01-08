@@ -27,6 +27,14 @@ export function getCmpStyle(el) {
     return getComputedStyle(el);
 }
 
+export function isInPage(node) {
+    return (node === document.body) ? false : document.body.contains(node);
+}
+
+export function getDpr() {
+    return window.devicePixelRatio || 1;
+}
+
 export function isFunction( obj ) {
 
     // Support: Chrome <=57, Firefox <=52
