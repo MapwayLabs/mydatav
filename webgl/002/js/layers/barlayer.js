@@ -43,8 +43,15 @@ export default class BarLayer extends Layer {
             min: null,
             max: null
         };
+        
+        this._colorsData = {
+            data: [],
+            min: null,
+            max: null
+        };
 
         this._initBarData();
+        this._initColorData();
         this._initMinMax();
     }
     onAdd(map) {
@@ -104,6 +111,7 @@ export default class BarLayer extends Layer {
                     let tempobj = {
                         id: props.id || f.id,
                         name: props.name,
+                        index: i,
                         center: mapHelper.getNormalizeCenter(f),
                         value: Number(y.data[i])
                     };
@@ -125,6 +133,22 @@ export default class BarLayer extends Layer {
         this._barData.data = barData;
         this._barData.vals = vals;
     }
+    _initColorData() {
+        if (this._data.colors && this._data.colors.length) {
+            let cData = [];
+            this._barData.data.forEach(item => {
+                let d = Number(this._data.colors[item.index]);
+                cData.push(d);
+            });
+            this._colorsData.data = cData;
+            this._colorsData.min = Math.min(...cData);
+            this._colorsData.max = Math.max(...cData);
+        } else {
+            this._colorsData.data = this._barData.data;
+            this._colorsData.min = this._barData.min;
+            this._colorsData.max = this._barData.max;
+        }
+    }
     _initMinMax() {
         if (this._barData.vals == null || !this._barData.vals.length) {return;}
         const min = Math.min(...this._barData.vals);
@@ -145,11 +169,11 @@ export default class BarLayer extends Layer {
         let color = "#fff";
         let cLen = barStyle.defaultColor.length;
         if (barStyle.grandientColor) {
-            let xmin = this._barData.min;
-            let xmax = this._barData.max;
+            let xmin = this._colorsData.min;
+            let xmax = this._colorsData.max;
             let ymin = 1;
             let ymax = 256;
-            let num = Util.normalizeValue(item.value, xmin, xmax, ymin, ymax);
+            let num = Util.normalizeValue(this._colorsData[index], xmin, xmax, ymin, ymax);
             color = Util.getInterPolateColor(num, barStyle.grandientColor);
         } else if (barStyle.enumColor) {
            let enumcolor = barStyle.enumColor[item.name] || barStyle.enumColor[item.id];
