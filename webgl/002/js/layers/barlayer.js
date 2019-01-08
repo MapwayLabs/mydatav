@@ -1,7 +1,7 @@
 import Layer from './layer';
 import * as Util from '../util';
 import { mapHelper } from '../maphelper';
-
+import TextLayer from './textLayer';
 export default class BarLayer extends Layer {
     constructor (data, geojsonLayer, options) {
         super(data, options);
@@ -13,15 +13,21 @@ export default class BarLayer extends Layer {
                 maxHeight: 12, // 最大高度
                 bevelThickness: 0.1,
                 bevelSize: 0.08,
+                bevelSegments: 100,
                 defaultColor: ['#f00'],
                 grandientColor: null,
                 enumColor: null
             },
             barText: {
                 show: true,
-                fontSize: 12,
-                fontFamily: 'Microsoft YaHei',
-                fontColor: '#000'
+                offset: 1,
+                textStyle: {
+                    fontWeight: 'normal',
+                    fontFamily: 'Microsoft YaHei',
+                    fontColor: '#000',
+                    textAlign: 'center',
+                    textBaseline: 'middle'
+                }
             },
             barTooltip: {
                 show: true
@@ -47,6 +53,7 @@ export default class BarLayer extends Layer {
     }
     onRemove(map) {
         Layer.prototype.onRemove.call(this, map);
+        this._map.removeLayer(this._textLayer);
     }
     isMatch(featureIdVal, feature) {
         if (featureIdVal == null || feature == null || Util.isEmptyObject(feature)) {
@@ -64,6 +71,17 @@ export default class BarLayer extends Layer {
             return true;
         }
         return false;
+    }
+    getFormattedVal(value) {
+        // TODO: me
+        return value;
+        // bdp
+        let formattedVal = bdpChart.helper.dataLabelFormatter(this._data.y.formatter, value, this._data.y.aggregator);
+        // 如果未设置单位，则使用自定义单位
+        if (this._data.y.formatter.num.unit === '1') {
+            formattedVal += this._data.y.unit_adv;
+        }
+        return formattedVal;
     }
     _initBarData() {
         const features = this.geojsonLayer.getFeatures();
@@ -85,6 +103,7 @@ export default class BarLayer extends Layer {
                         center: mapHelper.getNormalizeCenter(f),
                         value: Number(y.data[i])
                     };
+                    tempobj.formattedVal = this.getFormattedVal(tempobj.value);
                     barData.push(tempobj);
                     vals.push(Number(tempobj.value));
                     // 给 feature 打上标签，表示在它之上有柱子
@@ -148,9 +167,12 @@ export default class BarLayer extends Layer {
             let projCenter = this._map.projectLngLat(item.center);
             let bar = this._createBar(projCenter, barHeight, barColor, yoffset);
             bar.userData = item;
-            this._container.add(bar);
-            // this._drawBarText(item);
+            this._container.add(bar);   
         });
+        if (this.options.barText.show) {
+            this._addTextLayer();
+        } 
+        this.geojsonLayer.updateLabels();
     }
     _createBar(center, height, color, yoffset) {
         const barStyle = this.options.barStyle;
@@ -170,7 +192,7 @@ export default class BarLayer extends Layer {
           bevelEnabled: true,
           bevelThickness: barStyle.bevelThickness,
           bevelSize: barStyle.bevelSize,
-          bevelSegments: 100
+          bevelSegments: barStyle.bevelSegments
         };
         const geometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings);
         const material = new THREE.MeshPhongMaterial({ color: color });
@@ -179,5 +201,21 @@ export default class BarLayer extends Layer {
         mesh.rotateX(-Math.PI / 2);
         return mesh;
     }
-    _drawBarText(item) {}
+    _addTextLayer() {
+        let textData = [];
+        this._barData.data.forEach((item, index) => {
+            let barHeight = this.getBarHeight(item);
+            let yoffset = this.geojsonLayer.getDepth();
+            let tempobj = {};
+            tempobj.text = item.formattedVal;
+            tempobj.center = item.center;
+            tempobj.altitude = barHeight + yoffset + this.options.barText.offset;
+            textData.push(tempobj);
+        });
+        const options = {
+            textStyle: this.options.barText.textStyle
+        };
+        this._textLayer = new TextLayer(textData, options);
+        this._map.addLayer(this._textLayer);
+    }
 }

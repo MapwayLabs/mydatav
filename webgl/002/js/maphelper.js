@@ -137,6 +137,20 @@ export const mapHelper = {
         }
         return center;
     },
+    getNormalizeName(feature) {
+        let props = feature && feature.properties;
+        if (props) {
+            if(props.name) {
+                return props.name;
+            } else if (props.id) {
+                return props.id;
+            } else {
+                return '';
+            }
+        } else {
+            return feature.id || '';
+        }
+    },
     scalePoint(point, scale) {
         return point.map(p => p * scale);
     }

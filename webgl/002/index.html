@@ -68,10 +68,28 @@
             var geoOptions = {
                 isExtrude: true, // 是否拉伸面
                 depth: 16, // 拉伸厚度
-                isAreaText: true, // 是否显示地区名称
-                fillColor: '#E6E8EA', // 地区面块的填充色
-                textColor: 'rgba(0, 0, 0, 0.8)', // 文字颜色
+                // isAreaText: true, // 是否显示地区名称
+                // fillColor: '#E6E8EA', // 地区面块的填充色
+                // textColor: 'rgba(0, 0, 0, 0.8)', // 文字颜色
                 lineOpacity: 0.5,
+                areaText: {
+                    show: true,
+                    offset: 1,
+                    textStyle: {
+                        fontWeight: 'normal',
+                        fontFamily: 'Microsoft YaHei',
+                        fontColor: '#f00',
+                        textAlign: 'center',
+                        textBaseline: 'middle'
+                    },
+                    nullTextStyle: {
+                        fontWeight: 'normal',
+                        fontFamily: 'Microsoft YaHei',
+                        fontColor: '#0f0',
+                        textAlign: 'center',
+                        textBaseline: 'middle' 
+                    }
+                },
                 lineMaterial: {
                     color: '#000',
                     linewidth: 1
@@ -110,7 +128,33 @@
                 map.addLayer(fl);
             });
             $.getJSON('../../data/bardata.json', function(data) {
-                let barOptions = {};
+                let barOptions = {
+                    barStyle: {
+                        width: 2, // 底边长
+                        minHeight: 3, // 最小高度
+                        maxHeight: 16, // 最大高度
+                        bevelThickness: 0.12,
+                        bevelSize: 0.1,
+                        bevelSegments: 100,
+                        defaultColor: ["#5182E4", "#9BCC66", "#3FB27E", "#F7CB4A", "#F88D48", "#F35352", "#CE62D6", "#8954D4", "#5156B8", "#51B4F1", "#69D4DB", "#D42D6B"],
+                        grandientColor: null,
+                        enumColor: null
+                    },
+                    barText: {
+                        show: true,
+                        offset: 5,
+                        textStyle: {
+                            fontWeight: 'normal',
+                            fontFamily: 'Microsoft YaHei',
+                            fontColor: '#000',
+                            textAlign: 'center',
+                            textBaseline: 'middle'
+                        }
+                    },
+                    barTooltip: {
+                        show: true
+                    }
+                };
                 let barlayer = new TMap.BarLayer(data, window.geojsonLayer, barOptions);
                 map.addLayer(barlayer);
             });

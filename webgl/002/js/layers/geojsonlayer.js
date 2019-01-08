@@ -1,15 +1,32 @@
 import Layer from './layer';
 import * as Util from '../util';
 import { mapHelper, CRS } from '../maphelper';
+import TextLayer from './textLayer';
 export default class GeoJSONLayer extends Layer {
     constructor(data, options) {
         super(data, options);
         const defaultOptions = {
             isExtrude: true, // 是否拉伸面
             depth: 16, // 拉伸厚度
-            isAreaText: true, // 是否显示地区名称
-            fillColor: '#ddd', // 地区面块的填充色
-            textColor: 'rgba(0, 0, 0, 0.8)', // 文字颜色
+            // 地区名字
+            areaText: {
+                show: true,
+                offset: 1,
+                textStyle: { // 有数据地区的名字样式
+                    fontWeight: 'normal',
+                    fontFamily: 'Microsoft YaHei',
+                    fontColor: '#f00',
+                    textAlign: 'center',
+                    textBaseline: 'middle'
+                },
+                nullTextStyle: { // 无数据地区的名字样式
+                    fontWeight: 'normal',
+                    fontFamily: 'Microsoft YaHei',
+                    fontColor: '#0f0',
+                    textAlign: 'center',
+                    textBaseline: 'middle' 
+                }
+            },
             lineOpacity: 1,
             lineMaterial: {
                 color: 0x999999,
@@ -17,7 +34,6 @@ export default class GeoJSONLayer extends Layer {
             },
             areaMaterial: { // 面材质配置
                 color: 0x00ff00,
-                // opacity: 0.5,
                 side: THREE.DoubleSide
             }
         };
@@ -33,6 +49,8 @@ export default class GeoJSONLayer extends Layer {
     }
     onRemove(map) {
         Layer.prototype.onRemove.call(this, map);
+        this._map.removeLayer(this._textLayer);
+        this._map.removeLayer(this._nulltextLayer);
     }
     getBounds() {
         return this._bounds;
@@ -223,69 +241,39 @@ export default class GeoJSONLayer extends Layer {
         }
     }
     updateLabels() {
-        // hasBarData
-    }
-    getTextSprite(textStr, options) {
-        var options = options || {};
-        var fontWeight = options.fontWeight || 'normal';
-        var fontFamily = options.fontFamily || 'Microsoft YaHei';
-        var fontColor = options.fontColor || '#000';
-        var textAlign = options.textAlign || 'center';
-        var textBaseline = options.textBaseline || 'middle';
-
-        var canvas = document.createElement("canvas");
-        // webgl 规定 canvas 宽高为2的n次幂
-        canvas.width = 256;
-        canvas.height = 256;
-        var ctx = canvas.getContext("2d");
-
-        // ctx.fillStyle = renderer.domElement.style.backgroundColor;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // draw
-        ctx.font = "16px " + fontWeight + " " + fontFamily;
-        ctx.fillStyle = fontColor;
-        ctx.textAlign = textAlign;
-        ctx.textBaseline = textBaseline;
-        var textWidth = ctx.measureText(textStr).width;
-        ctx.fillText(textStr, canvas.width / 2, canvas.height / 2 + 5);
-        // ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        var texture = new THREE.Texture(canvas);
-        texture.needsUpdate = true;
-
-        var spriteMaterial = new THREE.SpriteMaterial({
-            map: texture,
-            transparent:true
+        if (this._features == null || !this._features.length) {return;}
+        let textData = [];
+        let nullTextData = [];
+        this._features.forEach(f => {
+            let yoffset = this.getDepth();
+            let tempobj = {};
+            tempobj.text = mapHelper.getNormalizeName(f);
+            tempobj.center = mapHelper.getNormalizeCenter(f);
+            tempobj.altitude = yoffset + this.options.areaText.offset;
+            if (f.hasBarData) {
+                textData.push(tempobj);
+            } else {
+                nullTextData.push(tempobj);
+            }  
         });
-        var sprite = new THREE.Sprite(spriteMaterial);
-        return sprite;
-    }
-    drawLabel(center, name) {
-        const textSprite = this.getTextSprite(name, {
-            fontColor: '#000'
-        });
-
-        textSprite.userData = {
-            type: 'areaText'
-        }
-        
-        // TODO: 数字8为初始化全中国时最佳缩放比，其他区域根据距离比例调整
-        let scaleX = 32, scaleY = 32;
-        textSprite.scale.set(scaleX, scaleY, 1);
-
-        if (this.options.isExtrude) {
-            textSprite.position.set(center[0], this.options.depth, -center[1]);
+        const textOptions = {
+            textStyle: this.options.areaText.textStyle
+        };
+        const nullTextOptions = {
+            textStyle: this.options.areaText.nullTextStyle
+        };
+        if (this._textLayer) {
+            this._textLayer.update(textData);
         } else {
-            textSprite.position.set(center[0], 0, -center[1]);
+            this._textLayer = new TextLayer(textData, textOptions);
+            this._map.addLayer(this._textLayer);
         }
-        textSprite.rotateX(-Math.PI/2);
-
-        // 避免柱子遮挡地名
-        textSprite.renderOrder = 99;
-        textSprite.material.depthTest=false; // 是否采用深度测试，必须加
-
-        this._container.add(textSprite);
+        if (this._nulltextLayer && this.options.areaText.show) {
+            this._nulltextLayer.update(nullTextData);
+        } else if(this._nulltextLayer == null && this.options.areaText.show){
+            this._nulltextLayer = new TextLayer(nullTextData, nullTextOptions);
+            this._map.addLayer(this._nulltextLayer);
+        }
     }
     drawOutLine(points, mesh) {
         // 画轮廓线

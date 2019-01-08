@@ -281,6 +281,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _layer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./layer */ "./js/layers/layer.js");
 /* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../util */ "./js/util.js");
 /* harmony import */ var _maphelper__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../maphelper */ "./js/maphelper.js");
+/* harmony import */ var _textLayer__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./textLayer */ "./js/layers/textLayer.js");
 
 
 
@@ -296,15 +297,21 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 maxHeight: 12, // 最大高度
                 bevelThickness: 0.1,
                 bevelSize: 0.08,
+                bevelSegments: 100,
                 defaultColor: ['#f00'],
                 grandientColor: null,
                 enumColor: null
             },
             barText: {
                 show: true,
-                fontSize: 12,
-                fontFamily: 'Microsoft YaHei',
-                fontColor: '#000'
+                offset: 1,
+                textStyle: {
+                    fontWeight: 'normal',
+                    fontFamily: 'Microsoft YaHei',
+                    fontColor: '#000',
+                    textAlign: 'center',
+                    textBaseline: 'middle'
+                }
             },
             barTooltip: {
                 show: true
@@ -330,6 +337,7 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
     }
     onRemove(map) {
         _layer__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.onRemove.call(this, map);
+        this._map.removeLayer(this._textLayer);
     }
     isMatch(featureIdVal, feature) {
         if (featureIdVal == null || feature == null || _util__WEBPACK_IMPORTED_MODULE_1__["isEmptyObject"](feature)) {
@@ -347,6 +355,17 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             return true;
         }
         return false;
+    }
+    getFormattedVal(value) {
+        // TODO: me
+        return value;
+        // bdp
+        let formattedVal = bdpChart.helper.dataLabelFormatter(this._data.y.formatter, value, this._data.y.aggregator);
+        // 如果未设置单位，则使用自定义单位
+        if (this._data.y.formatter.num.unit === '1') {
+            formattedVal += this._data.y.unit_adv;
+        }
+        return formattedVal;
     }
     _initBarData() {
         const features = this.geojsonLayer.getFeatures();
@@ -368,6 +387,7 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                         center: _maphelper__WEBPACK_IMPORTED_MODULE_2__["mapHelper"].getNormalizeCenter(f),
                         value: Number(y.data[i])
                     };
+                    tempobj.formattedVal = this.getFormattedVal(tempobj.value);
                     barData.push(tempobj);
                     vals.push(Number(tempobj.value));
                     // 给 feature 打上标签，表示在它之上有柱子
@@ -431,9 +451,12 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             let projCenter = this._map.projectLngLat(item.center);
             let bar = this._createBar(projCenter, barHeight, barColor, yoffset);
             bar.userData = item;
-            this._container.add(bar);
-            // this._drawBarText(item);
+            this._container.add(bar);   
         });
+        if (this.options.barText.show) {
+            this._addTextLayer();
+        } 
+        this.geojsonLayer.updateLabels();
     }
     _createBar(center, height, color, yoffset) {
         const barStyle = this.options.barStyle;
@@ -453,7 +476,7 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
           bevelEnabled: true,
           bevelThickness: barStyle.bevelThickness,
           bevelSize: barStyle.bevelSize,
-          bevelSegments: 100
+          bevelSegments: barStyle.bevelSegments
         };
         const geometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings);
         const material = new THREE.MeshPhongMaterial({ color: color });
@@ -462,7 +485,23 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         mesh.rotateX(-Math.PI / 2);
         return mesh;
     }
-    _drawBarText(item) {}
+    _addTextLayer() {
+        let textData = [];
+        this._barData.data.forEach((item, index) => {
+            let barHeight = this.getBarHeight(item);
+            let yoffset = this.geojsonLayer.getDepth();
+            let tempobj = {};
+            tempobj.text = item.formattedVal;
+            tempobj.center = item.center;
+            tempobj.altitude = barHeight + yoffset + this.options.barText.offset;
+            textData.push(tempobj);
+        });
+        const options = {
+            textStyle: this.options.barText.textStyle
+        };
+        this._textLayer = new _textLayer__WEBPACK_IMPORTED_MODULE_3__["default"](textData, options);
+        this._map.addLayer(this._textLayer);
+    }
 }
 
 /***/ }),
@@ -691,6 +730,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _layer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./layer */ "./js/layers/layer.js");
 /* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../util */ "./js/util.js");
 /* harmony import */ var _maphelper__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../maphelper */ "./js/maphelper.js");
+/* harmony import */ var _textLayer__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./textLayer */ "./js/layers/textLayer.js");
+
 
 
 
@@ -700,9 +741,25 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         const defaultOptions = {
             isExtrude: true, // 是否拉伸面
             depth: 16, // 拉伸厚度
-            isAreaText: true, // 是否显示地区名称
-            fillColor: '#ddd', // 地区面块的填充色
-            textColor: 'rgba(0, 0, 0, 0.8)', // 文字颜色
+            // 地区名字
+            areaText: {
+                show: true,
+                offset: 1,
+                textStyle: { // 有数据地区的名字样式
+                    fontWeight: 'normal',
+                    fontFamily: 'Microsoft YaHei',
+                    fontColor: '#f00',
+                    textAlign: 'center',
+                    textBaseline: 'middle'
+                },
+                nullTextStyle: { // 无数据地区的名字样式
+                    fontWeight: 'normal',
+                    fontFamily: 'Microsoft YaHei',
+                    fontColor: '#0f0',
+                    textAlign: 'center',
+                    textBaseline: 'middle' 
+                }
+            },
             lineOpacity: 1,
             lineMaterial: {
                 color: 0x999999,
@@ -710,7 +767,6 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             },
             areaMaterial: { // 面材质配置
                 color: 0x00ff00,
-                // opacity: 0.5,
                 side: THREE.DoubleSide
             }
         };
@@ -726,6 +782,8 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
     }
     onRemove(map) {
         _layer__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.onRemove.call(this, map);
+        this._map.removeLayer(this._textLayer);
+        this._map.removeLayer(this._nulltextLayer);
     }
     getBounds() {
         return this._bounds;
@@ -916,69 +974,39 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         }
     }
     updateLabels() {
-        // hasBarData
-    }
-    getTextSprite(textStr, options) {
-        var options = options || {};
-        var fontWeight = options.fontWeight || 'normal';
-        var fontFamily = options.fontFamily || 'Microsoft YaHei';
-        var fontColor = options.fontColor || '#000';
-        var textAlign = options.textAlign || 'center';
-        var textBaseline = options.textBaseline || 'middle';
-
-        var canvas = document.createElement("canvas");
-        // webgl 规定 canvas 宽高为2的n次幂
-        canvas.width = 256;
-        canvas.height = 256;
-        var ctx = canvas.getContext("2d");
-
-        // ctx.fillStyle = renderer.domElement.style.backgroundColor;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // draw
-        ctx.font = "16px " + fontWeight + " " + fontFamily;
-        ctx.fillStyle = fontColor;
-        ctx.textAlign = textAlign;
-        ctx.textBaseline = textBaseline;
-        var textWidth = ctx.measureText(textStr).width;
-        ctx.fillText(textStr, canvas.width / 2, canvas.height / 2 + 5);
-        // ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        var texture = new THREE.Texture(canvas);
-        texture.needsUpdate = true;
-
-        var spriteMaterial = new THREE.SpriteMaterial({
-            map: texture,
-            transparent:true
+        if (this._features == null || !this._features.length) {return;}
+        let textData = [];
+        let nullTextData = [];
+        this._features.forEach(f => {
+            let yoffset = this.getDepth();
+            let tempobj = {};
+            tempobj.text = _maphelper__WEBPACK_IMPORTED_MODULE_2__["mapHelper"].getNormalizeName(f);
+            tempobj.center = _maphelper__WEBPACK_IMPORTED_MODULE_2__["mapHelper"].getNormalizeCenter(f);
+            tempobj.altitude = yoffset + this.options.areaText.offset;
+            if (f.hasBarData) {
+                textData.push(tempobj);
+            } else {
+                nullTextData.push(tempobj);
+            }  
         });
-        var sprite = new THREE.Sprite(spriteMaterial);
-        return sprite;
-    }
-    drawLabel(center, name) {
-        const textSprite = this.getTextSprite(name, {
-            fontColor: '#000'
-        });
-
-        textSprite.userData = {
-            type: 'areaText'
-        }
-        
-        // TODO: 数字8为初始化全中国时最佳缩放比，其他区域根据距离比例调整
-        let scaleX = 32, scaleY = 32;
-        textSprite.scale.set(scaleX, scaleY, 1);
-
-        if (this.options.isExtrude) {
-            textSprite.position.set(center[0], this.options.depth, -center[1]);
+        const textOptions = {
+            textStyle: this.options.areaText.textStyle
+        };
+        const nullTextOptions = {
+            textStyle: this.options.areaText.nullTextStyle
+        };
+        if (this._textLayer) {
+            this._textLayer.update(textData);
         } else {
-            textSprite.position.set(center[0], 0, -center[1]);
+            this._textLayer = new _textLayer__WEBPACK_IMPORTED_MODULE_3__["default"](textData, textOptions);
+            this._map.addLayer(this._textLayer);
         }
-        textSprite.rotateX(-Math.PI/2);
-
-        // 避免柱子遮挡地名
-        textSprite.renderOrder = 99;
-        textSprite.material.depthTest=false; // 是否采用深度测试，必须加
-
-        this._container.add(textSprite);
+        if (this._nulltextLayer && this.options.areaText.show) {
+            this._nulltextLayer.update(nullTextData);
+        } else if(this._nulltextLayer == null && this.options.areaText.show){
+            this._nulltextLayer = new _textLayer__WEBPACK_IMPORTED_MODULE_3__["default"](nullTextData, nullTextOptions);
+            this._map.addLayer(this._nulltextLayer);
+        }
     }
     drawOutLine(points, mesh) {
         // 画轮廓线
@@ -1124,6 +1152,132 @@ const lineShader = {
         gl_FragColor = baseColor * v_Color;
         gl_FragColor.a *= v_Percent;
       }`
+}
+
+/***/ }),
+
+/***/ "./js/layers/textLayer.js":
+/*!********************************!*\
+  !*** ./js/layers/textLayer.js ***!
+  \********************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return TextLayer; });
+/* harmony import */ var _layer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./layer */ "./js/layers/layer.js");
+/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../util */ "./js/util.js");
+/* harmony import */ var _textSprite__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./textSprite */ "./js/layers/textSprite.js");
+
+
+
+
+class TextLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
+    constructor(data, options) {
+        super(data, options);
+        const defaultOptions = {
+            textStyle: {
+                fontWeight: 'normal',
+                fontFamily: 'Microsoft YaHei',
+                fontColor: '#000',
+                textAlign: 'center',
+                textBaseline: 'middle'
+            }
+        };
+        _util__WEBPACK_IMPORTED_MODULE_1__["extend"](true, defaultOptions, options);
+    }
+    onAdd(map) {
+        _layer__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.onAdd.call(this, map); 
+        this._draw();
+    }
+    onRemove(map) {
+        _layer__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.onRemove.call(this, map);
+    }
+    update(data) {
+        this._container.remove(...this._container.children);
+        this._data = data;
+        this._draw();
+    }
+    _draw() {
+        if (this._data == null || !this._data.length) {return;}
+        this._data.forEach(d => {
+            const projCenter = this._map.projectLngLat(d.center);
+            const altitude = d.altitude; 
+            const textSprite = new _textSprite__WEBPACK_IMPORTED_MODULE_2__["default"](d.text, this.options.textStyle).getSprite();
+
+            textSprite.scale.set(32, 32, 1);
+            textSprite.position.set(projCenter[0], altitude, -projCenter[1]);
+            textSprite.rotateX(-Math.PI/2);
+
+            // 避免柱子遮挡地名
+            textSprite.renderOrder = 100;
+            textSprite.material.depthTest=false; // 是否采用深度测试，必须加
+    
+            this._container.add(textSprite);
+        });
+    }
+}
+
+/***/ }),
+
+/***/ "./js/layers/textSprite.js":
+/*!*********************************!*\
+  !*** ./js/layers/textSprite.js ***!
+  \*********************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return TextSprite; });
+/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../util */ "./js/util.js");
+
+
+class TextSprite {
+    constructor(text, options) {
+        const defaultOptions = {
+            fontWeight: 'normal',
+            fontFamily: 'Microsoft YaHei',
+            fontColor: '#000',
+            textAlign: 'center',
+            textBaseline: 'middle'
+        }
+        this.options = _util__WEBPACK_IMPORTED_MODULE_0__["extend"](true, defaultOptions, options);
+
+        this._textStr = text == null ? '' : String(text);
+
+        this._init();
+    }
+    getSprite() {
+        return this._textSprite;
+    }
+    _init() {
+        const canvas = document.createElement("canvas");
+        // webgl 规定 canvas 宽高为2的n次幂
+        canvas.width = 256;
+        canvas.height = 256;
+
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // draw
+        const options = this.options;
+        ctx.font = "16px " + options.fontWeight + " " + options.fontFamily;
+        ctx.fillStyle = options.fontColor;
+        ctx.textAlign = options.textAlign;
+        ctx.textBaseline = options.textBaseline;
+        ctx.fillText(this._textStr, canvas.width / 2, canvas.height / 2 + 5);
+
+        const texture = new THREE.Texture(canvas);
+        texture.needsUpdate = true;
+
+        const spriteMaterial = new THREE.SpriteMaterial({
+            map: texture,
+            transparent:true
+        });
+        this._textSprite = new THREE.Sprite(spriteMaterial);
+    }
 }
 
 /***/ }),
@@ -1278,6 +1432,20 @@ const mapHelper = {
             center = bounds.getCenter();
         }
         return center;
+    },
+    getNormalizeName(feature) {
+        let props = feature && feature.properties;
+        if (props) {
+            if(props.name) {
+                return props.name;
+            } else if (props.id) {
+                return props.id;
+            } else {
+                return '';
+            }
+        } else {
+            return feature.id || '';
+        }
     },
     scalePoint(point, scale) {
         return point.map(p => p * scale);
