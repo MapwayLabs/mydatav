@@ -139,6 +139,9 @@ export default class ThreeMap extends EventEmiter {
         const height = parseInt(compStyle.height);
         return { width, height };
     }
+    getCamera() {
+        return this._camera;
+    }
     _initBounds() {
         if (this.options.type === 'plane') {
             if (this.options.region === 'china') {

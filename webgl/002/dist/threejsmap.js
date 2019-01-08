@@ -338,6 +338,10 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
     onRemove(map) {
         _layer__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.onRemove.call(this, map);
         this._map.removeLayer(this._textLayer);
+        if (this.options.barTooltip.show) {
+            // this._toolTipHelper.hideTooltip(); // TODO: bdp
+            this._map.off('mousemove', this._mousemoveEvtHandler, this);
+        }
     }
     isMatch(featureIdVal, feature) {
         if (featureIdVal == null || feature == null || _util__WEBPACK_IMPORTED_MODULE_1__["isEmptyObject"](feature)) {
@@ -450,13 +454,74 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             let yoffset = this.geojsonLayer.getDepth();
             let projCenter = this._map.projectLngLat(item.center);
             let bar = this._createBar(projCenter, barHeight, barColor, yoffset);
-            bar.userData = item;
+            bar.userData = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](true, {type: 'bar'}, item);
             this._container.add(bar);   
         });
         if (this.options.barText.show) {
             this._addTextLayer();
         } 
         this.geojsonLayer.updateLabels();
+        if (this.options.barTooltip.show) {
+            // TODO: bdp
+            // this._toolTipHelper = TooltipHelper;
+            this._map.on('mousemove', this._mousemoveEvtHandler, this);
+        }
+    }
+    _mousemoveEvtHandler(event) {
+        const mapSize = this._map.getContainerSize();
+        const camera = this._map.getCamera();
+        const sx = event.offsetX; 
+        const sy = event.offsetY;
+        const cx = event.clientX;
+        const cy = event.clientY;
+        //屏幕坐标转标准设备坐标
+        const x = (sx / mapSize.width) * 2 - 1; 
+        const y = -(sy / mapSize.height) * 2 + 1;
+        //标准设备坐标
+        const standardVector = new THREE.Vector3(x, y, 0.5); 
+        //标准设备坐标转世界坐标
+        const worldVector = standardVector.unproject(camera);
+        //射线投射方向单位向量(worldVector坐标减相机位置坐标)
+        const ray = worldVector.sub(camera.position).normalize();
+        //创建射线投射器对象
+        const raycaster = new THREE.Raycaster(camera.position, ray);
+        //返回射线选中的对象
+        const intersects = raycaster.intersectObjects(this._container.children);
+      
+        // 避免连续选中
+        if (this._currentSelectObj) {
+            this._currentSelectObj.material.transparent = false;
+            this._currentSelectObj.material.opacity = 1;
+            this._currentSelectObj = null;
+            // this._toolTipHelper.hideTooltip(); // TODO: bdp
+        }
+
+        for (var i = 0; i < intersects.length; i++) {
+            let object = intersects[i].object;
+            let udata = object.userData;
+            if (udata && udata.type === 'bar') {
+                let color = object.material.color.getHexString();
+                object.material.transparent = true;
+                object.material.opacity = 0.85;
+                this._currentSelectObj = object;
+                
+                let content = `
+                    <div class="mb4" style="text-align:center;">${udata['name']}</div>
+                    <div style="color:#${color};"><span>${udata['yname']}：</span> ${udata['formattedVal']}</div>
+                `;
+                // console.log(udata.name);
+                // this._toolTipHelper.showTooltip(cx, cy, content); // TODO: bdp
+                break;
+            }
+        }
+        if (i === intersects.length) {
+            if (this._currentSelectObj) {
+                this._currentSelectObj.material.transparent = false;
+                this._currentSelectObj.material.opacity = 1;
+                this._currentSelectObj = null;
+                // this._toolTipHelper.hideTooltip(); // TODO: bdp
+            }
+        }
     }
     _createBar(center, height, color, yoffset) {
         const barStyle = this.options.barStyle;
@@ -1607,6 +1672,9 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
         const width = parseInt(compStyle.width);
         const height = parseInt(compStyle.height);
         return { width, height };
+    }
+    getCamera() {
+        return this._camera;
     }
     _initBounds() {
         if (this.options.type === 'plane') {
