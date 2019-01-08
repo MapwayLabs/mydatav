@@ -327,6 +327,7 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             min: null,
             max: null
         };
+        
         this._colorsData = {
             data: [],
             min: null,
