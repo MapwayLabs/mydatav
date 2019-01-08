@@ -19,7 +19,7 @@ export default class FlyLineLayer extends Layer {
                 segmentNumber: 1, // 飞线分段数，自然数，默认为1，不分段
                 period: 4, // 尾迹特效的周期
                 constantSpeed: null, // 尾迹特效是否是固定速度，设置后忽略period值
-                trailWidth: 4, // 尾迹宽度
+                trailWidth: 4, // 尾迹宽度(暂时不可用)
                 trailLength: 0.1, // 尾迹长度，范围 0-1，为线条长度百分比
                 trailColor: null, // 尾迹颜色，默认跟线颜色相同
                 trailOpacity: null // 尾迹不透明度，默认跟线相同

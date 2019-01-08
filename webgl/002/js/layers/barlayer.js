@@ -145,7 +145,7 @@ export default class BarLayer extends Layer {
             let barHeight = this.getBarHeight(item);
             let barColor = this.getBarColor(item, index);
             let yoffset = this.geojsonLayer.getDepth();
-            let projCenter = this._map.convertCoord(item.center);
+            let projCenter = this._map.projectLngLat(item.center);
             let bar = this._createBar(projCenter, barHeight, barColor, yoffset);
             bar.userData = item;
             this._container.add(bar);

@@ -9,9 +9,8 @@ export default class GeoJSONLayer extends Layer {
             depth: 16, // 拉伸厚度
             isAreaText: true, // 是否显示地区名称
             fillColor: '#ddd', // 地区面块的填充色
-            // strokeColor: '#000', // 地区边缘线的颜色
-            // strokeOpacity: 0.5, // 地区边缘线的透明度
             textColor: 'rgba(0, 0, 0, 0.8)', // 文字颜色
+            lineOpacity: 1,
             lineMaterial: {
                 color: 0x999999,
                 linewidth: 1.5
@@ -23,11 +22,14 @@ export default class GeoJSONLayer extends Layer {
             }
         };
         this.options = Util.extend(true, defaultOptions, options);
+
+        this._initFeatures();
     }
     onAdd(map) {
         Layer.prototype.onAdd.call(this, map); 
         this._initBoundsAndCenter();
         this._draw();
+        this.updateLabels();
     }
     onRemove(map) {
         Layer.prototype.onRemove.call(this, map);
@@ -177,26 +179,15 @@ export default class GeoJSONLayer extends Layer {
             }
         }
     }
+    _initFeatures() {
+        this._features = this.createFeatureArray(this._data);
+    }
     _draw() {
-        var geojson = this._data;
-
-        var features = this.createFeatureArray(geojson);
-        this._features = features;
-
-        for (let i = 0, len = features.length; i < len; i++) {
-            let feature = features[i];
+        if (this._features == null || !this._features.length) {return;}
+        for (let i = 0, len = this._features.length; i < len; i++) {
+            let feature = this._features[i];
             let geometry = feature.geometry;
-            let props = feature.properties;
             if (geometry == null) continue;
-            let center = mapHelper.getNormalizeCenter(feature);
-            let name = props.name;
-            if (center && name) {
-                if (this._map.options.crs === CRS.epsg3857) {
-                    center = mapHelper.wgs84ToMecator(center);
-                    center = mapHelper.scalePoint(center, 1/this._map.options.SCALE_RATIO);
-                }
-                this.drawLabel(center, name);
-            }
             if (geometry.type == 'Point') {
 
             } else if (geometry.type == 'MultiPoint') {
@@ -230,6 +221,9 @@ export default class GeoJSONLayer extends Layer {
                 throw new Error('The geoJSON is not valid.');
             }
         }
+    }
+    updateLabels() {
+        // hasBarData
     }
     getTextSprite(textStr, options) {
         var options = options || {};
@@ -301,8 +295,8 @@ export default class GeoJSONLayer extends Layer {
             line_geom.vertices.push(new THREE.Vector3(points[i][0], points[i][1], 0));
         }
         let line_material = new THREE.LineBasicMaterial(this.options.lineMaterial);
-        // line_material.transparent = false;
-        // line_material.opacity = this.options.strokeOpacity;
+        line_material.transparent = false;
+        line_material.opacity = this.options.lineOpacity;
         let line = new THREE.Line(line_geom, line_material);
         if (this.options.isExtrude) {
             line.translateZ(this.options.depth);
@@ -311,7 +305,7 @@ export default class GeoJSONLayer extends Layer {
         mesh.add(line);
     }
     drawPolygon(points) {
-        let shape = new THREE.Shape();
+        const shape = new THREE.Shape();
         for (let i = 0; i < points.length; i++) {
             let point = points[i];
             if (i === 0) {
