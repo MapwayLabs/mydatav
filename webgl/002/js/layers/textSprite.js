@@ -1,5 +1,4 @@
 import * as Util from '../util';
-
 export default class TextSprite {
     constructor(text, options) {
         const defaultOptions = {

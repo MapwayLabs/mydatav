@@ -1,6 +1,6 @@
 import Layer from './layer';
 import * as Util from '../util';
-import { mapHelper } from '../maphelper';
+import * as mapHelper from '../maphelper';
 import TextLayer from './textLayer';
 export default class BarLayer extends Layer {
     constructor (data, geojsonLayer, options) {
@@ -43,7 +43,7 @@ export default class BarLayer extends Layer {
             min: null,
             max: null
         };
-        
+
         this._colorsData = {
             data: [],
             min: null,

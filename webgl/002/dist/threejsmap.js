@@ -327,7 +327,7 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             min: null,
             max: null
         };
-        
+
         this._colorsData = {
             data: [],
             min: null,
@@ -396,7 +396,7 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                         id: props.id || f.id,
                         name: props.name,
                         index: i,
-                        center: _maphelper__WEBPACK_IMPORTED_MODULE_2__["mapHelper"].getNormalizeCenter(f),
+                        center: _maphelper__WEBPACK_IMPORTED_MODULE_2__["getNormalizeCenter"](f),
                         value: Number(y.data[i])
                     };
                     tempobj.formattedVal = this.getFormattedVal(tempobj.value);
@@ -670,8 +670,8 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             let h = 42;
             if (this._map.options.crs === _maphelper__WEBPACK_IMPORTED_MODULE_2__["CRS"].epsg3857) {
                 let scale = this._map.options.SCALE_RATIO;
-                f = _maphelper__WEBPACK_IMPORTED_MODULE_2__["mapHelper"].wgs84ToMecator(f);
-                t = _maphelper__WEBPACK_IMPORTED_MODULE_2__["mapHelper"].wgs84ToMecator(t);
+                f = _maphelper__WEBPACK_IMPORTED_MODULE_2__["wgs84ToMecator"](f);
+                t = _maphelper__WEBPACK_IMPORTED_MODULE_2__["wgs84ToMecator"](t);
                 f = f.map(point => point / scale);
                 t = t.map(point => point / scale);
                 // h = h / scale;
@@ -990,7 +990,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
     }
     convertCoordinates(coordinateArray) {
         return coordinateArray.map(lnglat => {
-            let mecatorPoint = _maphelper__WEBPACK_IMPORTED_MODULE_2__["mapHelper"].wgs84ToMecator(lnglat);
+            let mecatorPoint = _maphelper__WEBPACK_IMPORTED_MODULE_2__["wgs84ToMecator"](lnglat);
             return mecatorPoint.map(p => p / this._map.options.SCALE_RATIO);
         });
     }
@@ -999,11 +999,11 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         let mapOptions = this._map.options;
         if (mapOptions.type === 'plane') {
             if (mapOptions.region === 'world') {
-                bounds = _maphelper__WEBPACK_IMPORTED_MODULE_2__["mapHelper"].getBounds('world', mapOptions.crs);
+                bounds = _maphelper__WEBPACK_IMPORTED_MODULE_2__["getBounds"]('world', mapOptions.crs);
             } else if (mapOptions.region === 'china') {
-                bounds = _maphelper__WEBPACK_IMPORTED_MODULE_2__["mapHelper"].getBounds('china', mapOptions.crs);
+                bounds = _maphelper__WEBPACK_IMPORTED_MODULE_2__["getBounds"]('china', mapOptions.crs);
             } else {
-                bounds = _maphelper__WEBPACK_IMPORTED_MODULE_2__["mapHelper"].getBounds(this._data, mapOptions.crs);
+                bounds = _maphelper__WEBPACK_IMPORTED_MODULE_2__["getBounds"](this._data, mapOptions.crs);
             }
         } else {
             // sphere
@@ -1069,8 +1069,8 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         this._features.forEach(f => {
             let yoffset = this.getDepth();
             let tempobj = {};
-            tempobj.text = _maphelper__WEBPACK_IMPORTED_MODULE_2__["mapHelper"].getNormalizeName(f);
-            tempobj.center = _maphelper__WEBPACK_IMPORTED_MODULE_2__["mapHelper"].getNormalizeCenter(f);
+            tempobj.text = _maphelper__WEBPACK_IMPORTED_MODULE_2__["getNormalizeName"](f);
+            tempobj.center = _maphelper__WEBPACK_IMPORTED_MODULE_2__["getNormalizeCenter"](f);
             tempobj.altitude = yoffset + this.options.areaText.offset;
             if (f.hasBarData) {
                 textData.push(tempobj);
@@ -1322,7 +1322,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return TextSprite; });
 /* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../util */ "./js/util.js");
 
-
 class TextSprite {
     constructor(text, options) {
         const defaultOptions = {
@@ -1375,13 +1374,18 @@ class TextSprite {
 /*!*************************!*\
   !*** ./js/maphelper.js ***!
   \*************************/
-/*! exports provided: CRS, mapHelper */
+/*! exports provided: CRS, wgs84ToMecator, mecatorToWgs84, getBounds, getNormalizeCenter, getNormalizeName, scalePoint */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "CRS", function() { return CRS; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "mapHelper", function() { return mapHelper; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "wgs84ToMecator", function() { return wgs84ToMecator; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "mecatorToWgs84", function() { return mecatorToWgs84; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getBounds", function() { return getBounds; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getNormalizeCenter", function() { return getNormalizeCenter; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getNormalizeName", function() { return getNormalizeName; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "scalePoint", function() { return scalePoint; });
 /* harmony import */ var _bounds__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./bounds */ "./js/bounds.js");
 
 
@@ -1393,153 +1397,158 @@ const CRS = {
     epsg4326: 'EPSG:4326',
     epsg3857: 'EPSG:3857'
 }
-const mapHelper = {
-    // 经纬度转墨卡托
-    wgs84ToMecator(lnglat) {
-		var d = Math.PI / 180,
-		    r = R,
-		    y = lnglat[1] * d,
-		    tmp = R_MINOR / r,
-		    e = Math.sqrt(1 - tmp * tmp),
-		    con = e * Math.sin(y);
 
-		var ts = Math.tan(Math.PI / 4 - y / 2) / Math.pow((1 - con) / (1 + con), e / 2);
-		y = -r * Math.log(Math.max(ts, 1E-10));
+// 经纬度转墨卡托
+function wgs84ToMecator(lnglat) {
+    var d = Math.PI / 180,
+        r = R,
+        y = lnglat[1] * d,
+        tmp = R_MINOR / r,
+        e = Math.sqrt(1 - tmp * tmp),
+        con = e * Math.sin(y);
 
-		return [ lnglat[0] * d * r, y ];
-    },
-    // 墨卡托转经纬度
-    mecatorToWgs84(point) {
-		var d = 180 / Math.PI,
-		    r = R,
-		    tmp = R_MINOR / r,
-		    e = Math.sqrt(1 - tmp * tmp),
-		    ts = Math.exp(-point[1] / r),
-		    phi = Math.PI / 2 - 2 * Math.atan(ts);
+    var ts = Math.tan(Math.PI / 4 - y / 2) / Math.pow((1 - con) / (1 + con), e / 2);
+    y = -r * Math.log(Math.max(ts, 1E-10));
 
-		for (var i = 0, dphi = 0.1, con; i < 15 && Math.abs(dphi) > 1e-7; i++) {
-			con = e * Math.sin(phi);
-			con = Math.pow((1 - con) / (1 + con), e / 2);
-			dphi = Math.PI / 2 - 2 * Math.atan(ts * con) - phi;
-			phi += dphi;
-		}
+    return [ lnglat[0] * d * r, y ];
+}
 
-		return [ point[0] * d / r, phi * d ];
-    },
-    // 根据geojson数据获取geo对象在墨卡托投影平面的范围
-    getBounds(geojson, crs) {
-        crs = crs || CRS.epsg4326;
-        // 中国和世界范围写死，避免大量计算
-        if (geojson === 'world') {
-            let xmin = -180;
-            let ymin = -85;
-            let xmax = 180;
-            let ymax = 85;
-            let lb = [xmin, ymin];
-            let rt = [xmax, ymax];
-            if (crs === CRS.epsg3857) {
-                lb = this.wgs84ToMecator(lb);
-                rt = this.wgs84ToMecator(rt);
-            }
-            return new _bounds__WEBPACK_IMPORTED_MODULE_0__["default"](lb, rt);
-        } else if (geojson === 'china') {
-            let xmin = 73.4766;
-            let xmax = 135.0879;
-            let ymin = 18.1055;
-            let ymax = 53.5693;
-            let lb = [xmin, ymin];
-            let rt = [xmax, ymax];
-            if (crs === CRS.epsg3857) {
-                lb = this.wgs84ToMecator(lb);
-                rt = this.wgs84ToMecator(rt);
-            }
-            return new _bounds__WEBPACK_IMPORTED_MODULE_0__["default"](lb, rt);
-        } else {
-            let bound = {
-                xmin: 180,
-                xmax: -180,
-                ymin: 90,
-                ymax: -90
-            };
-            let features = [];
-            let polygons = [];
-            if (geojson.type === "FeatureCollection") {
-                features = geojson.features;
-            } else if (geojson.type === "Feature") {
-                features.push(geojson);
-            }
-            features.forEach(f => {
-                if (f.geometry && f.geometry.type === "Polygon") {
-                    polygons.push(f.geometry.coordinates);
-                } else if (f.geometry && f.geometry.type === "MultiPolygon") {
-                    for (let i = 0, len = f.geometry.coordinates.length; i < len; i++) {
-                        polygons.push(f.geometry.coordinates[i]);
-                    }
-                }
-            });
-            for (let i = 0, len = polygons.length; i < len; i++) {
-                let seg = polygons[i];
-                for (let j = 0; j < seg.length; j++) {
-                    let coords = seg[j];
-                    for (let k = 0; k < coords.length; k++) {
-                        let coord = coords[k];
-                        if (coord[0] < bound.xmin) {
-                            bound.xmin = coord[0];
-                        }
-                        if (coord[0] > bound.xmax) {
-                            bound.xmax = coord[0];
-                        }
-                        if (coord[1] < bound.ymin) {
-                            bound.ymin = coord[1];
-                        }
-                        if (coord[1] > bound.ymax) {
-                            bound.ymax = coord[1];
-                        }
-                    }
+// 墨卡托转经纬度
+function mecatorToWgs84(point) {
+    var d = 180 / Math.PI,
+        r = R,
+        tmp = R_MINOR / r,
+        e = Math.sqrt(1 - tmp * tmp),
+        ts = Math.exp(-point[1] / r),
+        phi = Math.PI / 2 - 2 * Math.atan(ts);
+
+    for (var i = 0, dphi = 0.1, con; i < 15 && Math.abs(dphi) > 1e-7; i++) {
+        con = e * Math.sin(phi);
+        con = Math.pow((1 - con) / (1 + con), e / 2);
+        dphi = Math.PI / 2 - 2 * Math.atan(ts * con) - phi;
+        phi += dphi;
+    }
+
+    return [ point[0] * d / r, phi * d ];
+}
+
+// 根据geojson数据获取geo对象在墨卡托投影平面的范围
+function getBounds(geojson, crs) {
+    crs = crs || CRS.epsg4326;
+    // 中国和世界范围写死，避免大量计算
+    if (geojson === 'world') {
+        let xmin = -180;
+        let ymin = -85;
+        let xmax = 180;
+        let ymax = 85;
+        let lb = [xmin, ymin];
+        let rt = [xmax, ymax];
+        if (crs === CRS.epsg3857) {
+            lb = wgs84ToMecator(lb);
+            rt = wgs84ToMecator(rt);
+        }
+        return new _bounds__WEBPACK_IMPORTED_MODULE_0__["default"](lb, rt);
+    } else if (geojson === 'china') {
+        let xmin = 73.4766;
+        let xmax = 135.0879;
+        let ymin = 18.1055;
+        let ymax = 53.5693;
+        let lb = [xmin, ymin];
+        let rt = [xmax, ymax];
+        if (crs === CRS.epsg3857) {
+            lb = wgs84ToMecator(lb);
+            rt = wgs84ToMecator(rt);
+        }
+        return new _bounds__WEBPACK_IMPORTED_MODULE_0__["default"](lb, rt);
+    } else {
+        let bound = {
+            xmin: 180,
+            xmax: -180,
+            ymin: 90,
+            ymax: -90
+        };
+        let features = [];
+        let polygons = [];
+        if (geojson.type === "FeatureCollection") {
+            features = geojson.features;
+        } else if (geojson.type === "Feature") {
+            features.push(geojson);
+        }
+        features.forEach(f => {
+            if (f.geometry && f.geometry.type === "Polygon") {
+                polygons.push(f.geometry.coordinates);
+            } else if (f.geometry && f.geometry.type === "MultiPolygon") {
+                for (let i = 0, len = f.geometry.coordinates.length; i < len; i++) {
+                    polygons.push(f.geometry.coordinates[i]);
                 }
             }
-            let lb = [bound.xmin, bound.ymin];
-            let rt = [bound.xmax, bound.ymax];
-            if (crs === CRS.epsg3857) {
-                lb = this.wgs84ToMecator(lb);
-                rt = this.wgs84ToMecator(rt);
+        });
+        for (let i = 0, len = polygons.length; i < len; i++) {
+            let seg = polygons[i];
+            for (let j = 0; j < seg.length; j++) {
+                let coords = seg[j];
+                for (let k = 0; k < coords.length; k++) {
+                    let coord = coords[k];
+                    if (coord[0] < bound.xmin) {
+                        bound.xmin = coord[0];
+                    }
+                    if (coord[0] > bound.xmax) {
+                        bound.xmax = coord[0];
+                    }
+                    if (coord[1] < bound.ymin) {
+                        bound.ymin = coord[1];
+                    }
+                    if (coord[1] > bound.ymax) {
+                        bound.ymax = coord[1];
+                    }
+                }
             }
-            return new _bounds__WEBPACK_IMPORTED_MODULE_0__["default"](lb, rt);
         }
-    },
-    getNormalizeCenter(feature) {
-        let props = feature.properties;
-        let center = props && (props.center || props.cp);
-        if (center && typeof center === 'string') {
-            center = center.split(',');
+        let lb = [bound.xmin, bound.ymin];
+        let rt = [bound.xmax, bound.ymax];
+        if (crs === CRS.epsg3857) {
+            lb = wgs84ToMecator(lb);
+            rt = wgs84ToMecator(rt);
         }
-        if (Array.isArray(center)) {
-            center = center.map(item => Number(item));
-        }
-        if (center == null) {
-            let bounds = this.getBounds(feature);
-            center = bounds.getCenter();
-        }
-        return center;
-    },
-    getNormalizeName(feature) {
-        let props = feature && feature.properties;
-        if (props) {
-            if(props.name) {
-                return props.name;
-            } else if (props.id) {
-                return props.id;
-            } else {
-                return '';
-            }
-        } else {
-            return feature.id || '';
-        }
-    },
-    scalePoint(point, scale) {
-        return point.map(p => p * scale);
+        return new _bounds__WEBPACK_IMPORTED_MODULE_0__["default"](lb, rt);
     }
 }
+
+function getNormalizeCenter(feature) {
+    let props = feature.properties;
+    let center = props && (props.center || props.cp);
+    if (center && typeof center === 'string') {
+        center = center.split(',');
+    }
+    if (Array.isArray(center)) {
+        center = center.map(item => Number(item));
+    }
+    if (center == null) {
+        let bounds = getBounds(feature);
+        center = bounds.getCenter();
+    }
+    return center;
+}
+
+function getNormalizeName(feature) {
+    let props = feature && feature.properties;
+    if (props) {
+        if(props.name) {
+            return props.name;
+        } else if (props.id) {
+            return props.id;
+        } else {
+            return '';
+        }
+    } else {
+        return feature.id || '';
+    }
+}
+
+function scalePoint(point, scale) {
+    return point.map(p => p * scale);
+}
+
 
 /***/ }),
 
@@ -1650,8 +1659,8 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
     projectLngLat(lnglat) {
         if (this.options.type === 'plane') {
             if (this.options.crs === _maphelper__WEBPACK_IMPORTED_MODULE_2__["CRS"].epsg3857) {
-                let point = _maphelper__WEBPACK_IMPORTED_MODULE_2__["mapHelper"].wgs84ToMecator(lnglat);
-                return _maphelper__WEBPACK_IMPORTED_MODULE_2__["mapHelper"].scalePoint(point, 1/this.options.SCALE_RATIO);
+                let point = _maphelper__WEBPACK_IMPORTED_MODULE_2__["wgs84ToMecator"](lnglat);
+                return _maphelper__WEBPACK_IMPORTED_MODULE_2__["scalePoint"](point, 1/this.options.SCALE_RATIO);
             } else {
                 return lnglat;
             }
@@ -1703,9 +1712,9 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
     _initBounds() {
         if (this.options.type === 'plane') {
             if (this.options.region === 'china') {
-                this._fullBound = _maphelper__WEBPACK_IMPORTED_MODULE_2__["mapHelper"].getBounds('china', this.options.crs);
+                this._fullBound = _maphelper__WEBPACK_IMPORTED_MODULE_2__["getBounds"]('china', this.options.crs);
             } else {
-                this._fullBound = _maphelper__WEBPACK_IMPORTED_MODULE_2__["mapHelper"].getBounds('world', this.options.crs);
+                this._fullBound = _maphelper__WEBPACK_IMPORTED_MODULE_2__["getBounds"]('world', this.options.crs);
             }
         }
     }

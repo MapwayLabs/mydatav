@@ -1,6 +1,6 @@
 import Layer from './layer';
 import * as Util from '../util';
-import { mapHelper, CRS } from '../maphelper';
+import * as mapHelper from '../maphelper';
 import TextLayer from './textLayer';
 export default class GeoJSONLayer extends Layer {
     constructor(data, options) {
@@ -187,7 +187,7 @@ export default class GeoJSONLayer extends Layer {
             // sphere
         }
         if (bounds) {
-            if (mapOptions.crs === CRS.epsg4326) {
+            if (mapOptions.crs === mapHelper.CRS.epsg4326) {
                 this._bounds = bounds;
                 this._center = bounds.getCenter();
             } else {
@@ -218,7 +218,7 @@ export default class GeoJSONLayer extends Layer {
                 for (let segment_num = 0; segment_num < geometry.coordinates.length; segment_num++) {
                     let coordinate_array = this.createCoordinateArray(geometry.coordinates[segment_num]);
                     let convert_array = coordinate_array;
-                    if (this._map.options.crs === CRS.epsg3857) {
+                    if (this._map.options.crs === mapHelper.CRS.epsg3857) {
                         convert_array = this.convertCoordinates(coordinate_array);
                     }
                     this.drawPolygon(convert_array);
@@ -229,7 +229,7 @@ export default class GeoJSONLayer extends Layer {
                     for (let segment_num = 0; segment_num < geometry.coordinates[polygon_num].length; segment_num++) {
                         let coordinate_array = this.createCoordinateArray(geometry.coordinates[polygon_num][segment_num]);
                         let convert_array = coordinate_array;
-                        if (this._map.options.crs === CRS.epsg3857) {
+                        if (this._map.options.crs === mapHelper.CRS.epsg3857) {
                             convert_array = this.convertCoordinates(coordinate_array);
                         }
                         this.drawPolygon(convert_array);

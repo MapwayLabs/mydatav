@@ -1,6 +1,6 @@
 import Layer from './layer';
 import * as Util from '../util';
-import { mapHelper, CRS } from '../maphelper';
+import * as mapHelper from '../maphelper';
 import { lineShader } from './shader/line';
 export default class FlyLineLayer extends Layer {
     constructor(data, geojsonLayer, options) {
@@ -57,7 +57,7 @@ export default class FlyLineLayer extends Layer {
             let f = item.from.split(',').map(p => Number(p));
             let t = item.to.split(',').map(p => Number(p));
             let h = 42;
-            if (this._map.options.crs === CRS.epsg3857) {
+            if (this._map.options.crs === mapHelper.CRS.epsg3857) {
                 let scale = this._map.options.SCALE_RATIO;
                 f = mapHelper.wgs84ToMecator(f);
                 t = mapHelper.wgs84ToMecator(t);

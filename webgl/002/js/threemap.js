@@ -1,6 +1,6 @@
 import EventEmiter from './eventemiter'
 import * as Util from './util'
-import { mapHelper, CRS } from './maphelper'
+import * as mapHelper from './maphelper'
 
 export default class ThreeMap extends EventEmiter {
     constructor(el, options) {
@@ -8,7 +8,7 @@ export default class ThreeMap extends EventEmiter {
         const defaultOptions = {
             type: 'plane', // plane or sphere ,平面或球面
             region: 'world', // china or world, 中国或世界地图
-            crs: CRS.epsg3857, // 地图采用的地理坐标系 EPSG:4326: 经纬度，EPSG:3857: 墨卡托
+            crs: mapHelper.CRS.epsg3857, // 地图采用的地理坐标系 EPSG:4326: 经纬度，EPSG:3857: 墨卡托
             SCALE_RATIO: 100000, // 地球墨卡托平面缩放比例
             containerClassName: 'three-map-container', // 地图容器类名
             camera: {
@@ -91,7 +91,7 @@ export default class ThreeMap extends EventEmiter {
     }
     projectLngLat(lnglat) {
         if (this.options.type === 'plane') {
-            if (this.options.crs === CRS.epsg3857) {
+            if (this.options.crs === mapHelper.CRS.epsg3857) {
                 let point = mapHelper.wgs84ToMecator(lnglat);
                 return mapHelper.scalePoint(point, 1/this.options.SCALE_RATIO);
             } else {
