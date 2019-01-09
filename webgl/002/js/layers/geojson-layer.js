@@ -51,8 +51,8 @@ export default class GeoJSONLayer extends Layer {
     }
     onRemove(map) {
         Layer.prototype.onRemove.call(this, map);
-        this._map.removeLayer(this._textLayer);
-        this._map.removeLayer(this._nulltextLayer);
+        this._textLayer && this._map.removeLayer(this._textLayer);
+        this._nulltextLayer && this._map.removeLayer(this._nulltextLayer);
     }
     getBounds() {
         return this._bounds;

@@ -62,7 +62,7 @@ export default class BarLayer extends Layer {
     }
     onRemove(map) {
         Layer.prototype.onRemove.call(this, map);
-        this._map.removeLayer(this._textLayer);
+        this._textLayer && this._map.removeLayer(this._textLayer);
         if (this.options.barTooltip.show) {
             // this._toolTipHelper.hideTooltip(); // TODO: bdp
             this._map.off('mousemove', this._mousemoveEvtHandler, this);

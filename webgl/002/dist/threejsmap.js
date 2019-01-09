@@ -236,17 +236,17 @@ class EventEmiter {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _threemap__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./threemap */ "./js/threemap.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ThreeMap", function() { return _threemap__WEBPACK_IMPORTED_MODULE_0__["default"]; });
+/* harmony import */ var _three_map__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./three-map */ "./js/three-map.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "ThreeMap", function() { return _three_map__WEBPACK_IMPORTED_MODULE_0__["default"]; });
 
-/* harmony import */ var _layers_geojsonlayer__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./layers/geojsonlayer */ "./js/layers/geojsonlayer.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "GeoJSONLayer", function() { return _layers_geojsonlayer__WEBPACK_IMPORTED_MODULE_1__["default"]; });
+/* harmony import */ var _layers_geojson_layer__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./layers/geojson-layer */ "./js/layers/geojson-layer.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "GeoJSONLayer", function() { return _layers_geojson_layer__WEBPACK_IMPORTED_MODULE_1__["default"]; });
 
-/* harmony import */ var _layers_flylinelayer__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./layers/flylinelayer */ "./js/layers/flylinelayer.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "FlyLineLayer", function() { return _layers_flylinelayer__WEBPACK_IMPORTED_MODULE_2__["default"]; });
+/* harmony import */ var _layers_flyline_layer__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./layers/flyline-layer */ "./js/layers/flyline-layer.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "FlyLineLayer", function() { return _layers_flyline_layer__WEBPACK_IMPORTED_MODULE_2__["default"]; });
 
-/* harmony import */ var _layers_barlayer__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./layers/barlayer */ "./js/layers/barlayer.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "BarLayer", function() { return _layers_barlayer__WEBPACK_IMPORTED_MODULE_3__["default"]; });
+/* harmony import */ var _layers_bar_layer__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./layers/bar-layer */ "./js/layers/bar-layer.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "BarLayer", function() { return _layers_bar_layer__WEBPACK_IMPORTED_MODULE_3__["default"]; });
 
 /* harmony import */ var _maphelper__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./maphelper */ "./js/maphelper.js");
 /* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "mapHelper", function() { return _maphelper__WEBPACK_IMPORTED_MODULE_4__; });
@@ -268,10 +268,10 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
-/***/ "./js/layers/barlayer.js":
-/*!*******************************!*\
-  !*** ./js/layers/barlayer.js ***!
-  \*******************************/
+/***/ "./js/layers/bar-layer.js":
+/*!********************************!*\
+  !*** ./js/layers/bar-layer.js ***!
+  \********************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -281,11 +281,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _layer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./layer */ "./js/layers/layer.js");
 /* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../util */ "./js/util.js");
 /* harmony import */ var _maphelper__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../maphelper */ "./js/maphelper.js");
-/* harmony import */ var _textLayer__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./textLayer */ "./js/layers/textLayer.js");
+/* harmony import */ var _text_layer__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./text-layer */ "./js/layers/text-layer.js");
 
 
 
 
+
+// 柱状图层
 class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
     constructor (data, geojsonLayer, options) {
         super(data, options);
@@ -588,17 +590,17 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         const options = {
             textStyle: this.options.barText.textStyle
         };
-        this._textLayer = new _textLayer__WEBPACK_IMPORTED_MODULE_3__["default"](textData, options);
+        this._textLayer = new _text_layer__WEBPACK_IMPORTED_MODULE_3__["default"](textData, options);
         this._map.addLayer(this._textLayer);
     }
 }
 
 /***/ }),
 
-/***/ "./js/layers/flylinelayer.js":
-/*!***********************************!*\
-  !*** ./js/layers/flylinelayer.js ***!
-  \***********************************/
+/***/ "./js/layers/flyline-layer.js":
+/*!************************************!*\
+  !*** ./js/layers/flyline-layer.js ***!
+  \************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -613,6 +615,8 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
+// 飞线图层
 class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
     constructor(data, geojsonLayer, options) {
         super(data, options);
@@ -806,10 +810,10 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
 
 /***/ }),
 
-/***/ "./js/layers/geojsonlayer.js":
-/*!***********************************!*\
-  !*** ./js/layers/geojsonlayer.js ***!
-  \***********************************/
+/***/ "./js/layers/geojson-layer.js":
+/*!************************************!*\
+  !*** ./js/layers/geojson-layer.js ***!
+  \************************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -819,11 +823,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _layer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./layer */ "./js/layers/layer.js");
 /* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../util */ "./js/util.js");
 /* harmony import */ var _maphelper__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../maphelper */ "./js/maphelper.js");
-/* harmony import */ var _textLayer__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./textLayer */ "./js/layers/textLayer.js");
+/* harmony import */ var _text_layer__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./text-layer */ "./js/layers/text-layer.js");
 
 
 
 
+
+// geojson 地图
 class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
     constructor(data, options) {
         super(data, options);
@@ -1087,13 +1093,13 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         if (this._textLayer) {
             this._textLayer.update(textData);
         } else {
-            this._textLayer = new _textLayer__WEBPACK_IMPORTED_MODULE_3__["default"](textData, textOptions);
+            this._textLayer = new _text_layer__WEBPACK_IMPORTED_MODULE_3__["default"](textData, textOptions);
             this._map.addLayer(this._textLayer);
         }
         if (this._nulltextLayer && this.options.areaText.show) {
             this._nulltextLayer.update(nullTextData);
         } else if(this._nulltextLayer == null && this.options.areaText.show){
-            this._nulltextLayer = new _textLayer__WEBPACK_IMPORTED_MODULE_3__["default"](nullTextData, nullTextOptions);
+            this._nulltextLayer = new _text_layer__WEBPACK_IMPORTED_MODULE_3__["default"](nullTextData, nullTextOptions);
             this._map.addLayer(this._nulltextLayer);
         }
     }
@@ -1245,10 +1251,10 @@ const lineShader = {
 
 /***/ }),
 
-/***/ "./js/layers/textLayer.js":
-/*!********************************!*\
-  !*** ./js/layers/textLayer.js ***!
-  \********************************/
+/***/ "./js/layers/text-layer.js":
+/*!*********************************!*\
+  !*** ./js/layers/text-layer.js ***!
+  \*********************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -1257,11 +1263,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return TextLayer; });
 /* harmony import */ var _layer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./layer */ "./js/layers/layer.js");
 /* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../util */ "./js/util.js");
-/* harmony import */ var _textSprite__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./textSprite */ "./js/layers/textSprite.js");
+/* harmony import */ var _text_sprite__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./text-sprite */ "./js/layers/text-sprite.js");
 
 
 
 
+// 文字标注图层
 class TextLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
     constructor(data, options) {
         super(data, options);
@@ -1293,7 +1300,7 @@ class TextLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         this._data.forEach(d => {
             const projCenter = this._map.projectLngLat(d.center);
             const altitude = d.altitude; 
-            const textSprite = new _textSprite__WEBPACK_IMPORTED_MODULE_2__["default"](d.text, this.options.textStyle).getSprite();
+            const textSprite = new _text_sprite__WEBPACK_IMPORTED_MODULE_2__["default"](d.text, this.options.textStyle).getSprite();
 
             textSprite.scale.set(32, 32, 1);
             textSprite.position.set(projCenter[0], altitude, -projCenter[1]);
@@ -1310,10 +1317,10 @@ class TextLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
 
 /***/ }),
 
-/***/ "./js/layers/textSprite.js":
-/*!*********************************!*\
-  !*** ./js/layers/textSprite.js ***!
-  \*********************************/
+/***/ "./js/layers/text-sprite.js":
+/*!**********************************!*\
+  !*** ./js/layers/text-sprite.js ***!
+  \**********************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
@@ -1322,6 +1329,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return TextSprite; });
 /* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../util */ "./js/util.js");
 
+
+// 字体精灵
 class TextSprite {
     constructor(text, options) {
         const defaultOptions = {
@@ -1552,10 +1561,10 @@ function scalePoint(point, scale) {
 
 /***/ }),
 
-/***/ "./js/threemap.js":
-/*!************************!*\
-  !*** ./js/threemap.js ***!
-  \************************/
+/***/ "./js/three-map.js":
+/*!*************************!*\
+  !*** ./js/three-map.js ***!
+  \*************************/
 /*! exports provided: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 

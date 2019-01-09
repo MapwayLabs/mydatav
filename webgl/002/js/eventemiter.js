@@ -48,7 +48,7 @@ export default class EventEmiter {
             return this;
         }
         if (cb) {
-            let cbs = this._events[event];
+            let cbs = this._events[event] || [];
             let i = cbs.length;
             while (i--) {
                 if ((cb === cbs[i].callback || cb === cbs[i].fn) && context === cbs[i].context) {
