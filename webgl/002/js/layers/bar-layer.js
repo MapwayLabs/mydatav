@@ -113,6 +113,7 @@ export default class BarLayer extends Layer {
                     let tempobj = {
                         id: props.id || f.id,
                         name: props.name,
+                        xname: x.data[i],
                         index: i,
                         center: mapHelper.getNormalizeCenter(f),
                         value: Number(y.data[i])
@@ -178,7 +179,7 @@ export default class BarLayer extends Layer {
             let num = Util.normalizeValue(this._colorsData[index], xmin, xmax, ymin, ymax);
             color = Util.getInterPolateColor(num, barStyle.grandientColor);
         } else if (barStyle.enumColor) {
-           let enumcolor = barStyle.enumColor[item.name] || barStyle.enumColor[item.id];
+           let enumcolor = barStyle.enumColor[item.xname];
            color = enumcolor && enumcolor.color;
            if(!color){
             color = barStyle.defaultColor[index % cLen]
