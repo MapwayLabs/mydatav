@@ -202,7 +202,7 @@ class EventEmiter {
             return this;
         }
         if (cb) {
-            let cbs = this._events[event];
+            let cbs = this._events[event] || [];
             let i = cbs.length;
             while (i--) {
                 if ((cb === cbs[i].callback || cb === cbs[i].fn) && context === cbs[i].context) {
@@ -346,7 +346,7 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
     }
     onRemove(map) {
         _layer__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.onRemove.call(this, map);
-        this._map.removeLayer(this._textLayer);
+        this._textLayer && this._map.removeLayer(this._textLayer);
         if (this.options.barTooltip.show) {
             // this._toolTipHelper.hideTooltip(); // TODO: bdp
             this._map.off('mousemove', this._mousemoveEvtHandler, this);
@@ -397,6 +397,7 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                     let tempobj = {
                         id: props.id || f.id,
                         name: props.name,
+                        xname: x.data[i],
                         index: i,
                         center: _maphelper__WEBPACK_IMPORTED_MODULE_2__["getNormalizeCenter"](f),
                         value: Number(y.data[i])
@@ -462,7 +463,7 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             let num = _util__WEBPACK_IMPORTED_MODULE_1__["normalizeValue"](this._colorsData[index], xmin, xmax, ymin, ymax);
             color = _util__WEBPACK_IMPORTED_MODULE_1__["getInterPolateColor"](num, barStyle.grandientColor);
         } else if (barStyle.enumColor) {
-           let enumcolor = barStyle.enumColor[item.name] || barStyle.enumColor[item.id];
+           let enumcolor = barStyle.enumColor[item.xname];
            color = enumcolor && enumcolor.color;
            if(!color){
             color = barStyle.defaultColor[index % cLen]
@@ -863,7 +864,8 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             areaMaterial: { // 面材质配置
                 color: 0x00ff00,
                 side: THREE.DoubleSide
-            }
+            },
+            highLightColor: '#00f'
         };
         this.options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](true, defaultOptions, options);
 
@@ -874,11 +876,13 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         this._initBoundsAndCenter();
         this._draw();
         this.updateLabels();
+        this._map.on('mousemove', this._mousemoveEvtHandler, this);
     }
     onRemove(map) {
         _layer__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.onRemove.call(this, map);
-        this._map.removeLayer(this._textLayer);
-        this._map.removeLayer(this._nulltextLayer);
+        this._textLayer && this._map.removeLayer(this._textLayer);
+        this._nulltextLayer && this._map.removeLayer(this._nulltextLayer);
+        this._map.off('mousemove', this._mousemoveEvtHandler, this);
     }
     getBounds() {
         return this._bounds;
@@ -1065,6 +1069,50 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 }
             } else {
                 throw new Error('The geoJSON is not valid.');
+            }
+        }
+    }
+    _mousemoveEvtHandler(event) {
+        const mapSize = this._map.getContainerSize();
+        const camera = this._map.getCamera();
+        const sx = event.offsetX; 
+        const sy = event.offsetY;
+        const cx = event.clientX;
+        const cy = event.clientY;
+        //屏幕坐标转标准设备坐标
+        const x = (sx / mapSize.width) * 2 - 1; 
+        const y = -(sy / mapSize.height) * 2 + 1;
+        //标准设备坐标
+        const standardVector = new THREE.Vector3(x, y, 0.5); 
+        //标准设备坐标转世界坐标
+        const worldVector = standardVector.unproject(camera);
+        //射线投射方向单位向量(worldVector坐标减相机位置坐标)
+        const ray = worldVector.sub(camera.position).normalize();
+        //创建射线投射器对象
+        const raycaster = new THREE.Raycaster(camera.position, ray);
+        //返回射线选中的对象
+        const intersects = raycaster.intersectObjects(this._container.children);
+      
+        // 避免连续选中
+        if (this._currentSelectObj) {
+            this._currentSelectObj.material.color = this._currentSelectObj.userData.oldColor;
+            this._currentSelectObj = null;
+        }
+
+        for (var i = 0; i < intersects.length; i++) {
+            let object = intersects[i].object;
+            let udata = object.userData;
+            if (udata && udata.type === 'area') {
+                object.userData.oldColor = object.material.color;
+                object.material.color = new THREE.Color(this.options.highLightColor);
+                this._currentSelectObj = object;
+                break;
+            }
+        }
+        if (i === intersects.length) {
+            if (this._currentSelectObj) {
+                this._currentSelectObj.material.color = this._currentSelectObj.userData.oldColor;
+                this._currentSelectObj = null;
             }
         }
     }
