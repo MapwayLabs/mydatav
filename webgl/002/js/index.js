@@ -1,10 +1,10 @@
-export {default as ThreeMap} from './threemap';
+export {default as ThreeMap} from './three-map';
 
-export {default as GeoJSONLayer} from './layers/geojsonlayer';
+export {default as GeoJSONLayer} from './layers/geojson-layer';
 
-export {default as FlyLineLayer} from './layers/flylinelayer';
+export {default as FlyLineLayer} from './layers/flyline-layer';
 
-export {default as BarLayer} from './layers/barlayer';
+export {default as BarLayer} from './layers/bar-layer';
 
 import * as mapHelper from './maphelper';
 export {mapHelper}

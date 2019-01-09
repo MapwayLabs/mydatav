@@ -1,7 +1,8 @@
 import Layer from './layer';
 import * as Util from '../util';
-import TextSprite from './textSprite';
+import TextSprite from './text-sprite';
 
+// 文字标注图层
 export default class TextLayer extends Layer {
     constructor(data, options) {
         super(data, options);

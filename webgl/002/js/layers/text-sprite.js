@@ -1,4 +1,6 @@
 import * as Util from '../util';
+
+// 字体精灵
 export default class TextSprite {
     constructor(text, options) {
         const defaultOptions = {

@@ -2,6 +2,8 @@ import Layer from './layer';
 import * as Util from '../util';
 import * as mapHelper from '../maphelper';
 import { lineShader } from './shader/line';
+
+// 飞线图层
 export default class FlyLineLayer extends Layer {
     constructor(data, geojsonLayer, options) {
         super(data, options);

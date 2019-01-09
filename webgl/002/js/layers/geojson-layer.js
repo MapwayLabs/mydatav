@@ -1,7 +1,9 @@
 import Layer from './layer';
 import * as Util from '../util';
 import * as mapHelper from '../maphelper';
-import TextLayer from './textLayer';
+import TextLayer from './text-layer';
+
+// geojson 地图
 export default class GeoJSONLayer extends Layer {
     constructor(data, options) {
         super(data, options);

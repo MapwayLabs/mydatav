@@ -1,7 +1,9 @@
 import Layer from './layer';
 import * as Util from '../util';
 import * as mapHelper from '../maphelper';
-import TextLayer from './textLayer';
+import TextLayer from './text-layer';
+
+// 柱状图层
 export default class BarLayer extends Layer {
     constructor (data, geojsonLayer, options) {
         super(data, options);
