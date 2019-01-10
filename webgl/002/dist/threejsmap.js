@@ -865,7 +865,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 color: 0x00ff00,
                 side: THREE.DoubleSide
             },
-            highLightColor: '#00f'
+            highLightColor: '#639fc0'
         };
         this.options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](true, defaultOptions, options);
 
@@ -1802,6 +1802,8 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
             alpha: true,
             preserveDrawingBuffer: true
         });
+        this._renderer.shadowMap.enabled = true;
+        this._renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         this._renderer.setPixelRatio(dpr);
         this._renderer.setClearColor(0x000000, 0); // 背景透明 
         this._renderer.setSize(size.width, size.height, true);
@@ -1839,6 +1841,7 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
         const directionalLight = new THREE.DirectionalLight(lightOptions.main.color, lightOptions.main.intensity);
         directionalLight.position.set(-1, 1, 1);
         const ambientLight = new THREE.AmbientLight(lightOptions.ambient.color, lightOptions.ambient.intensity);
+        // directionalLight.castShadow = true; 
         this._scene.add(directionalLight);
         this._scene.add(ambientLight);
         this._mainLight = directionalLight;

@@ -38,7 +38,7 @@ export default class GeoJSONLayer extends Layer {
                 color: 0x00ff00,
                 side: THREE.DoubleSide
             },
-            highLightColor: '#00f'
+            highLightColor: '#639fc0'
         };
         this.options = Util.extend(true, defaultOptions, options);
 
