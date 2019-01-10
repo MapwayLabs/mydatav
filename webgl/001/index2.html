@@ -102,6 +102,38 @@
             renderer.render(scene, camera);
         }
         animate();
+        
+        function drawText(textStr) {
+            var canvas = document.createElement('canvas');
+            // webgl 规定 canvas 宽高为2的n次幂
+            canvas.width = 256;
+            canvas.height = 256;
+            var ctx = canvas.getContext('2d');
+
+            // ctx.fillStyle = renderer.domElement.style.backgroundColor;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // draw
+            ctx.font = "16px Arial";
+            ctx.fillStyle = "green";
+            ctx.textAlign = "center";
+            var textWidth = ctx.measureText(textStr).width;
+            ctx.fillText(textStr, canvas.width/2, canvas.height/2 + 5);
+
+            var texture = new THREE.Texture(canvas);
+            texture.needsUpdate = true;
+
+            var spriteMaterial = new THREE.SpriteMaterial({
+                map: texture
+            });
+            var sprite = new THREE.Sprite(spriteMaterial);
+            scene.add(sprite);
+            return sprite;
+        }
+
+        var sprite = drawText("100");
+        sprite.position.set(32, 0, 0);
+        sprite.scale.set(302, 302, 1);
 
         window.addEventListener('resize', function () {
             camera.aspect = window.innerWidth / window.innerHeight;
