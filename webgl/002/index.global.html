@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>threejs三维流线图</title>
+    <script src="../../lib/threejs/three.js"></script>
+    <script src="../../lib/threejs/js/controls/OrbitControls.js"></script>
+    <script src="./dist/threejsmap.js"></script>
+    <script src="../../lib/jquery.min.js"></script>
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background: #000;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="threemap" style="position: relative; width: 100%; height: 600px;border:1px solid silver;"></div>
+    <script>
+        const mapOptions = {
+            type: 'sphere', // plane or sphere ,平面或球面
+            global: {
+                R: 220, // 球形地球半径
+                center: [170, 35], // 初始中心点
+                animation: true, // 是否转动
+                animationSpeed: 10, // 转动快慢
+                earthImgSrc: '../../images/earth.jpg', // 地球图片
+                light: {
+                    skyColor: '#fff',
+                    groundColor: '#333',
+                    intensity: 2
+                }
+            }
+        }
+        const map = new TMap.ThreeMap('threemap', mapOptions);
+        map.setView();
+        $.getJSON('../../data/flyline.json', function (fdata) {
+            const flOptions = {
+                // geojsonLayer: window.geojsonLayer
+                lineStyle: {
+                    show: true,
+                    color: '#0f0',
+                    opacity: 0.4,
+                    width: 1
+                },
+                effect: {
+                    show: true,
+                    segmentNumber: 10,
+                    period: 1, // 尾迹特效的周期
+                    constantSpeed: null, // 尾迹特效是否是固定速度，设置后忽略period值
+                    trailWidth: 4, // 尾迹宽度（暂时无效）
+                    trailLength: 1, // 尾迹长度，范围 0-1，为线条长度百分比
+                    trailColor: '#0f0', // 尾迹颜色，默认跟线颜色相同
+                    trailOpacity: 1 // 尾迹不透明度，默认跟线相同
+                }
+            };
+            let fl = new TMap.FlyLineLayer(fdata, null, flOptions);
+            map.addLayer(fl);
+        });
+    </script>
+</body>
+
+</html>

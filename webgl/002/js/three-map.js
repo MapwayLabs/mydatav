@@ -41,6 +41,18 @@ export default class ThreeMap extends EventEmiter {
                     color: '#fff',
                     intensity: 0.2
                 }
+            },
+            global: {
+                R: 220, // 球形地球半径
+                center: [170, 35], // 初始中心点
+                animation: true, // 是否转动
+                animationSpeed: 10, // 转动快慢
+                earthImgSrc: '../../images/earth.jpg', // 地球图片
+                light: {
+                    skyColor: '#fff',
+                    groundColor: '#333',
+                    intensity: 2
+                }
             }
         };
         this.options = Util.extend(true, defaultOptions, options);
@@ -49,8 +61,12 @@ export default class ThreeMap extends EventEmiter {
         
         this._initBounds();
         this._initContainer(el);
-        this._init3D();
-        this._initEvents();
+        if (this.options.type === 'sphere') {
+            this._initGlobal();
+        } else {
+            this._init3D();
+        }  
+        this._initEvents();  
     }
     getBounds() {
         return this._fullBound;
@@ -99,7 +115,17 @@ export default class ThreeMap extends EventEmiter {
             }
         } else {
             // sphere
+            return this.lngLatToGlobal(lnglat[0], lnglat[1], lnglat[2]);
         }
+    }
+    lngLatToGlobal(lng, lat, alt = 0) {
+        const phi = (90-lat)*(Math.PI/180);
+        const theta = (lng+180)*(Math.PI/180);
+        const radius = alt+this.options.global.R;
+        const x = -(radius * Math.sin(phi) * Math.cos(theta));
+        const z = (radius * Math.sin(phi) * Math.sin(theta));
+        const y = (radius * Math.cos(phi));
+        return [x, y, z];
     }
     updateSize() {
         this._onContainerResize();
@@ -127,8 +153,19 @@ export default class ThreeMap extends EventEmiter {
             }
         } else {
             // sphere
+            let d = this.getDistance(this.options.global.R*2);
+            d*=1.5;
+            this._orbitControl.object.position.set(0, 0, d);
+            this._orbitControl.target = new THREE.Vector3(0, 0, 0);
         }
         this._orbitControl.update();
+    }
+    getDistance(height) {
+        // 视角
+        const deg = THREE.Math.degToRad(this.options.camera.fov) / 2;
+        // 视区高度
+        const d = (height / 2) / Math.tan(deg);
+        return d;
     }
     getContainerElement() {
         return this._el;
@@ -141,6 +178,29 @@ export default class ThreeMap extends EventEmiter {
     }
     getCamera() {
         return this._camera;
+    }
+    // TODO: addLegend bdp
+    addLegend(legendOptions) {
+        let Legend = Dalaba.Chart.Legend;
+        let legend = null;
+        const size = this.getContainerSize();
+        if (!this._legendCanvas) {
+            this._legendCanvas = document.createElement('canvas');
+            this._legendCanvas.width = this._renderer.domElement.width;
+            this._legendCanvas.height = this._renderer.domElement.height;
+            this._legendCanvas.style.width = size.width + 'px';
+            this._legendCanvas.style.height = size.height + 'px';
+            this._legendCanvas.className = 'three-map-legendcanvas';
+            this._el.appendChild(this._legendCanvas);
+        }
+        if (Legend && legendOptions.enabled) {
+            legend = new Legend(
+                this._legendCanvas,//this.addLayer(legendOptions.layer),
+                [{name: 9}],
+                legendOptions//selected为false不读取
+            );
+        }
+        return legend;
     }
     _initBounds() {
         if (this.options.type === 'plane') {
@@ -219,6 +279,71 @@ export default class ThreeMap extends EventEmiter {
         this._scene.add(ambientLight);
         this._mainLight = directionalLight;
         this._ambientLight = ambientLight;
+
+        // animate
+        this._animate();
+    }
+    _initGlobal() {
+        if (THREE == undefined) throw new Error('需先引入 threejs 库！');
+        if (THREE.OrbitControls == undefined) throw new Error('需先引入 OrbitControls 组件！');
+
+        const size = this.getContainerSize();
+        const dpr = Util.getDpr();
+
+        // 初始化画布
+        this._renderer = new THREE.WebGLRenderer({
+            antialias: true,
+            alpha: true,
+            preserveDrawingBuffer: true
+        });
+        this._renderer.setPixelRatio(dpr);
+        this._renderer.setClearColor(0x000000, 0); // 背景透明 
+        this._renderer.setSize(size.width, size.height, true);
+        this._renderer.domElement.className = 'chart-canvas';
+        this._el.appendChild(this._renderer.domElement);
+
+        // 设置场景
+        this._scene = new THREE.Scene();
+
+        // 相机
+        const cameraOptions = this.options.camera;
+        this._camera = new THREE.PerspectiveCamera(cameraOptions.fov, size.width / size.height, cameraOptions.near, cameraOptions.far);
+
+        // 控件
+        const orbitControlOptions = this.options.orbitControlOptions;
+        this._orbitControl = new THREE.OrbitControls(this._camera, this._renderer.domElement);
+        // 距离相机的最小、最大距离，仅用于透视相机
+        let d = this.getDistance(this.options.global.R*2);
+        this._orbitControl.minDistance = d; 
+        this._orbitControl.maxDistance = d*2; 
+        // 最小、最大翻转角度 在哪个平面内就相对于哪个平面的坐标轴
+        // this._orbitControl.minPolarAngle = Math.PI * orbitControlOptions.minPolarAngle / 180;
+        // this._orbitControl.maxPolarAngle = Math.PI * orbitControlOptions.maxPolarAngle / 180; 
+        // 最小、最大旋转角度
+        // this._orbitControl.minAzimuthAngle = Math.PI * orbitControlOptions.minAzimuthAngle / 180;
+        // this._orbitControl.maxAzimuthAngle = Math.PI * orbitControlOptions.maxAzimuthAngle / 180; 
+     
+        this._orbitControl.saveState();
+        this._orbitControl.update();
+
+        // 灯光
+        const lightOptions = this.options.global.light;
+        const hemisphereLight = new THREE.HemisphereLight(lightOptions.skyColor, lightOptions.groundColor, lightOptions.intensity);
+        hemisphereLight.position.x = 0;
+        hemisphereLight.position.y = 0;
+        hemisphereLight.position.z = -this.options.global.R;
+        this._scene.add(hemisphereLight);
+        
+        // 球面
+        const globeTextureLoader = new THREE.TextureLoader();
+        globeTextureLoader.load(this.options.global.earthImgSrc, texture => {
+            const globeGgeometry = new THREE.SphereGeometry(this.options.global.R, 100, 100);
+            const globeMaterial = new THREE.MeshStandardMaterial({map: texture});
+            const globeMesh = new THREE.Mesh(globeGgeometry, globeMaterial);
+            this._scene.add(globeMesh);
+            this._scene.rotation.x = THREE.Math.degToRad(this.options.global.center[1]);
+            this._scene.rotation.y = THREE.Math.degToRad(this.options.global.center[0]);
+        });
 
         // animate
         this._animate();

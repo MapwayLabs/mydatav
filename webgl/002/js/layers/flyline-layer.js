@@ -1,6 +1,5 @@
 import Layer from './layer';
 import * as Util from '../util';
-import * as mapHelper from '../maphelper';
 import { lineShader } from './shader/line';
 
 // 飞线图层
@@ -8,6 +7,7 @@ export default class FlyLineLayer extends Layer {
     constructor(data, geojsonLayer, options) {
         super(data, options);
         const defaultOptions = {
+            heightLimit: 30, // 飞线最高点高度
             // 线样式
             lineStyle: {
                 show: true,
@@ -56,43 +56,49 @@ export default class FlyLineLayer extends Layer {
     }
     _draw() {
         this._data.forEach(item => {
+            let h = this.options.heightLimit;
             let f = item.from.split(',').map(p => Number(p));
             let t = item.to.split(',').map(p => Number(p));
-            let h = 42;
-            if (this._map.options.crs === mapHelper.CRS.epsg3857) {
-                let scale = this._map.options.SCALE_RATIO;
-                f = mapHelper.wgs84ToMecator(f);
-                t = mapHelper.wgs84ToMecator(t);
-                f = f.map(point => point / scale);
-                t = t.map(point => point / scale);
-                // h = h / scale;
-            }
+            let m = [(f[0]+t[0])/2, (f[1]+t[1])/2, h];
+            f = this._map.projectLngLat(f);
+            t = this._map.projectLngLat(t); 
+            m = this._map.projectLngLat(m);
             if (this.options.lineStyle.show) {
-                this._drawLine(f, t, h);
+                this._drawLine(f, t, m);
             }
             if (this.options.effect.show) {
-                this._drawFlyLine(f, t, h);
+                this._drawFlyLine(f, t, m);
             }
         });
     }
-    _getCurve(startPoint, endPoint, heightLimit) {
+    _getCurve(startPoint, endPoint, midPoint) {
+        const isGlobal = !!(this._map.options.type === 'sphere');
         let geojsonLayer = this.geojsonLayer;
         let depth = 0;
         if (geojsonLayer && geojsonLayer.options.isExtrude) {
             depth = geojsonLayer.options.depth;
         }
-        let middleX = ( startPoint[0] + endPoint[0] ) / 2;
-        let middleY = ( startPoint[1] + endPoint[1] ) / 2;
-        let middleZ = 0 + depth + heightLimit;
-        let startVector = new THREE.Vector3(startPoint[0], startPoint[1], 0 + depth);
+        let middleX = midPoint[0];
+        let middleY = midPoint[1];
+        let middleZ = isGlobal ? midPoint[2] : (0 + depth + midPoint[2]);
+        let sz = isGlobal ? startPoint[2] : (0 + depth);
+        let ez = isGlobal ? endPoint[2] : (0 + depth);
+        let startVector = new THREE.Vector3(startPoint[0], startPoint[1], sz);
         let middleVector = new THREE.Vector3(middleX, middleY, middleZ);
-        let endVector = new THREE.Vector3(endPoint[0], endPoint[1], 0 + depth);
+        let endVector = new THREE.Vector3(endPoint[0], endPoint[1], ez);
 
         let curve = new THREE.CatmullRomCurve3([startVector, middleVector, endVector]);
         return curve;
     }
-    _drawLine(startPoint, endPoint, heightLimit) {  
-        const curve = this._getCurve(startPoint, endPoint, heightLimit);
+    _drawPoint([x, y, z], color = "#f00") {
+        const pointGeometry = new THREE.SphereGeometry(2, 100, 100);
+        const pointMaterial = new THREE.MeshBasicMaterial( {color} );
+        const mesh = new THREE.Mesh(pointGeometry, pointMaterial);
+        mesh.position.set(x, y, z);
+        this._container.add(mesh);
+    }
+    _drawLine(startPoint, endPoint, midPoint) {  
+        const curve = this._getCurve(startPoint, endPoint, midPoint);
         const points = curve.getPoints( 50 );
         let geometry = new THREE.BufferGeometry().setFromPoints( points );
         
@@ -106,13 +112,15 @@ export default class FlyLineLayer extends Layer {
         
         // Create the final object to add to the scene
         let curveObject = new THREE.Line( geometry, material );
-        curveObject.rotateX(-Math.PI/2);
-
+        if (this._map.options.type === 'plane') {
+            curveObject.rotateX(-Math.PI/2);
+        }
+        
         this._container.add(curveObject);
 
     }
-    _drawFlyLine(startPoint, endPoint, heightLimit) {
-        const curve = this._getCurve(startPoint, endPoint, heightLimit);
+    _drawFlyLine(startPoint, endPoint, midPoint) {
+        const curve = this._getCurve(startPoint, endPoint, midPoint);
         const points = curve.getPoints(50);
         let segmentNum = this.options.effect.segmentNumber;
         if (segmentNum <= 1) {
@@ -189,7 +197,9 @@ export default class FlyLineLayer extends Layer {
         }
         
         let line = new THREE.Line(geometry, shaderMaterial);
-        line.rotateX(-Math.PI/2);
+        if (this._map.options.type === 'plane') {
+            line.rotateX(-Math.PI/2);
+        }
 
         this._container.add(line);
     }

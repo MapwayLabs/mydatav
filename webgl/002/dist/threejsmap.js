@@ -622,6 +622,7 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
     constructor(data, geojsonLayer, options) {
         super(data, options);
         const defaultOptions = {
+            heightLimit: 30, // 飞线最高点高度
             // 线样式
             lineStyle: {
                 show: true,
@@ -670,43 +671,49 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
     }
     _draw() {
         this._data.forEach(item => {
+            let h = this.options.heightLimit;
             let f = item.from.split(',').map(p => Number(p));
             let t = item.to.split(',').map(p => Number(p));
-            let h = 42;
-            if (this._map.options.crs === _maphelper__WEBPACK_IMPORTED_MODULE_2__["CRS"].epsg3857) {
-                let scale = this._map.options.SCALE_RATIO;
-                f = _maphelper__WEBPACK_IMPORTED_MODULE_2__["wgs84ToMecator"](f);
-                t = _maphelper__WEBPACK_IMPORTED_MODULE_2__["wgs84ToMecator"](t);
-                f = f.map(point => point / scale);
-                t = t.map(point => point / scale);
-                // h = h / scale;
-            }
+            let m = [(f[0]+t[0])/2, (f[1]+t[1])/2, h];
+            f = this._map.projectLngLat(f);
+            t = this._map.projectLngLat(t); 
+            m = this._map.projectLngLat(m);
             if (this.options.lineStyle.show) {
-                this._drawLine(f, t, h);
+                this._drawLine(f, t, m);
             }
             if (this.options.effect.show) {
-                this._drawFlyLine(f, t, h);
+                this._drawFlyLine(f, t, m);
             }
         });
     }
-    _getCurve(startPoint, endPoint, heightLimit) {
+    _getCurve(startPoint, endPoint, midPoint) {
+        const isGlobal = !!(this._map.options.type === 'sphere');
         let geojsonLayer = this.geojsonLayer;
         let depth = 0;
         if (geojsonLayer && geojsonLayer.options.isExtrude) {
             depth = geojsonLayer.options.depth;
         }
-        let middleX = ( startPoint[0] + endPoint[0] ) / 2;
-        let middleY = ( startPoint[1] + endPoint[1] ) / 2;
-        let middleZ = 0 + depth + heightLimit;
-        let startVector = new THREE.Vector3(startPoint[0], startPoint[1], 0 + depth);
+        let middleX = midPoint[0];
+        let middleY = midPoint[1];
+        let middleZ = isGlobal ? midPoint[2] : (0 + depth + midPoint[2]);
+        let sz = isGlobal ? startPoint[2] : (0 + depth);
+        let ez = isGlobal ? endPoint[2] : (0 + depth);
+        let startVector = new THREE.Vector3(startPoint[0], startPoint[1], sz);
         let middleVector = new THREE.Vector3(middleX, middleY, middleZ);
-        let endVector = new THREE.Vector3(endPoint[0], endPoint[1], 0 + depth);
+        let endVector = new THREE.Vector3(endPoint[0], endPoint[1], ez);
 
         let curve = new THREE.CatmullRomCurve3([startVector, middleVector, endVector]);
         return curve;
     }
-    _drawLine(startPoint, endPoint, heightLimit) {  
-        const curve = this._getCurve(startPoint, endPoint, heightLimit);
+    _drawPoint([x, y, z], color = "#f00") {
+        const pointGeometry = new THREE.SphereGeometry(2, 100, 100);
+        const pointMaterial = new THREE.MeshBasicMaterial( {color} );
+        const mesh = new THREE.Mesh(pointGeometry, pointMaterial);
+        mesh.position.set(x, y, z);
+        this._container.add(mesh);
+    }
+    _drawLine(startPoint, endPoint, midPoint) {  
+        const curve = this._getCurve(startPoint, endPoint, midPoint);
         const points = curve.getPoints( 50 );
         let geometry = new THREE.BufferGeometry().setFromPoints( points );
         
@@ -720,13 +727,15 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         
         // Create the final object to add to the scene
         let curveObject = new THREE.Line( geometry, material );
-        curveObject.rotateX(-Math.PI/2);
-
+        if (this._map.options.type === 'plane') {
+            curveObject.rotateX(-Math.PI/2);
+        }
+        
         this._container.add(curveObject);
 
     }
-    _drawFlyLine(startPoint, endPoint, heightLimit) {
-        const curve = this._getCurve(startPoint, endPoint, heightLimit);
+    _drawFlyLine(startPoint, endPoint, midPoint) {
+        const curve = this._getCurve(startPoint, endPoint, midPoint);
         const points = curve.getPoints(50);
         let segmentNum = this.options.effect.segmentNumber;
         if (segmentNum <= 1) {
@@ -803,7 +812,9 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         }
         
         let line = new THREE.Line(geometry, shaderMaterial);
-        line.rotateX(-Math.PI/2);
+        if (this._map.options.type === 'plane') {
+            line.rotateX(-Math.PI/2);
+        }
 
         this._container.add(line);
     }
@@ -1665,6 +1676,18 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
                     color: '#fff',
                     intensity: 0.2
                 }
+            },
+            global: {
+                R: 220, // 球形地球半径
+                center: [170, 35], // 初始中心点
+                animation: true, // 是否转动
+                animationSpeed: 10, // 转动快慢
+                earthImgSrc: '../../images/earth.jpg', // 地球图片
+                light: {
+                    skyColor: '#fff',
+                    groundColor: '#333',
+                    intensity: 2
+                }
             }
         };
         this.options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](true, defaultOptions, options);
@@ -1673,8 +1696,12 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
         
         this._initBounds();
         this._initContainer(el);
-        this._init3D();
-        this._initEvents();
+        if (this.options.type === 'sphere') {
+            this._initGlobal();
+        } else {
+            this._init3D();
+        }  
+        this._initEvents();  
     }
     getBounds() {
         return this._fullBound;
@@ -1723,7 +1750,17 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
             }
         } else {
             // sphere
+            return this.lngLatToGlobal(lnglat[0], lnglat[1], lnglat[2]);
         }
+    }
+    lngLatToGlobal(lng, lat, alt = 0) {
+        const phi = (90-lat)*(Math.PI/180);
+        const theta = (lng+180)*(Math.PI/180);
+        const radius = alt+this.options.global.R;
+        const x = -(radius * Math.sin(phi) * Math.cos(theta));
+        const z = (radius * Math.sin(phi) * Math.sin(theta));
+        const y = (radius * Math.cos(phi));
+        return [x, y, z];
     }
     updateSize() {
         this._onContainerResize();
@@ -1751,8 +1788,19 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
             }
         } else {
             // sphere
+            let d = this.getDistance(this.options.global.R*2);
+            d*=1.5;
+            this._orbitControl.object.position.set(0, 0, d);
+            this._orbitControl.target = new THREE.Vector3(0, 0, 0);
         }
         this._orbitControl.update();
+    }
+    getDistance(height) {
+        // 视角
+        const deg = THREE.Math.degToRad(this.options.camera.fov) / 2;
+        // 视区高度
+        const d = (height / 2) / Math.tan(deg);
+        return d;
     }
     getContainerElement() {
         return this._el;
@@ -1843,6 +1891,71 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
         this._scene.add(ambientLight);
         this._mainLight = directionalLight;
         this._ambientLight = ambientLight;
+
+        // animate
+        this._animate();
+    }
+    _initGlobal() {
+        if (THREE == undefined) throw new Error('需先引入 threejs 库！');
+        if (THREE.OrbitControls == undefined) throw new Error('需先引入 OrbitControls 组件！');
+
+        const size = this.getContainerSize();
+        const dpr = _util__WEBPACK_IMPORTED_MODULE_1__["getDpr"]();
+
+        // 初始化画布
+        this._renderer = new THREE.WebGLRenderer({
+            antialias: true,
+            alpha: true,
+            preserveDrawingBuffer: true
+        });
+        this._renderer.setPixelRatio(dpr);
+        this._renderer.setClearColor(0x000000, 0); // 背景透明 
+        this._renderer.setSize(size.width, size.height, true);
+        this._renderer.domElement.className = 'chart-canvas';
+        this._el.appendChild(this._renderer.domElement);
+
+        // 设置场景
+        this._scene = new THREE.Scene();
+
+        // 相机
+        const cameraOptions = this.options.camera;
+        this._camera = new THREE.PerspectiveCamera(cameraOptions.fov, size.width / size.height, cameraOptions.near, cameraOptions.far);
+
+        // 控件
+        const orbitControlOptions = this.options.orbitControlOptions;
+        this._orbitControl = new THREE.OrbitControls(this._camera, this._renderer.domElement);
+        // 距离相机的最小、最大距离，仅用于透视相机
+        let d = this.getDistance(this.options.global.R*2);
+        this._orbitControl.minDistance = d; 
+        this._orbitControl.maxDistance = d*2; 
+        // 最小、最大翻转角度 在哪个平面内就相对于哪个平面的坐标轴
+        // this._orbitControl.minPolarAngle = Math.PI * orbitControlOptions.minPolarAngle / 180;
+        // this._orbitControl.maxPolarAngle = Math.PI * orbitControlOptions.maxPolarAngle / 180; 
+        // 最小、最大旋转角度
+        // this._orbitControl.minAzimuthAngle = Math.PI * orbitControlOptions.minAzimuthAngle / 180;
+        // this._orbitControl.maxAzimuthAngle = Math.PI * orbitControlOptions.maxAzimuthAngle / 180; 
+     
+        this._orbitControl.saveState();
+        this._orbitControl.update();
+
+        // 灯光
+        const lightOptions = this.options.global.light;
+        const hemisphereLight = new THREE.HemisphereLight(lightOptions.skyColor, lightOptions.groundColor, lightOptions.intensity);
+        hemisphereLight.position.x = 0;
+        hemisphereLight.position.y = 0;
+        hemisphereLight.position.z = -this.options.global.R;
+        this._scene.add(hemisphereLight);
+        
+        // 球面
+        const globeTextureLoader = new THREE.TextureLoader();
+        globeTextureLoader.load(this.options.global.earthImgSrc, texture => {
+            const globeGgeometry = new THREE.SphereGeometry(this.options.global.R, 100, 100);
+            const globeMaterial = new THREE.MeshStandardMaterial({map: texture});
+            const globeMesh = new THREE.Mesh(globeGgeometry, globeMaterial);
+            this._scene.add(globeMesh);
+            this._scene.rotation.x = THREE.Math.degToRad(this.options.global.center[1]);
+            this._scene.rotation.y = THREE.Math.degToRad(this.options.global.center[0]);
+        });
 
         // animate
         this._animate();
