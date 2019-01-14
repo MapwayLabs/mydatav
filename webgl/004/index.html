@@ -19,6 +19,9 @@
 
 <body>
     <script>
+        const R = 220;
+        const CENTER = [160, 35];
+        const isMoving = false;
         var renderer, scene, camera, control;
 
         function init() {
@@ -40,11 +43,14 @@
                 1,
                 1000
             );
+            let d = R / Math.tan(Math.PI/8);
+            camera.position.set(0, 0, d*1.5);
+            camera.lookAt(0, 0, 0);
 
             // OrbitControls
             control = new THREE.OrbitControls(camera, renderer.domElement);
-            control.object.position.set(273.92631851012305, 49.355652273253405, 686.2713295908607);
-            control.target = new THREE.Vector3(0, 0, 0);
+            // control.object.position.set(273.92631851012305, 49.355652273253405, 686.2713295908607);
+            // control.target = new THREE.Vector3(0, 0, 0);
             control.update();
 
         }
@@ -54,6 +60,7 @@
             requestAnimationFrame(animate);
 
             control.update();
+            if (isMoving) scene.rotation.y -= 0.005;
 
             renderer.render(scene, camera);
         }
@@ -72,12 +79,12 @@
             // ../../images/earth.jpg   
             // ../../images/earth_specularmap_flat_8192x4096.jpg
             globeTextureLoader.load('../../images/earth.jpg', function (texture) {
-                var globeGgeometry = new THREE.SphereGeometry(200, 100, 100);
+                var globeGgeometry = new THREE.SphereGeometry(R, 100, 100);
                 var globeMaterial = new THREE.MeshStandardMaterial({map: texture});
                 var globeMesh = new THREE.Mesh(globeGgeometry, globeMaterial);
                 scene.add(globeMesh);
-                scene.rotation.x = THREE.Math.degToRad(35);
-                scene.rotation.y = THREE.Math.degToRad(170);
+                scene.rotation.x = THREE.Math.degToRad(CENTER[1]);
+                scene.rotation.y = THREE.Math.degToRad(CENTER[0]);
             });
         }
         // 光
@@ -85,25 +92,21 @@
             var hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x333333, 2);
             hemisphereLight.position.x = 0;
             hemisphereLight.position.y = 0;
-            hemisphereLight.position.z = -200;
+            hemisphereLight.position.z = -R;
             scene.add(hemisphereLight);
-
-            // var directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
-            // directionalLight.position.set(0, 0, -200);
-            // scene.add( directionalLight );
         }
         function point({x, y, z}) {
-            var geometry = new THREE.BoxGeometry( 2, 2, 2 );
-            var material = new THREE.MeshBasicMaterial( {color: 0xff0000} );
-            var cube = new THREE.Mesh( geometry, material );
-            cube.position.set(x, y, z);
-            scene.add( cube );
+            var pointGeometry = new THREE.SphereGeometry(2, 100, 100);
+            var pointMaterial = new THREE.MeshBasicMaterial( {color: 0xff0000} );
+            var mesh = new THREE.Mesh(pointGeometry, pointMaterial);
+            mesh.position.set(x, y, z);
+            scene.add(mesh);
         }
         // 获取position
         function getPosition(lng, lat, alt) {
             var phi = (90-lat)*(Math.PI/180),
                 theta = (lng+180)*(Math.PI/180),
-                radius = alt+200,
+                radius = alt+R,
                 x = -(radius * Math.sin(phi) * Math.cos(theta)),
                 z = (radius * Math.sin(phi) * Math.sin(theta)),
                 y = (radius * Math.cos(phi));
