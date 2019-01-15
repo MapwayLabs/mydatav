@@ -49,9 +49,9 @@ export const lineShader = {
          gl_FragColor = baseColor * v_Color;
       #endif
    
-        if (v_Percent > (1.0 - v_SpotPercent)) {
-            gl_FragColor.rgb *= spotIntensity;
-        }
+      //   if (v_Percent > (1.0 - v_SpotPercent)) {
+      //       gl_FragColor.rgb *= spotIntensity;
+      //   }
         gl_FragColor.a *= fade;
       }`
 }

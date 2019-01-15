@@ -634,11 +634,11 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 segmentNumber: 1, // 飞线分段数，自然数，默认为1，不分段
                 period: 4, // 尾迹特效的周期
                 constantSpeed: null, // 尾迹特效是否是固定速度，设置后忽略period值
-                trailWidth: 4, // 尾迹宽度(暂时不可用)
+                trailWidth: 4, // 尾迹宽度(TODO:暂时不可用)
                 trailLength: 0.1, // 尾迹长度，范围 0-1，为线条长度百分比
                 trailColor: null, // 尾迹颜色，默认跟线颜色相同
                 trailOpacity: null, // 尾迹不透明度，默认跟线相同
-                spotIntensity: 5.0
+                spotIntensity: 5.0 // 头部高亮部分强度（TODO:暂时不可用）
             }
         };
         this.options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](true, defaultOptions, options);
@@ -1334,7 +1334,7 @@ const lineShader = {
       #endif
    
       //   if (v_Percent > (1.0 - v_SpotPercent)) {
-            gl_FragColor.rgb *= spotIntensity;
+      //       gl_FragColor.rgb *= spotIntensity;
       //   }
         gl_FragColor.a *= fade;
       }`
