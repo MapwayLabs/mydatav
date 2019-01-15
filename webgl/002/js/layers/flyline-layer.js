@@ -59,10 +59,18 @@ export default class FlyLineLayer extends Layer {
             let h = this.options.heightLimit;
             let f = item.from.split(',').map(p => Number(p));
             let t = item.to.split(',').map(p => Number(p));
-            let m = [(f[0]+t[0])/2, (f[1]+t[1])/2, h];
+            let m = [(f[0]+t[0])/2, (f[1]+t[1])/2];
+            if (this._map.options.type === 'sphere') {
+                // 三维的第三个值表示海拔,需进行投影转换
+                m.push(h);
+            }
             f = this._map.projectLngLat(f);
             t = this._map.projectLngLat(t); 
             m = this._map.projectLngLat(m);
+            if(this._map.options.type === 'plane') {
+                // 二维的第三个值表示离地面距离，不需投影
+                m.push(h);
+            }
             if (this.options.lineStyle.show) {
                 this._drawLine(f, t, m);
             }

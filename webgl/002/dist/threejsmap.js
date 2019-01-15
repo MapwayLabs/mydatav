@@ -610,9 +610,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return FlyLineLayer; });
 /* harmony import */ var _layer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./layer */ "./js/layers/layer.js");
 /* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../util */ "./js/util.js");
-/* harmony import */ var _maphelper__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../maphelper */ "./js/maphelper.js");
-/* harmony import */ var _shader_line__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./shader/line */ "./js/layers/shader/line.js");
-
+/* harmony import */ var _shader_line__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./shader/line */ "./js/layers/shader/line.js");
 
 
 
@@ -674,10 +672,18 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             let h = this.options.heightLimit;
             let f = item.from.split(',').map(p => Number(p));
             let t = item.to.split(',').map(p => Number(p));
-            let m = [(f[0]+t[0])/2, (f[1]+t[1])/2, h];
+            let m = [(f[0]+t[0])/2, (f[1]+t[1])/2];
+            if (this._map.options.type === 'sphere') {
+                // 三维的第三个值表示海拔,需进行投影转换
+                m.push(h);
+            }
             f = this._map.projectLngLat(f);
             t = this._map.projectLngLat(t); 
             m = this._map.projectLngLat(m);
+            if(this._map.options.type === 'plane') {
+                // 二维的第三个值表示离地面距离，不需投影
+                m.push(h);
+            }
             if (this.options.lineStyle.show) {
                 this._drawLine(f, t, m);
             }
@@ -798,8 +804,8 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
 
         let shaderMaterial = new THREE.ShaderMaterial({
             uniforms: this.uniforms,
-            vertexShader: _shader_line__WEBPACK_IMPORTED_MODULE_3__["lineShader"].vertexShader,
-            fragmentShader: _shader_line__WEBPACK_IMPORTED_MODULE_3__["lineShader"].fragmentShader
+            vertexShader: _shader_line__WEBPACK_IMPORTED_MODULE_2__["lineShader"].vertexShader,
+            fragmentShader: _shader_line__WEBPACK_IMPORTED_MODULE_2__["lineShader"].fragmentShader
         });
         // 由于OpenGL Core Profile与大多数平台上WebGL渲染器的限制，无论如何设置该值，线宽始终为1。
         // shaderMaterial.linewidth = effectOptions.trailWidth;
@@ -1813,6 +1819,29 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
     }
     getCamera() {
         return this._camera;
+    }
+    // TODO: addLegend bdp
+    addLegend(legendOptions) {
+        let Legend = Dalaba.Chart.Legend;
+        let legend = null;
+        const size = this.getContainerSize();
+        if (!this._legendCanvas) {
+            this._legendCanvas = document.createElement('canvas');
+            this._legendCanvas.width = this._renderer.domElement.width;
+            this._legendCanvas.height = this._renderer.domElement.height;
+            this._legendCanvas.style.width = size.width + 'px';
+            this._legendCanvas.style.height = size.height + 'px';
+            this._legendCanvas.className = 'three-map-legendcanvas';
+            this._el.appendChild(this._legendCanvas);
+        }
+        if (Legend && legendOptions.enabled) {
+            legend = new Legend(
+                this._legendCanvas,//this.addLayer(legendOptions.layer),
+                [{name: 9}],
+                legendOptions//selected为false不读取
+            );
+        }
+        return legend;
     }
     _initBounds() {
         if (this.options.type === 'plane') {

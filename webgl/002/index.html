@@ -106,6 +106,7 @@
             map.setView(window.geojsonLayer.getBounds());
             $.getJSON('../../data/flyline.json', function(fdata) {
                 let flOptions = {
+                    heightLimit:50,
                     // geojsonLayer: window.geojsonLayer
                     lineStyle: {
                         show: false,
