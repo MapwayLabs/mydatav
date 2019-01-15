@@ -13,7 +13,7 @@ export const lineShader = {
 
       varying vec4 v_Color;
       varying float v_Percent;
-      varying float v_SpotPercent;
+      // varying float v_SpotPercent;
 
       void main()	{
          vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
@@ -28,14 +28,14 @@ export const lineShader = {
          float trailLen = distAll * trailLength;
          v_Percent = (dist - t * distAll) / trailLen;
          v_Color = colors;
-         v_SpotPercent = spotSize / distAll;
+         // v_SpotPercent = spotSize / distAll;
       }`,
    fragmentShader: `            
       uniform vec4 baseColor;
       uniform float spotIntensity;
       varying vec4 v_Color;
       varying float v_Percent;
-      varying float v_SpotPercent;
+      // varying float v_SpotPercent;
 
       void main( void ) {
         if (v_Percent > 1.0 || v_Percent < 0.0) {
