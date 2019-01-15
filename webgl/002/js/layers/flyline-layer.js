@@ -21,10 +21,11 @@ export default class FlyLineLayer extends Layer {
                 segmentNumber: 1, // 飞线分段数，自然数，默认为1，不分段
                 period: 4, // 尾迹特效的周期
                 constantSpeed: null, // 尾迹特效是否是固定速度，设置后忽略period值
-                trailWidth: 4, // 尾迹宽度(暂时不可用)
+                trailWidth: 4, // 尾迹宽度(TODO:暂时不可用)
                 trailLength: 0.1, // 尾迹长度，范围 0-1，为线条长度百分比
                 trailColor: null, // 尾迹颜色，默认跟线颜色相同
-                trailOpacity: null // 尾迹不透明度，默认跟线相同
+                trailOpacity: null, // 尾迹不透明度，默认跟线相同
+                spotIntensity: 5.0 // 头部高亮部分强度（TODO:暂时不可用）
             }
         };
         this.options = Util.extend(true, defaultOptions, options);
@@ -36,8 +37,11 @@ export default class FlyLineLayer extends Layer {
             time: {value: 0},
             speed: {value: 0},
             period: {value: 5000},
-            trailLength: {value:1.0}
+            trailLength: {value:1.0},
+            spotSize: {value: 10.0},
+            spotIntensity: {value: 5.0}
         };
+        this._maxDistance = 0;
         this.animate();
     }
     onAdd(map) {
@@ -174,6 +178,7 @@ export default class FlyLineLayer extends Layer {
             }
             distArr.push(dist);
         }
+        this._maxDistance = Math.max(this._maxDistance, dist);
         let randomStart = Math.random() * (useConstantSpeed ? dist : period);
         for (let i = 0, len = points.length; i < len; i++) {
             disAllArr.push(dist);
@@ -187,12 +192,18 @@ export default class FlyLineLayer extends Layer {
         geometry.addAttribute('distAll', new THREE.BufferAttribute( new Float32Array(disAllArr), 1 ));
         geometry.addAttribute('start', new THREE.BufferAttribute( new Float32Array(startArr), 1 ));
         
+        this.uniforms.spotSize.value =  this._maxDistance * 0.1 * effectOptions.trailLength;
         this.uniforms.trailLength.value = effectOptions.trailLength;
+        this.uniforms.spotIntensity.value = effectOptions.spotIntensity;
 
         let shaderMaterial = new THREE.ShaderMaterial({
             uniforms: this.uniforms,
             vertexShader: lineShader.vertexShader,
-            fragmentShader: lineShader.fragmentShader
+            fragmentShader: lineShader.fragmentShader,
+            // 如果不透明度低于此值，则不会渲染材质。默认值为0。
+            // 此处避免出现白色尾线
+            transparent: true,
+            alphaTest: 0.8
         });
         // 由于OpenGL Core Profile与大多数平台上WebGL渲染器的限制，无论如何设置该值，线宽始终为1。
         // shaderMaterial.linewidth = effectOptions.trailWidth;

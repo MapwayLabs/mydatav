@@ -110,19 +110,20 @@
                     // geojsonLayer: window.geojsonLayer
                     lineStyle: {
                         show: false,
-                        color: '#f00',
-                        opacity: 0.1,
-                         width: 1
+                        color: '#5092FF',
+                        opacity: 0.3,
+                        width: 3
                     },
                     effect: {
                         show: true,
                         segmentNumber: 1,
-                        period: 4, // 尾迹特效的周期
-                        constantSpeed: null, // 尾迹特效是否是固定速度，设置后忽略period值
+                        period: 1, // 尾迹特效的周期
+                        constantSpeed: 40, // 尾迹特效是否是固定速度，设置后忽略period值
                         trailWidth: 4, // 尾迹宽度（暂时无效）
                         trailLength: 1, // 尾迹长度，范围 0-1，为线条长度百分比
-                        trailColor: '#00f', // 尾迹颜色，默认跟线颜色相同
-                        trailOpacity: 0.9 // 尾迹不透明度，默认跟线相同
+                        trailColor: '#f00', // 尾迹颜色，默认跟线颜色相同
+                        trailOpacity: 1, // 尾迹不透明度，默认跟线相同
+                        spotIntensity: 100
                     }
                 };
                 let fl = new TMap.FlyLineLayer(fdata, window.geojsonLayer, flOptions);

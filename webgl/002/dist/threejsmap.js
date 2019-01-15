@@ -637,7 +637,8 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 trailWidth: 4, // 尾迹宽度(暂时不可用)
                 trailLength: 0.1, // 尾迹长度，范围 0-1，为线条长度百分比
                 trailColor: null, // 尾迹颜色，默认跟线颜色相同
-                trailOpacity: null // 尾迹不透明度，默认跟线相同
+                trailOpacity: null, // 尾迹不透明度，默认跟线相同
+                spotIntensity: 5.0
             }
         };
         this.options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](true, defaultOptions, options);
@@ -649,8 +650,11 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             time: {value: 0},
             speed: {value: 0},
             period: {value: 5000},
-            trailLength: {value:1.0}
+            trailLength: {value:1.0},
+            spotSize: {value: 10.0},
+            spotIntensity: {value: 5.0}
         };
+        this._maxDistance = 0;
         this.animate();
     }
     onAdd(map) {
@@ -787,6 +791,7 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             }
             distArr.push(dist);
         }
+        this._maxDistance = Math.max(this._maxDistance, dist);
         let randomStart = Math.random() * (useConstantSpeed ? dist : period);
         for (let i = 0, len = points.length; i < len; i++) {
             disAllArr.push(dist);
@@ -800,12 +805,18 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         geometry.addAttribute('distAll', new THREE.BufferAttribute( new Float32Array(disAllArr), 1 ));
         geometry.addAttribute('start', new THREE.BufferAttribute( new Float32Array(startArr), 1 ));
         
+        this.uniforms.spotSize.value =  this._maxDistance * 0.1 * effectOptions.trailLength;
         this.uniforms.trailLength.value = effectOptions.trailLength;
+        this.uniforms.spotIntensity.value = effectOptions.spotIntensity;
 
         let shaderMaterial = new THREE.ShaderMaterial({
             uniforms: this.uniforms,
             vertexShader: _shader_line__WEBPACK_IMPORTED_MODULE_2__["lineShader"].vertexShader,
-            fragmentShader: _shader_line__WEBPACK_IMPORTED_MODULE_2__["lineShader"].fragmentShader
+            fragmentShader: _shader_line__WEBPACK_IMPORTED_MODULE_2__["lineShader"].fragmentShader,
+            // 如果不透明度低于此值，则不会渲染材质。默认值为0。
+            // 此处避免出现白色尾线
+            transparent: true,
+            alphaTest: 0.8
         });
         // 由于OpenGL Core Profile与大多数平台上WebGL渲染器的限制，无论如何设置该值，线宽始终为1。
         // shaderMaterial.linewidth = effectOptions.trailWidth;
@@ -1282,9 +1293,11 @@ const lineShader = {
       uniform float trailLength;
       uniform float time;
       uniform float period;
+      uniform float spotSize;
 
       varying vec4 v_Color;
       varying float v_Percent;
+      varying float v_SpotPercent;
 
       void main()	{
          vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
@@ -1299,18 +1312,31 @@ const lineShader = {
          float trailLen = distAll * trailLength;
          v_Percent = (dist - t * distAll) / trailLen;
          v_Color = colors;
+         v_SpotPercent = spotSize / distAll;
       }`,
    fragmentShader: `            
       uniform vec4 baseColor;
+      uniform float spotIntensity;
       varying vec4 v_Color;
       varying float v_Percent;
+      varying float v_SpotPercent;
 
       void main( void ) {
         if (v_Percent > 1.0 || v_Percent < 0.0) {
             discard;
         }
-        gl_FragColor = baseColor * v_Color;
-        gl_FragColor.a *= v_Percent;
+        float fade = v_Percent;
+
+      #ifdef SRGB_DECODE
+         gl_FragColor = sRGBToLinear(baseColor * v_Color);
+      #else
+         gl_FragColor = baseColor * v_Color;
+      #endif
+   
+      //   if (v_Percent > (1.0 - v_SpotPercent)) {
+            gl_FragColor.rgb *= spotIntensity;
+      //   }
+        gl_FragColor.a *= fade;
       }`
 }
 
