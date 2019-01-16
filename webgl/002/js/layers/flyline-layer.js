@@ -1,6 +1,7 @@
 import Layer from './layer';
 import * as Util from '../util';
-import { lineShader } from './shader/line';
+// import { lineShader } from './shader/line';
+import {MeshLine, MeshLineMaterial} from './custom-meshline';
 
 // 飞线图层
 export default class FlyLineLayer extends Layer {
@@ -21,7 +22,7 @@ export default class FlyLineLayer extends Layer {
                 segmentNumber: 1, // 飞线分段数，自然数，默认为1，不分段
                 period: 4, // 尾迹特效的周期
                 constantSpeed: null, // 尾迹特效是否是固定速度，设置后忽略period值
-                trailWidth: 4, // 尾迹宽度(TODO:暂时不可用)
+                trailWidth: 4, // 尾迹宽度
                 trailLength: 0.1, // 尾迹长度，范围 0-1，为线条长度百分比
                 trailColor: null, // 尾迹颜色，默认跟线颜色相同
                 trailOpacity: null, // 尾迹不透明度，默认跟线相同
@@ -158,36 +159,38 @@ export default class FlyLineLayer extends Layer {
         }
     }
     _drawSegment(points) {
-        let effectOptions = this.options.effect;
-        let useConstantSpeed = effectOptions.constantSpeed != null;
-        let period = effectOptions.period * 1000;
+        const size = this._map.getContainerSize();
+        const effectOptions = this.options.effect;
+        const useConstantSpeed = effectOptions.constantSpeed != null;
+        const period = effectOptions.period * 1000;
         
-        let verticeArr = []; // 顶点数组
-        let colorArr = []; // 颜色数组
-        let distArr = []; // 距离原点距离数组
-        let disAllArr = []; // 总距离数组
-        let startArr = []; // 起始位置数组
+        const verticeArr = []; // 顶点数组
+        const distArr = []; // 距离原点距离数组
+        const disAllArr = []; // 总距离数组
+        const startArr = []; // 起始位置数组
         
         let dist = 0;
         for (let i = 0, len = points.length; i < len; i++) {
             verticeArr.push(points[i].x, points[i].y, points[i].z);
-            let lineColor = new THREE.Color(effectOptions.trailColor || this.options.lineStyle.color);
-            colorArr.push(lineColor.r, lineColor.g, lineColor.b, effectOptions.trailOpacity != null ? effectOptions.trailOpacity : this.options.lineStyle.opacity);
             if (i > 0) {
                 dist += points[i].distanceTo(points[i-1]);
             }
             distArr.push(dist);
+            distArr.push(dist);
         }
         this._maxDistance = Math.max(this._maxDistance, dist);
-        let randomStart = Math.random() * (useConstantSpeed ? dist : period);
+        const randomStart = Math.random() * (useConstantSpeed ? dist : period);
         for (let i = 0, len = points.length; i < len; i++) {
             disAllArr.push(dist);
+            disAllArr.push(dist);
+            startArr.push(randomStart);
             startArr.push(randomStart);
         }
         
-        let geometry = new THREE.BufferGeometry();
-        geometry.addAttribute('position', new THREE.BufferAttribute( new Float32Array(verticeArr), 3 ));
-        geometry.addAttribute('colors', new THREE.BufferAttribute( new Float32Array(colorArr), 4 ));
+        const line = new MeshLine();
+        line.setGeometry(verticeArr);
+
+        const geometry = line.geometry;
         geometry.addAttribute('dist', new THREE.BufferAttribute( new Float32Array(distArr), 1 ));
         geometry.addAttribute('distAll', new THREE.BufferAttribute( new Float32Array(disAllArr), 1 ));
         geometry.addAttribute('start', new THREE.BufferAttribute( new Float32Array(startArr), 1 ));
@@ -195,18 +198,17 @@ export default class FlyLineLayer extends Layer {
         this.uniforms.spotSize.value =  this._maxDistance * 0.1 * effectOptions.trailLength;
         this.uniforms.trailLength.value = effectOptions.trailLength;
         this.uniforms.spotIntensity.value = effectOptions.spotIntensity;
-
-        let shaderMaterial = new THREE.ShaderMaterial({
-            uniforms: this.uniforms,
-            vertexShader: lineShader.vertexShader,
-            fragmentShader: lineShader.fragmentShader,
-            // 如果不透明度低于此值，则不会渲染材质。默认值为0。
-            // 此处避免出现白色尾线
-            transparent: true,
-            alphaTest: 0.8
+        
+        const resolution = new THREE.Vector2(size.width, size.height);
+        const lineColor = new THREE.Color(effectOptions.trailColor || this.options.lineStyle.color);
+        const opacity = effectOptions.trailOpacity != null ? effectOptions.trailOpacity : this.options.lineStyle.opacity;
+        const shaderMaterial = new MeshLineMaterial({
+            resolution: resolution,
+            color: lineColor,
+            opacity: opacity,
+            sizeAttenuation: false,
+            lineWidth: effectOptions.trailWidth
         });
-        // 由于OpenGL Core Profile与大多数平台上WebGL渲染器的限制，无论如何设置该值，线宽始终为1。
-        // shaderMaterial.linewidth = effectOptions.trailWidth;
 
         if (useConstantSpeed) {
             this.uniforms.speed.value = effectOptions.constantSpeed / 1000;
@@ -214,12 +216,13 @@ export default class FlyLineLayer extends Layer {
         } else {
             this.uniforms.period.value = period;
         }
-        
-        let line = new THREE.Line(geometry, shaderMaterial);
+        Object.assign(shaderMaterial.uniforms, this.uniforms);
+
+        const lineMesh = new THREE.Mesh(line.geometry, shaderMaterial);
         if (this._map.options.type === 'plane') {
-            line.rotateX(-Math.PI/2);
+            lineMesh.rotateX(-Math.PI/2);
         }
 
-        this._container.add(line);
+        this._container.add(lineMesh);
     }
 }

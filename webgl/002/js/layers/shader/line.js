@@ -32,7 +32,7 @@ export const lineShader = {
       }`,
    fragmentShader: `            
       uniform vec4 baseColor;
-      uniform float spotIntensity;
+      // uniform float spotIntensity;
       varying vec4 v_Color;
       varying float v_Percent;
       // varying float v_SpotPercent;

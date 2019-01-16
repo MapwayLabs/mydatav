@@ -1,16 +1,6 @@
-;(function() {
-
-"use strict";
-
-var root = this
-
-var has_require = typeof require !== 'undefined'
-
-// var THREE = root.THREE || has_require && require('three')
-// if( !THREE )
-// 	throw new Error( 'MeshLine requires three.js' )
-
-function MeshLine() {
+// code from: https://github.com/spite/THREE.MeshLine
+// I modify the shader code to display flyline effect.
+export function MeshLine() {
 
 	this.positions = [];
 
@@ -243,7 +233,7 @@ MeshLine.prototype.advance = function(position) {
 
 };
 
-function MeshLineMaterial( parameters ) {
+export function MeshLineMaterial( parameters ) {
 
 	var vertexShaderSource = [
 'precision highp float;',
@@ -255,6 +245,10 @@ function MeshLineMaterial( parameters ) {
 'attribute float width;',
 'attribute vec2 uv;',
 'attribute float counters;',
+'attribute float dist;',
+'attribute float distAll;',
+'attribute float start;',
+// 'attribute vec4 colors;',
 '',
 'uniform mat4 projectionMatrix;',
 'uniform mat4 modelViewMatrix;',
@@ -265,16 +259,22 @@ function MeshLineMaterial( parameters ) {
 'uniform float near;',
 'uniform float far;',
 'uniform float sizeAttenuation;',
+'uniform float speed;',
+'uniform float trailLength;',
+'uniform float time;',
+'uniform float period;',
+'uniform float spotSize;',
 '',
-'varying vec2 vUV;',
+// 'varying vec2 vUV;',
 'varying vec4 vColor;',
-'varying float vCounters;',
+// 'varying float vCounters;',
+'varying float v_Percent;',
 '',
 'vec2 fix( vec4 i, float aspect ) {',
 '',
 '    vec2 res = i.xy / i.w;',
 '    res.x *= aspect;',
-'	 vCounters = counters;',
+// '	 vCounters = counters;',
 '    return res;',
 '',
 '}',
@@ -285,7 +285,7 @@ function MeshLineMaterial( parameters ) {
 '	 float pixelWidthRatio = 1. / (resolution.x * projectionMatrix[0][0]);',
 '',
 '    vColor = vec4( color, opacity );',
-'    vUV = uv;',
+// '    vUV = uv;',
 '',
 '    mat4 m = projectionMatrix * modelViewMatrix;',
 '    vec4 finalPosition = m * vec4( position, 1.0 );',
@@ -326,40 +326,65 @@ function MeshLineMaterial( parameters ) {
 '    finalPosition.xy += offset.xy;',
 '',
 '    gl_Position = finalPosition;',
+'#ifdef CONSTANT_SPEED',
+'',
+'float t = mod((speed * time + start) / distAll, 1. + trailLength) - trailLength;',
+'#else',
+'',
+'float t = mod((time + start) / period, 1. + trailLength) - trailLength;',
+'#endif',
+'',
+'float trailLen = distAll * trailLength;',
+'v_Percent = (dist - t * distAll) / trailLen;',
 '',
 '}' ];
 
 	var fragmentShaderSource = [
-		'#extension GL_OES_standard_derivatives : enable',
+		// '#extension GL_OES_standard_derivatives : enable',
 'precision mediump float;',
 '',
-'uniform sampler2D map;',
-'uniform sampler2D alphaMap;',
-'uniform float useMap;',
-'uniform float useAlphaMap;',
-'uniform float useDash;',
-'uniform float dashArray;',
-'uniform float dashOffset;',
-'uniform float dashRatio;',
-'uniform float visibility;',
-'uniform float alphaTest;',
-'uniform vec2 repeat;',
+// 'uniform sampler2D map;',
+// 'uniform sampler2D alphaMap;',
+// 'uniform float useMap;',
+// 'uniform float useAlphaMap;',
+// 'uniform float useDash;',
+// 'uniform float dashArray;',
+// 'uniform float dashOffset;',
+// 'uniform float dashRatio;',
+// 'uniform float visibility;',
+// 'uniform float alphaTest;',
+// 'uniform vec2 repeat;',
+'uniform vec4 baseColor;',
 '',
-'varying vec2 vUV;',
+// 'varying vec2 vUV;',
 'varying vec4 vColor;',
-'varying float vCounters;',
+// 'varying float vCounters;',
+'varying float v_Percent;',
 '',
 'void main() {',
 '',
-'    vec4 c = vColor;',
-'    if( useMap == 1. ) c *= texture2D( map, vUV * repeat );',
-'    if( useAlphaMap == 1. ) c.a *= texture2D( alphaMap, vUV * repeat ).a;',
-'    if( c.a < alphaTest ) discard;',
-'    if( useDash == 1. ){',
-'        c.a *= ceil(mod(vCounters + dashOffset, dashArray) - (dashArray * dashRatio));',
-'    }',
-'    gl_FragColor = c;',
-'    gl_FragColor.a *= step(vCounters, visibility);',
+'if (v_Percent > 1.0 || v_Percent < 0.0) {',
+'discard;',
+'}',
+'float fade = v_Percent;',
+'#ifdef SRGB_DECODE',
+'',
+ 'gl_FragColor = sRGBToLinear(baseColor * vColor);',
+'#else',
+'',
+ 'gl_FragColor = baseColor * vColor;',
+'#endif',
+'',
+'gl_FragColor.a *= fade;',
+// '    vec4 c = vColor;',
+// '    if( useMap == 1. ) c *= texture2D( map, vUV * repeat );',
+// '    if( useAlphaMap == 1. ) c.a *= texture2D( alphaMap, vUV * repeat ).a;',
+// '    if( c.a < alphaTest ) discard;',
+// '    if( useDash == 1. ){',
+// '        c.a *= ceil(mod(vCounters + dashOffset, dashArray) - (dashArray * dashRatio));',
+// '    }',
+// '    gl_FragColor = c;',
+// '    gl_FragColor.a *= step(vCounters, visibility);',
 '}' ];
 
 	function check( v, d ) {
@@ -412,7 +437,11 @@ function MeshLineMaterial( parameters ) {
 			repeat: { type: 'v2', value: this.repeat }
 		},
 		vertexShader: vertexShaderSource.join( '\r\n' ),
-		fragmentShader: fragmentShaderSource.join( '\r\n' )
+        fragmentShader: fragmentShaderSource.join( '\r\n' ),
+        // 如果不透明度低于此值，则不会渲染材质。默认值为0。
+        // 此处避免出现白色尾线
+		transparent: true,
+        alphaTest: 0.8
 	});
 
 	delete parameters.lineWidth;
@@ -470,17 +499,3 @@ MeshLineMaterial.prototype.copy = function ( source ) {
 	return this;
 
 };
-
-if( typeof exports !== 'undefined' ) {
-	if( typeof module !== 'undefined' && module.exports ) {
-		exports = module.exports = { MeshLine: MeshLine, MeshLineMaterial: MeshLineMaterial };
-	}
-	exports.MeshLine = MeshLine;
-	exports.MeshLineMaterial = MeshLineMaterial;
-}
-else {
-	root.MeshLine = MeshLine;
-	root.MeshLineMaterial = MeshLineMaterial;
-}
-
-}).call(this);
