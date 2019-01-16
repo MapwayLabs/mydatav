@@ -40,7 +40,8 @@ export default class FlyLineLayer extends Layer {
             period: {value: 5000},
             trailLength: {value:1.0},
             spotSize: {value: 10.0},
-            spotIntensity: {value: 5.0}
+            spotIntensity: {value: 5.0},
+            hasEffect: { value: 0 }
         };
         this._maxDistance = 0;
         this.animate();
@@ -77,10 +78,11 @@ export default class FlyLineLayer extends Layer {
                 m.push(h);
             }
             if (this.options.lineStyle.show) {
-                this._drawLine(f, t, m);
+                this._drawLine2(f, t, m);
             }
             if (this.options.effect.show) {
                 this._drawFlyLine(f, t, m);
+                this.uniforms.hasEffect.value = 1;
             }
         });
     }
@@ -131,6 +133,35 @@ export default class FlyLineLayer extends Layer {
         
         this._container.add(curveObject);
 
+    }
+    // 此方法绘制的线条可设置宽度
+    _drawLine2(startPoint, endPoint, midPoint) {  
+        const size = this._map.getContainerSize();
+        const curve = this._getCurve(startPoint, endPoint, midPoint);
+        const points = curve.getPoints( 50 );
+
+        const geometry = new THREE.Geometry().setFromPoints( points );
+        
+        const line = new MeshLine();
+        line.setGeometry(geometry);
+
+        const resolution = new THREE.Vector2(size.width, size.height);
+        const lineColor = new THREE.Color(this.options.lineStyle.color);
+        const opacity = this.options.lineStyle.opacity;
+        const shaderMaterial = new MeshLineMaterial({
+            resolution: resolution,
+            color: lineColor,
+            opacity: opacity,
+            sizeAttenuation: false,
+            lineWidth: this.options.lineStyle.width
+        });
+
+        const lineMesh = new THREE.Mesh(line.geometry, shaderMaterial);
+        if (this._map.options.type === 'plane') {
+            lineMesh.rotateX(-Math.PI/2);
+        }
+        
+        this._container.add(lineMesh);
     }
     _drawFlyLine(startPoint, endPoint, midPoint) {
         const curve = this._getCurve(startPoint, endPoint, midPoint);

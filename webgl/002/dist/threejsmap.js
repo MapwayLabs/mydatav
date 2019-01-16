@@ -609,6 +609,8 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "MeshLine", function() { return MeshLine; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "MeshLineMaterial", function() { return MeshLineMaterial; });
+// code from: https://github.com/spite/THREE.MeshLine
+// I modify the shader code to display flyline effect.
 function MeshLine() {
 
 	this.positions = [];
@@ -857,7 +859,6 @@ function MeshLineMaterial( parameters ) {
 'attribute float dist;',
 'attribute float distAll;',
 'attribute float start;',
-// 'attribute vec4 colors;',
 '',
 'uniform mat4 projectionMatrix;',
 'uniform mat4 modelViewMatrix;',
@@ -873,17 +874,18 @@ function MeshLineMaterial( parameters ) {
 'uniform float time;',
 'uniform float period;',
 'uniform float spotSize;',
+'uniform bool hasEffect;',
 '',
-// 'varying vec2 vUV;',
+'varying vec2 vUV;',
 'varying vec4 vColor;',
-// 'varying float vCounters;',
+'varying float vCounters;',
 'varying float v_Percent;',
 '',
 'vec2 fix( vec4 i, float aspect ) {',
 '',
 '    vec2 res = i.xy / i.w;',
 '    res.x *= aspect;',
-// '	 vCounters = counters;',
+'	 vCounters = counters;',
 '    return res;',
 '',
 '}',
@@ -894,7 +896,7 @@ function MeshLineMaterial( parameters ) {
 '	 float pixelWidthRatio = 1. / (resolution.x * projectionMatrix[0][0]);',
 '',
 '    vColor = vec4( color, opacity );',
-// '    vUV = uv;',
+'    vUV = uv;',
 '',
 '    mat4 m = projectionMatrix * modelViewMatrix;',
 '    vec4 finalPosition = m * vec4( position, 1.0 );',
@@ -935,65 +937,71 @@ function MeshLineMaterial( parameters ) {
 '    finalPosition.xy += offset.xy;',
 '',
 '    gl_Position = finalPosition;',
-'#ifdef CONSTANT_SPEED',
-'',
-'float t = mod((speed * time + start) / distAll, 1. + trailLength) - trailLength;',
-'#else',
-'',
-'float t = mod((time + start) / period, 1. + trailLength) - trailLength;',
-'#endif',
-'',
-'float trailLen = distAll * trailLength;',
-'v_Percent = (dist - t * distAll) / trailLen;',
-'',
+
+'if (hasEffect) {',
+	'#ifdef CONSTANT_SPEED',
+	'',
+	'float t = mod((speed * time + start) / distAll, 1. + trailLength) - trailLength;',
+	'#else',
+	'',
+	'float t = mod((time + start) / period, 1. + trailLength) - trailLength;',
+	'#endif',
+	'',
+	'float trailLen = distAll * trailLength;',
+	'v_Percent = (dist - t * distAll) / trailLen;',
+'} ',
 '}' ];
 
 	var fragmentShaderSource = [
-		// '#extension GL_OES_standard_derivatives : enable',
+'#extension GL_OES_standard_derivatives : enable',
 'precision mediump float;',
 '',
-// 'uniform sampler2D map;',
-// 'uniform sampler2D alphaMap;',
-// 'uniform float useMap;',
-// 'uniform float useAlphaMap;',
-// 'uniform float useDash;',
-// 'uniform float dashArray;',
-// 'uniform float dashOffset;',
-// 'uniform float dashRatio;',
-// 'uniform float visibility;',
-// 'uniform float alphaTest;',
-// 'uniform vec2 repeat;',
+'uniform sampler2D map;',
+'uniform sampler2D alphaMap;',
+'uniform float useMap;',
+'uniform float useAlphaMap;',
+'uniform float useDash;',
+'uniform float dashArray;',
+'uniform float dashOffset;',
+'uniform float dashRatio;',
+'uniform float visibility;',
+'uniform float alphaTest;',
+'uniform vec2 repeat;',
+'uniform bool hasEffect;',
 'uniform vec4 baseColor;',
 '',
-// 'varying vec2 vUV;',
+'varying vec2 vUV;',
 'varying vec4 vColor;',
-// 'varying float vCounters;',
+'varying float vCounters;',
 'varying float v_Percent;',
 '',
 'void main() {',
 '',
-'if (v_Percent > 1.0 || v_Percent < 0.0) {',
-'discard;',
+'if (hasEffect){',
+	'if (v_Percent > 1.0 || v_Percent < 0.0) {',
+	    'discard;',
+	'}',
+	'float fade = v_Percent;',
+	'#ifdef SRGB_DECODE',
+	'',
+	'gl_FragColor = sRGBToLinear(baseColor * vColor);',
+	'#else',
+	'',
+	'gl_FragColor = baseColor * vColor;',
+	'#endif',
+	'',
+	'gl_FragColor.a *= fade;',
+'} else {',
+'    vec4 c = vColor;',
+'    if( useMap == 1. ) c *= texture2D( map, vUV * repeat );',
+'    if( useAlphaMap == 1. ) c.a *= texture2D( alphaMap, vUV * repeat ).a;',
+'    if( c.a < alphaTest ) discard;',
+'    if( useDash == 1. ){',
+'        c.a *= ceil(mod(vCounters + dashOffset, dashArray) - (dashArray * dashRatio));',
+'    }',
+'    gl_FragColor = c;',
+'    gl_FragColor.a *= step(vCounters, visibility);',
 '}',
-'float fade = v_Percent;',
-'#ifdef SRGB_DECODE',
-'',
- 'gl_FragColor = sRGBToLinear(baseColor * vColor);',
-'#else',
-'',
- 'gl_FragColor = baseColor * vColor;',
-'#endif',
-'',
-'gl_FragColor.a *= fade;',
-// '    vec4 c = vColor;',
-// '    if( useMap == 1. ) c *= texture2D( map, vUV * repeat );',
-// '    if( useAlphaMap == 1. ) c.a *= texture2D( alphaMap, vUV * repeat ).a;',
-// '    if( c.a < alphaTest ) discard;',
-// '    if( useDash == 1. ){',
-// '        c.a *= ceil(mod(vCounters + dashOffset, dashArray) - (dashArray * dashRatio));',
-// '    }',
-// '    gl_FragColor = c;',
-// '    gl_FragColor.a *= step(vCounters, visibility);',
 '}' ];
 
 	function check( v, d ) {
@@ -1166,7 +1174,8 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             period: {value: 5000},
             trailLength: {value:1.0},
             spotSize: {value: 10.0},
-            spotIntensity: {value: 5.0}
+            spotIntensity: {value: 5.0},
+            hasEffect: { value: 0 }
         };
         this._maxDistance = 0;
         this.animate();
@@ -1203,10 +1212,11 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 m.push(h);
             }
             if (this.options.lineStyle.show) {
-                this._drawLine(f, t, m);
+                this._drawLine2(f, t, m);
             }
             if (this.options.effect.show) {
                 this._drawFlyLine(f, t, m);
+                this.uniforms.hasEffect.value = 1;
             }
         });
     }
@@ -1257,6 +1267,35 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         
         this._container.add(curveObject);
 
+    }
+    // 此方法绘制的线条可设置宽度
+    _drawLine2(startPoint, endPoint, midPoint) {  
+        const size = this._map.getContainerSize();
+        const curve = this._getCurve(startPoint, endPoint, midPoint);
+        const points = curve.getPoints( 50 );
+
+        const geometry = new THREE.Geometry().setFromPoints( points );
+        
+        const line = new _custom_meshline__WEBPACK_IMPORTED_MODULE_2__["MeshLine"]();
+        line.setGeometry(geometry);
+
+        const resolution = new THREE.Vector2(size.width, size.height);
+        const lineColor = new THREE.Color(this.options.lineStyle.color);
+        const opacity = this.options.lineStyle.opacity;
+        const shaderMaterial = new _custom_meshline__WEBPACK_IMPORTED_MODULE_2__["MeshLineMaterial"]({
+            resolution: resolution,
+            color: lineColor,
+            opacity: opacity,
+            sizeAttenuation: false,
+            lineWidth: this.options.lineStyle.width
+        });
+
+        const lineMesh = new THREE.Mesh(line.geometry, shaderMaterial);
+        if (this._map.options.type === 'plane') {
+            lineMesh.rotateX(-Math.PI/2);
+        }
+        
+        this._container.add(lineMesh);
     }
     _drawFlyLine(startPoint, endPoint, midPoint) {
         const curve = this._getCurve(startPoint, endPoint, midPoint);
