@@ -55,10 +55,41 @@
             requestAnimationFrame(animate);
 
             control.update();
+            
+            // velocity.add( _acceleration );
 
+            // var l = velocity.length();
+
+            // if ( l > _maxSpeed ) {
+
+            //     velocity.divideScalar( l / _maxSpeed );
+
+            // }
+
+            // position.add( velocity );
+            // _acceleration.set( 0, 0, 0 );
+
+            // // Advance the trail by one position
+            // line.advance( position );
+
+            if (i <= 5*(len-1)) {
+                // position.add(points[i]);
+                line.advance(points[i]);
+                i += 5;
+            } else {
+                // i = 0;
+                // line.geometry.vertices = [];
+                // for (let i = 0; i < 1000; i++){
+                //   line.geometry.vertices.push(new THREE.Vector3(-200, 10, 0));
+                // }
+                // line.advance(points[1000]);
+            }
+
+            // position.add(velocity);
+            // line.advance(position);
+            // material.uniforms.color.value = new THREE.Color( "rgb(255, 2, 2)" );
             renderer.render(scene, camera);
         }
-        animate();
 
         window.addEventListener('resize', function () {
             camera.aspect = window.innerWidth / window.innerHeight;
@@ -68,28 +99,62 @@
 
         //Create a closed wavey loop
         var curve = new THREE.CatmullRomCurve3([
-            new THREE.Vector3(-10, 10, 0),
-            new THREE.Vector3(0, 13, 0),
-            new THREE.Vector3(10, 10, 0)
+            new THREE.Vector3(-100, 10, 0),
+            new THREE.Vector3(0, 46, 0),
+            new THREE.Vector3(100, 10, 0)
         ], false, 'catmullrom');
 
-        var points = curve.getPoints(50);
-        var geometry = new THREE.Geometry().setFromPoints(points);
+        var points = curve.getPoints(1000);
+        var len = points.length;
+        var i = 0;
+        var geometry = new THREE.BufferGeometry();
+        // geometry.setFromPoints(points);
+        var verticeArr = [];
+        for (let i = 0; i < len; i++){
+            // geometry.vertices.push(new THREE.Vector3(-100, 10, 0));
+            verticeArr.push(-100, 10, 0);
+        }
+        for (let i = 0; i < 5*len; i++){
+            points.push(points[len-1]);
+        }
+        
+        // var position = new THREE.Vector3(0, 0, 0);
+		// var velocity = new THREE.Vector3(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1);
+	    // var _acceleration = new THREE.Vector3();
+        // var geometry = new THREE.Geometry();
+        // var _maxSpeed = 4;
+        // for (let i = 0; i < 50; i++) {
+        //     // must initialize it to the number of positions it will keep or it will throw an error
+        //     geometry.vertices.push(position.clone());
+        // }
 
         var line = new MeshLine();
-        line.setGeometry(geometry);
+        line.setGeometry(verticeArr, p => p);
         
         var options = {
-            color: new THREE.Color(0xff0000),
-            opacity: 0.8,
-            lineWidth: 5,
-            sizeAttenuation: false,
-            resolution: new THREE.Vector2(window.innerWidth, window.innerHeight)
+            // color: new THREE.Color(0xff0000),
+            // opacity: 0.8,
+            // lineWidth: 5,
+            // sizeAttenuation: false,
+            resolution: new THREE.Vector2( window.innerWidth, window.innerHeight ),
+            color: new THREE.Color( "rgb(255, 2, 2)" ),
+            opacity: 1,
+            // resolution: resolution,
+            sizeAttenuation: 1,
+            lineWidth: 1,
+            near: 1,
+            far: 100000,
+            depthTest: false,
+            blending: THREE.AdditiveBlending,
+            transparent: false,
+            side: THREE.DoubleSide
         };
         var material = new MeshLineMaterial(options);
         
         var mesh = new THREE.Mesh(line.geometry, material);
+        mesh.frustumCulled = false;
         scene.add(mesh);
+        animate();
     </script>
 </body>
 

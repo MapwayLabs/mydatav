@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>自定义有宽度meshline</title>
+    <script src="../../lib/threejs/three.js"></script>
+    <script src="../../lib/threejs/js/controls/OrbitControls.js"></script>
+    <script src="./THREE.MeshLine-1.1.0/src/THREE.MeshLine.js"></script>
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <script>
+        var renderer, scene, camera, control;
+        var resolution = new THREE.Vector2( window.innerWidth, window.innerHeight );
+
+        function init() {
+            // 画布
+            renderer = new THREE.WebGLRenderer({
+                antialias: true // 抗锯齿
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+            renderer.domElement.style.backgroundColor = "#000";
+
+            // 场景
+            scene = new THREE.Scene();
+
+            // 相机
+            camera = new THREE.PerspectiveCamera(
+                45,
+                window.innerWidth / window.innerHeight,
+                1,
+                1000
+            );
+
+            // OrbitControls
+            control = new THREE.OrbitControls(camera, renderer.domElement);
+            control.object.position.set(256, 256, 256);
+            control.target = new THREE.Vector3(0, 0, 0);
+            control.update();
+
+        }
+        init();
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            control.update();
+
+            boid.run();
+
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener('resize', function () {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        var Boid = function () {
+
+            var self = this;
+
+            var vector = new THREE.Vector3(),
+                _acceleration, _width = 500,
+                _height = 500,
+                _depth = 200,
+                _maxSpeed = 4,
+                _avoidWalls = false;
+
+            this.position = new THREE.Vector3();
+            this.velocity = new THREE.Vector3();
+            _acceleration = new THREE.Vector3();
+            this.trail_initialized = false;
+
+            // delay so trails grow organically
+            // setTimeout(function () {
+            //     self.initTrail();
+            // }, 250);
+
+            this.initTrail = function () {
+                // Create the line geometry used for storing verticies
+                this.trail_geometry = new THREE.Geometry();
+                for (var i = 0; i < 50; i++) {
+                    // must initialize it to the number of positions it will keep or it will throw an error
+                    this.trail_geometry.vertices.push(this.position.clone());
+                }
+
+                // Create the line mesh
+                this.trail_line = new MeshLine();
+                this.trail_line.setGeometry(this.trail_geometry, function (p) {
+                    return p;
+                }); // makes width taper
+
+                // Create the line material
+                this.trail_material = new MeshLineMaterial({
+                    color: new THREE.Color("rgb(255, 2, 2)"),
+                    opacity: 1,
+                    resolution: resolution,
+                    sizeAttenuation: 1,
+                    lineWidth: 1,
+                    near: 1,
+                    far: 100000,
+                    depthTest: false,
+                    blending: THREE.AdditiveBlending,
+                    transparent: false,
+                    side: THREE.DoubleSide
+                });
+
+                this.trail_mesh = new THREE.Mesh(this.trail_line.geometry, this.trail_material); // this syntax could definitely be improved!
+                this.trail_mesh.frustumCulled = false;
+
+                scene.add(this.trail_mesh);
+
+                this.trail_initialized = true;
+            };
+
+            this.setAvoidWalls = function (value) {
+
+                _avoidWalls = value;
+
+            };
+
+            this.setWorldSize = function (width, height, depth) {
+
+                _width = width;
+                _height = height;
+                _depth = depth;
+
+            };
+
+            this.run = function (boids) {
+
+                // if (_avoidWalls) {
+
+                //     vector.set(-_width, this.position.y, this.position.z);
+                //     vector = this.avoid(vector);
+                //     vector.multiplyScalar(5);
+                //     _acceleration.add(vector);
+
+                //     vector.set(_width, this.position.y, this.position.z);
+                //     vector = this.avoid(vector);
+                //     vector.multiplyScalar(5);
+                //     _acceleration.add(vector);
+
+                //     vector.set(this.position.x, -_height, this.position.z);
+                //     vector = this.avoid(vector);
+                //     vector.multiplyScalar(5);
+                //     _acceleration.add(vector);
+
+                //     vector.set(this.position.x, _height, this.position.z);
+                //     vector = this.avoid(vector);
+                //     vector.multiplyScalar(5);
+                //     _acceleration.add(vector);
+
+                //     vector.set(this.position.x, this.position.y, -_depth);
+                //     vector = this.avoid(vector);
+                //     vector.multiplyScalar(5);
+                //     _acceleration.add(vector);
+
+                //     vector.set(this.position.x, this.position.y, _depth);
+                //     vector = this.avoid(vector);
+                //     vector.multiplyScalar(5);
+                //     _acceleration.add(vector);
+
+                // }
+
+                this.move();
+
+            };
+
+            this.move = function () {
+
+                // this.velocity.add(_acceleration);
+
+                // var l = this.velocity.length();
+
+                // if (l > _maxSpeed) {
+
+                //     this.velocity.divideScalar(l / _maxSpeed);
+
+                // }
+
+                this.position.add(this.velocity);
+                // _acceleration.set(0, 0, 0);
+
+                // Advance the trail by one position
+                if (this.trail_initialized) this.trail_line.advance(this.position);
+            };
+            this.avoid = function (target) {
+
+                var steer = new THREE.Vector3();
+
+                steer.copy(this.position);
+                steer.sub(target);
+
+                steer.multiplyScalar(1 / this.position.distanceToSquared(target));
+
+                return steer;
+
+            };
+        }
+
+        var boid = new Boid();
+        boid.position.x = 0;
+        boid.position.y = 0;
+        boid.position.z = 0;
+        boid.velocity.x = Math.random() * 2 - 1;
+        boid.velocity.y = Math.random() * 2 - 1;
+        boid.velocity.z = Math.random() * 2 - 1;
+        boid.initTrail();
+        // boid.setAvoidWalls(false);
+        // boid.setWorldSize(300, 300, 300);
+        animate();
+    </script>
+</body>
+
+</html>
