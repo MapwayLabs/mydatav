@@ -73,6 +73,8 @@ export default class FlyLineLayer extends Layer {
             f = this._map.projectLngLat(f);
             t = this._map.projectLngLat(t); 
             m = this._map.projectLngLat(m);
+            // this._drawPoint([f[0], 18, -f[1]]);
+            // this._drawPoint([t[0], 18, -t[1]]);
             if(this._map.options.type === 'plane') {
                 // 二维的第三个值表示离地面距离，不需投影
                 m.push(h);
@@ -106,11 +108,13 @@ export default class FlyLineLayer extends Layer {
         return curve;
     }
     _drawPoint([x, y, z], color = "#f00") {
-        const pointGeometry = new THREE.SphereGeometry(2, 100, 100);
-        const pointMaterial = new THREE.MeshBasicMaterial( {color} );
-        const mesh = new THREE.Mesh(pointGeometry, pointMaterial);
-        mesh.position.set(x, y, z);
-        this._container.add(mesh);
+        const loader = new THREE.TextureLoader();
+	    const texture = loader.load( '../../images/disc.png' );
+        const pointGeometry = new THREE.BufferGeometry();
+        pointGeometry.setFromPoints([new THREE.Vector3(x, y, z)]);
+        const pointsMaterial = new THREE.PointsMaterial( { color: color, alphaTest: 0.5, map: texture, size: 3 } );
+        const points = new THREE.Points( pointGeometry, pointsMaterial );
+        this._container.add(points);
     }
     _drawLine(startPoint, endPoint, midPoint) {  
         const curve = this._getCurve(startPoint, endPoint, midPoint);
