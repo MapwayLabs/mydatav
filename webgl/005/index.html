@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>知识分享-如何用 WebGL 绘制一个正方体</title>
+    <script src="./gl-matrix.js"></script>
+</head>
+
+<body>
+    <!-- 画板 -->
+    <canvas id="glcanvas" width="640" height="480"></canvas>
+    <!-- 顶点着色器 -->
+    <script id="vs" type="x-shader/x-vertex">
+        attribute vec4 aVertexPosition;
+        attribute vec4 aVertexColor;
+
+        uniform mat4 uModelViewMatrix;
+        uniform mat4 uProjectionMatrix;
+
+        varying lowp vec4 vColor;
+        
+        void main() {
+            gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+            vColor = aVertexColor;
+        }
+    </script>
+    <!-- 片段着色器 -->
+    <script id="fs" type="x-shader/x-fragment">
+        varying lowp vec4 vColor;
+        void main() {
+            // gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+            gl_FragColor = vColor;
+        }
+    </script>
+    <script>
+        // 准备上下文
+        function getContext() {
+            const canvas = document.getElementById("glcanvas");
+            const gl = canvas.getContext("webgl");
+
+            if (!gl) {
+                alert("Unable to initialize WebGL. Your browser or machine may not support it.");
+                return;
+            }
+
+            // 设置清空颜色缓冲时的颜色值
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+
+            // 使用预设值来清空缓冲区
+            // gl.COLOR_BUFFER_BIT 颜色缓冲区
+            // gl.DEPTH_BUFFER_BIT 深度缓冲区
+            // gl.STENCIL_BUFFER_BIT 模板缓冲区
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            return gl;
+        }
+        // 创建指定类型的着色器，上传 source 源码并编译
+        function loadShader(gl, type, source) {
+            const shader = gl.createShader(type);
+
+            // 将源码绑定到 shader 对象
+            gl.shaderSource(shader, source);
+
+            // 编译 shader 程序
+            gl.compileShader(shader);
+
+            // 检查是否编译成功
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                alert('An error ocurred compiling the shaders:' + gl.getShaderInfoLog(shader));
+                gl.deleteShader(shader);
+                return null;
+            }
+            return shader;
+        }
+        // 初始化着色器程序，让 WegGL 知道如何绘制我们的数据
+        function initShaderProgram(gl, vsSource, fsSource) {
+            const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
+            const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
+
+            // 创建着色器程序
+            const shaderProgram = gl.createProgram();
+            gl.attachShader(shaderProgram, vertexShader);
+            gl.attachShader(shaderProgram, fragmentShader);
+            gl.linkProgram(shaderProgram);
+
+            // 创建失败
+            if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+                alert('Unable to initialize the shader program:' + gl.getProgramInfoLog(shaderProgram));
+                return null;
+            }
+            return shaderProgram;
+        }
+        // 创建物体
+        function initBuffers(gl) {
+            const positionBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+
+            const positions = [
+                1.0, 1.0, 0.0,
+                -1.0, 1.0, 0.0,
+                1.0, -1.0, 0.0,
+                -1.0, -1.0, 0.0
+            ];
+
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
+
+            const colors = [
+                1.0, 1.0, 1.0, 1.0, // 白色
+                1.0, 0.0, 0.0, 1.0, // 红色
+                0.0, 1.0, 0.0, 1.0, // 绿色
+                0.0, 0.0, 1.0, 1.0 // 蓝色 
+            ];
+
+            const colorBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+
+            return {
+                position: positionBuffer,
+                color: colorBuffer
+            }
+        }
+        // 绘制场景
+        function drawScene(gl, programInfo, buffers) {
+            gl.clearColor(0, 0, 0, 1.0);
+            gl.clearDepth(1.0);
+            gl.enable(gl.DEPTH_TEST);
+            gl.depthFunc(gl.LEQUAL);
+
+            // 按位或 | ，一个位为1，则结果为1
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+            const fieldOfview = 45 * Math.PI / 180;
+            const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
+            const zNear = 0.1;
+            const zFar = 100.0;
+            const projectionMatrix = mat4.create();
+            
+            // 创建一个透视相机
+            mat4.perspective(projectionMatrix, fieldOfview, aspect, zNear, zFar);
+            
+            // 创建模型视图矩阵
+            const modelViewMatrix = mat4.create();
+            mat4.translate(modelViewMatrix, modelViewMatrix, [0.0, 0.0, -6.0]);
+            
+            // 告诉 WebGL 怎样将位置放到顶点位置属性中
+            {
+                const numComponents = 3;
+                const type = gl.FLOAT;
+                const normalize = false;
+                const stride = 0;
+                const offset = 0;
+                gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
+                gl.vertexAttribPointer(programInfo.attribLocations.vertexPosition, numComponents, type,normalize, stride, offset);
+                gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
+            }
+
+            {
+                const numComponents = 4;
+                const type = gl.FLOAT;
+                const normalize = false;
+                const stride = 0;
+                const offset = 0;
+                // color
+                gl.bindBuffer(gl.ARRAY_BUFFER, buffers.color);
+                gl.vertexAttribPointer(programInfo.attribLocations.vertexColor, numComponents, type, normalize, stride, offset);
+                gl.enableVertexAttribArray(programInfo.attribLocations.vertexColor);
+            }
+
+            // 告诉 webGL 怎样使用我们的程序绘制
+            gl.useProgram(programInfo.program);
+
+            // 设置 shader 常量
+            gl.uniformMatrix4fv(programInfo.uniformLocations.projectionMatrix, false, projectionMatrix);
+            gl.uniformMatrix4fv(programInfo.uniformLocations.modelViewMatrix, false, modelViewMatrix);
+
+            {
+                const offset = 0;
+                const vertexCount = 4;
+                gl.drawArrays(gl.TRIANGLE_STRIP, offset, vertexCount);
+            }
+        }
+    </script>
+    <script>
+        const gl = getContext();
+        const vsSource = document.getElementById( 'vs' ).textContent.trim();
+        const fsSource = document.getElementById( 'fs' ).textContent.trim();
+        const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
+        const programInfo = {
+            program: shaderProgram,
+            attribLocations: {
+                vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
+                vertexColor: gl.getAttribLocation(shaderProgram, 'aVertexColor')
+            },
+            uniformLocations: {
+                projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
+                modelViewMatrix: gl.getUniformLocation(shaderProgram, 'uModelViewMatrix')
+            }
+        };
+        const buffers = initBuffers(gl);
+        drawScene(gl, programInfo, buffers);
+    </script>
+</body>
+
+</html>
