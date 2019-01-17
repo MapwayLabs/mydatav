@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>webgl绘制2D正方形</title>
+    <title>webgl旋转2D正方形</title>
     <script src="./gl-matrix.js"></script>
 </head>
 
@@ -123,7 +123,7 @@
             }
         }
         // 绘制场景
-        function drawScene(gl, programInfo, buffers) {
+        function drawScene(gl, programInfo, buffers, deltaTime) {
             gl.clearColor(0, 0, 0, 1.0);
             gl.clearDepth(1.0);
             gl.enable(gl.DEPTH_TEST);
@@ -144,6 +144,7 @@
             // 创建模型视图矩阵
             const modelViewMatrix = mat4.create();
             mat4.translate(modelViewMatrix, modelViewMatrix, [0.0, 0.0, -6.0]);
+            mat4.rotate(modelViewMatrix, modelViewMatrix, squareRotation, [0, 0, 1]);
             
             // 告诉 WebGL 怎样将位置放到顶点位置属性中
             {
@@ -181,9 +182,12 @@
                 const vertexCount = 4;
                 gl.drawArrays(gl.TRIANGLE_STRIP, offset, vertexCount);
             }
+
+            squareRotation += deltaTime;
         }
     </script>
     <script>
+        
         const gl = getContext();
         const vsSource = document.getElementById( 'vs' ).textContent.trim();
         const fsSource = document.getElementById( 'fs' ).textContent.trim();
@@ -200,7 +204,19 @@
             }
         };
         const buffers = initBuffers(gl);
-        drawScene(gl, programInfo, buffers);
+        
+        var squareRotation = 0.0;
+        var then = 0;
+        function render(now) {
+            now *= 0.001; // seconds
+            const deltaTime = now - then;
+            then = now;
+
+            drawScene(gl, programInfo, buffers, deltaTime);
+
+            requestAnimationFrame(render);
+        }
+        requestAnimationFrame(render);
     </script>
 </body>
 
