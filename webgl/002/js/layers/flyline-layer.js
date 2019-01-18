@@ -16,6 +16,11 @@ export default class FlyLineLayer extends Layer {
                 opacity: 0.5,
                 width: 1
             },
+            pointStyle: {
+                show: false,
+                color: '#0f0',
+                size: 3
+            },
             // 飞线特效样式
             effect: {
                 show: false,
@@ -70,20 +75,30 @@ export default class FlyLineLayer extends Layer {
                 // 三维的第三个值表示海拔,需进行投影转换
                 m.push(h);
             }
-            f = this._map.projectLngLat(f);
-            t = this._map.projectLngLat(t); 
-            m = this._map.projectLngLat(m);
+            let nf = this._map.projectLngLat(f);
+            let nt = this._map.projectLngLat(t); 
+            let nm = this._map.projectLngLat(m);
             // this._drawPoint([f[0], 18, -f[1]]);
             // this._drawPoint([t[0], 18, -t[1]]);
             if(this._map.options.type === 'plane') {
                 // 二维的第三个值表示离地面距离，不需投影
-                m.push(h);
+                nm.push(h);
+            }
+            if (this.options.pointStyle.show) {
+                if(this._map.options.type === 'sphere') {
+                    const size = this.options.pointStyle.size;
+                    f.push(size/2);
+                    t.push(size/2);
+                    let of = this._map.projectLngLat(f);
+                    let ot = this._map.projectLngLat(t); 
+                    this._drawPoints([of, ot]);
+                }
             }
             if (this.options.lineStyle.show) {
-                this._drawLine2(f, t, m);
+                this._drawLine2(nf, nt, nm);
             }
             if (this.options.effect.show) {
-                this._drawFlyLine(f, t, m);
+                this._drawFlyLine(nf, nt, nm);
                 this.uniforms.hasEffect.value = 1;
             }
         });
@@ -107,14 +122,19 @@ export default class FlyLineLayer extends Layer {
         let curve = new THREE.CatmullRomCurve3([startVector, middleVector, endVector]);
         return curve;
     }
-    _drawPoint([x, y, z], color = "#f00") {
+    _drawPoints(points) {
         const loader = new THREE.TextureLoader();
 	    const texture = loader.load( '../../images/disc.png' );
         const pointGeometry = new THREE.BufferGeometry();
-        pointGeometry.setFromPoints([new THREE.Vector3(x, y, z)]);
-        const pointsMaterial = new THREE.PointsMaterial( { color: color, alphaTest: 0.5, map: texture, size: 3 } );
-        const points = new THREE.Points( pointGeometry, pointsMaterial );
-        this._container.add(points);
+        const color = this.options.pointStyle.color;
+        const size = this.options.pointStyle.size;
+        points = points.map(pt => new THREE.Vector3(pt[0], pt[1], pt[2]));
+        pointGeometry.setFromPoints(points);
+        const pointsMaterial = new THREE.PointsMaterial( { color: color, alphaTest: 0.5, map: texture, size: size } );
+        const pointsObj = new THREE.Points( pointGeometry, pointsMaterial );
+        pointsObj.renderOrder=99;
+        pointsObj.material.depthTest=true;
+        this._container.add(pointsObj);
     }
     _drawLine(startPoint, endPoint, midPoint) {  
         const curve = this._getCurve(startPoint, endPoint, midPoint);
