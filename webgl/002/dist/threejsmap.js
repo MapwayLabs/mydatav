@@ -2222,7 +2222,7 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 R: 220, // 球形地球半径
                 center: [170, 35], // 初始中心点
                 animation: true, // 是否转动
-                animationSpeed: 10, // 转动快慢
+                animationSpeed: 1, // 转动快慢
                 earthImgSrc: '../../images/earth.jpg', // 地球图片
                 light: {
                     skyColor: '#fff',
@@ -2533,6 +2533,9 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
     _animate() {
         this._animateId = requestAnimationFrame(this._animate.bind(this));
         this._orbitControl.update();
+        if(this.options.type === 'sphere' && this.options.global.animation) {
+            this._scene.rotation.y -= 0.005 * this.options.global.animationSpeed;
+        }
         this._renderer.render(this._scene, this._camera);
     }
     _onContainerResize() {

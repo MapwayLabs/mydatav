@@ -17,11 +17,18 @@
             padding: 0;
             height: 100%;
         }
+        #threemap {
+            position: absolute;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+        }
     </style>
 </head>
 
 <body>
-    <div id="threemap" style="position: relative; width: 100%; height: 600px;border:1px solid silver;"></div>
+    <div id="threemap"></div>
     <script>
         // ./china_province.json  geo-china-beijing.json world2 countriesgeo.json
         $.getJSON('../../data/world2.json', function (data) {
