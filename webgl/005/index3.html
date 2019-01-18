@@ -12,6 +12,7 @@
 <body>
     <!-- 画板 -->
     <canvas id="glcanvas" width="640" height="480"></canvas>
+
     <!-- 顶点着色器 -->
     <script id="vs" type="x-shader/x-vertex">
         attribute vec4 aVertexPosition;
@@ -27,6 +28,7 @@
             vColor = aVertexColor;
         }
     </script>
+
     <!-- 片段着色器 -->
     <script id="fs" type="x-shader/x-fragment">
         varying lowp vec4 vColor;
@@ -35,6 +37,7 @@
             gl_FragColor = vColor;
         }
     </script>
+
     <script>
         // 准备上下文
         function getContext() {
@@ -56,6 +59,7 @@
             gl.clear(gl.COLOR_BUFFER_BIT);
             return gl;
         }
+
         // 创建指定类型的着色器，上传 source 源码并编译
         function loadShader(gl, type, source) {
             const shader = gl.createShader(type);
@@ -74,6 +78,7 @@
             }
             return shader;
         }
+
         // 初始化着色器程序，让 WegGL 知道如何绘制我们的数据
         function initShaderProgram(gl, vsSource, fsSource) {
             const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
@@ -92,6 +97,7 @@
             }
             return shaderProgram;
         }
+        
         // 创建物体
         function initBuffers(gl) {
             const positionBuffer = gl.createBuffer();
