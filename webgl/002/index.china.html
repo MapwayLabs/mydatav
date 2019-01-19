@@ -110,10 +110,9 @@
                 }
             };
             window.geojsonLayer = new TMap.GeoJSONLayer(data, geoOptions);
-            map.addLayer(window.geojsonLayer);
-            map.setView(window.geojsonLayer.getBounds());
+            window.map.addLayer(window.geojsonLayer);
+            window.map.setView(window.geojsonLayer.getBounds());
             $.getJSON('../../data/bardata_china.json', function (bardata) {
-                console.log(bardata);
                 const barOptions = {
                     barStyle: {
                         width: 2, // 底边长
@@ -145,7 +144,7 @@
                     }
                 };
                 window.barlayer = new TMap.BarLayer(bardata, window.geojsonLayer, barOptions);
-                map.addLayer(window.barlayer);
+                window.map.addLayer(window.barlayer);
             });
         });
     </script>
