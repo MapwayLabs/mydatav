@@ -8,6 +8,7 @@ export default class TextLayer extends Layer {
         super(data, options);
         const defaultOptions = {
             textStyle: {
+                scale: 1,
                 fontWeight: 'normal',
                 fontFamily: 'Microsoft YaHei',
                 fontColor: '#000',
@@ -35,8 +36,9 @@ export default class TextLayer extends Layer {
             const projCenter = this._map.projectLngLat(d.center);
             const altitude = d.altitude; 
             const textSprite = new TextSprite(d.text, this.options.textStyle).getSprite();
+            const scale = this.options.textStyle.scale;
 
-            textSprite.scale.set(32, 32, 1);
+            textSprite.scale.set(scale, scale, 1);
             textSprite.position.set(projCenter[0], altitude, -projCenter[1]);
             textSprite.rotateX(-Math.PI/2);
 

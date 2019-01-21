@@ -1447,8 +1447,9 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             // 地区名字
             areaText: {
                 show: true,
-                offset: 1,
+                offset: 1, // 文字离地面高度
                 textStyle: { // 有数据地区的名字样式
+                    scale: 1, // 缩放比例
                     fontWeight: 'normal',
                     fontFamily: 'Microsoft YaHei',
                     fontColor: '#f00',
@@ -1456,6 +1457,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                     textBaseline: 'middle'
                 },
                 nullTextStyle: { // 无数据地区的名字样式
+                    scale: 1, // 缩放比例
                     fontWeight: 'normal',
                     fontFamily: 'Microsoft YaHei',
                     fontColor: '#0f0',
@@ -1731,7 +1733,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             let yoffset = this.getDepth();
             let tempobj = {};
             tempobj.text = _maphelper__WEBPACK_IMPORTED_MODULE_2__["getNormalizeName"](f);
-            tempobj.center = _maphelper__WEBPACK_IMPORTED_MODULE_2__["getNormalizeCenter"](f);
+            tempobj.center = _maphelper__WEBPACK_IMPORTED_MODULE_2__["getNormalizeCenter"](f, true);
             tempobj.altitude = yoffset + this.options.areaText.offset;
             if (f.hasBarData) {
                 textData.push(tempobj);
@@ -1874,6 +1876,7 @@ class TextLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         super(data, options);
         const defaultOptions = {
             textStyle: {
+                scale: 1,
                 fontWeight: 'normal',
                 fontFamily: 'Microsoft YaHei',
                 fontColor: '#000',
@@ -1901,8 +1904,9 @@ class TextLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             const projCenter = this._map.projectLngLat(d.center);
             const altitude = d.altitude; 
             const textSprite = new _text_sprite__WEBPACK_IMPORTED_MODULE_2__["default"](d.text, this.options.textStyle).getSprite();
+            const scale = this.options.textStyle.scale;
 
-            textSprite.scale.set(32, 32, 1);
+            textSprite.scale.set(scale, scale, 1);
             textSprite.position.set(projCenter[0], altitude, -projCenter[1]);
             textSprite.rotateX(-Math.PI/2);
 
@@ -2123,7 +2127,7 @@ function getBounds(geojson, crs) {
     }
 }
 
-function getNormalizeCenter(feature) {
+function getNormalizeCenter(feature, forceBoundsCenter = false) {
     let props = feature.properties;
     let center = props && (props.center || props.cp);
     if (center && typeof center === 'string') {
@@ -2132,7 +2136,7 @@ function getNormalizeCenter(feature) {
     if (Array.isArray(center)) {
         center = center.map(item => Number(item));
     }
-    if (center == null) {
+    if (forceBoundsCenter || center == null) {
         let bounds = getBounds(feature);
         center = bounds.getCenter();
     }
@@ -2332,22 +2336,12 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 this._orbitControl.target = new THREE.Vector3(center[0], 0, -center[1]);
                 this._orbitControl.minDistance = d * 0.5;
                 this._orbitControl.maxDistance = d * 2;
-                // let cameraOptions = this.options.camera;
-                // let a = (Math.PI / 180) * (cameraOptions.fov / 2);
-                // // let b = Math.max(bounds.getWidth(), bounds.getHeight()) / 2;
-                // let b = bounds.getHeight() / 2;
-                // let distance = b / Math.tan(a);
-                // let center = bounds.getCenter();
-                // this._orbitControl.object.position.set(0, 0, distance);
-                // this._orbitControl.object.translateX(center[0]);
-                // this._orbitControl.object.translateY(center[1]);
-                // this._orbitControl.target = new THREE.Vector3(center[0], center[1], 0);
             }
         } else {
             // sphere
             let d = this.getDistance(this.options.global.R*2);
-            d*=1.5;
-            this._orbitControl.object.position.set(0, 0, d);
+            let scaleD = d * this.options.camera.distanceRatio;
+            this._orbitControl.object.position.set(0, 0, scaleD);
             this._orbitControl.target = new THREE.Vector3(0, 0, 0);
         }
         this._orbitControl.update();

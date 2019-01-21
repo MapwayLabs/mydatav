@@ -125,7 +125,7 @@ export function getBounds(geojson, crs) {
     }
 }
 
-export function getNormalizeCenter(feature) {
+export function getNormalizeCenter(feature, forceBoundsCenter = false) {
     let props = feature.properties;
     let center = props && (props.center || props.cp);
     if (center && typeof center === 'string') {
@@ -134,7 +134,7 @@ export function getNormalizeCenter(feature) {
     if (Array.isArray(center)) {
         center = center.map(item => Number(item));
     }
-    if (center == null) {
+    if (forceBoundsCenter || center == null) {
         let bounds = getBounds(feature);
         center = bounds.getCenter();
     }

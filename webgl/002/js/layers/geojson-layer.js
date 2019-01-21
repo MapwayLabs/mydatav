@@ -13,8 +13,9 @@ export default class GeoJSONLayer extends Layer {
             // 地区名字
             areaText: {
                 show: true,
-                offset: 1,
+                offset: 1, // 文字离地面高度
                 textStyle: { // 有数据地区的名字样式
+                    scale: 1, // 缩放比例
                     fontWeight: 'normal',
                     fontFamily: 'Microsoft YaHei',
                     fontColor: '#f00',
@@ -22,6 +23,7 @@ export default class GeoJSONLayer extends Layer {
                     textBaseline: 'middle'
                 },
                 nullTextStyle: { // 无数据地区的名字样式
+                    scale: 1, // 缩放比例
                     fontWeight: 'normal',
                     fontFamily: 'Microsoft YaHei',
                     fontColor: '#0f0',
@@ -297,7 +299,7 @@ export default class GeoJSONLayer extends Layer {
             let yoffset = this.getDepth();
             let tempobj = {};
             tempobj.text = mapHelper.getNormalizeName(f);
-            tempobj.center = mapHelper.getNormalizeCenter(f);
+            tempobj.center = mapHelper.getNormalizeCenter(f, true);
             tempobj.altitude = yoffset + this.options.areaText.offset;
             if (f.hasBarData) {
                 textData.push(tempobj);

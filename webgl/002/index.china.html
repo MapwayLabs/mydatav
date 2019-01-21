@@ -32,10 +32,10 @@
     <div id="threemap"></div>
     <script>
         // ./china_province.json  geo-china-beijing.json world2 countriesgeo.json
-        $.getJSON('../../data/china_province.json', function (data) {
+        $.getJSON('../../data/110100.json', function (data) {
             const mapOptions = {
                 type: 'plane', // plane or sphere ,平面或球面
-                region: 'china', // china or world, 中国或世界地图
+                region: 'xxx', // china or world, 中国或世界地图
                 crs: 'EPSG:3857', // 地图采用的地理坐标系 EPSG:4326: 经纬度，EPSG:3857: 墨卡托
                 SCALE_RATIO: 100000, // 地球墨卡托平面缩放比例
                 containerClassName: 'three-map-container', // 地图容器类名
@@ -75,16 +75,13 @@
 
             // geojsonlayer
             const geoOptions = {
-                isExtrude: false, // 是否拉伸面
-                depth: 0, // 拉伸厚度
-                // isAreaText: true, // 是否显示地区名称
-                // fillColor: '#E6E8EA', // 地区面块的填充色
-                // textColor: 'rgba(0, 0, 0, 0.8)', // 文字颜色
-                lineOpacity: 0.5,
+                isExtrude: true, // 是否拉伸面
+                depth: 0.2, // 拉伸厚度
                 areaText: {
-                    show: false,
-                    offset: 1,
+                    show: true,
+                    offset: 0.1,
                     textStyle: {
+                        scale: 1,
                         fontWeight: 'normal',
                         fontFamily: 'Microsoft YaHei',
                         fontColor: '#f00',
@@ -92,6 +89,7 @@
                         textBaseline: 'middle'
                     },
                     nullTextStyle: {
+                        scale: 1,
                         fontWeight: 'normal',
                         fontFamily: 'Microsoft YaHei',
                         fontColor: '#0f0',
@@ -99,15 +97,14 @@
                         textBaseline: 'middle'
                     }
                 },
+                lineOpacity: 0.5,
                 lineMaterial: {
-                    color: '#000',
-                    linewidth: 1
+                    color: '#000'
                 },
                 areaMaterial: { // 面材质配置
-                    color: '#E6E8EA',
-                    // opacity: 0.5,
-                    side: THREE.DoubleSide
-                }
+                    color: '#E6E8EA'
+                },
+                highLightColor: '#639fc0'
             };
             window.geojsonLayer = new TMap.GeoJSONLayer(data, geoOptions);
             window.map.addLayer(window.geojsonLayer);
