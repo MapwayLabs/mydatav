@@ -117,7 +117,7 @@ export default class BarLayer extends Layer {
         let formattedVal = this.bdpChart.helper.dataLabelFormatter(oldData.y.formatter, value, oldData.y.aggregator);
         // 如果未设置单位，则使用自定义单位
         if (!oldData.y[0].formatter.num.unit || oldData.y[0].formatter.num.unit === '1') {
-            tempobj.formattedVal += oldData.y[0].unit_adv
+            formattedVal += oldData.y[0].unit_adv;
         }
         return formattedVal;
     }
