@@ -5,7 +5,7 @@ import TextLayer from './text-layer';
 
 // 柱状图层
 export default class BarLayer extends Layer {
-    constructor (data, geojsonLayer, options) {
+    constructor (data, geojsonLayer, options, tooltipHelper) {
         super(data, options);
 
         const defaultOptions = {
@@ -24,6 +24,7 @@ export default class BarLayer extends Layer {
                 show: true,
                 offset: 1,
                 textStyle: {
+                    scale: 1,
                     fontWeight: 'normal',
                     fontFamily: 'Microsoft YaHei',
                     fontColor: '#000',
@@ -51,6 +52,8 @@ export default class BarLayer extends Layer {
             min: null,
             max: null
         };
+        
+        this._toolTipHelper = tooltipHelper;
 
         this._initBarData();
         this._initColorData();
@@ -64,7 +67,7 @@ export default class BarLayer extends Layer {
         Layer.prototype.onRemove.call(this, map);
         this._textLayer && this._map.removeLayer(this._textLayer);
         if (this.options.barTooltip.show) {
-            // this._toolTipHelper.hideTooltip(); // TODO: bdp
+            this._toolTipHelper && this._toolTipHelper.hideTooltip();
             this._map.off('mousemove', this._mousemoveEvtHandler, this);
         }
     }
@@ -86,13 +89,11 @@ export default class BarLayer extends Layer {
         return false;
     }
     getFormattedVal(value) {
-        // TODO: me
-        return value;
-        // bdp
+        // TODO: bdp
         let formattedVal = bdpChart.helper.dataLabelFormatter(this._data.y.formatter, value, this._data.y.aggregator);
         // 如果未设置单位，则使用自定义单位
-        if (this._data.y.formatter.num.unit === '1') {
-            formattedVal += this._data.y.unit_adv;
+        if (!this._data.y[0].formatter.num.unit || this._data.y[0].formatter.num.unit === '1') {
+            tempobj.formattedVal += this._data.y[0].unit_adv
         }
         return formattedVal;
     }
@@ -179,7 +180,7 @@ export default class BarLayer extends Layer {
             let num = Util.normalizeValue(this._colorsData[index], xmin, xmax, ymin, ymax);
             color = Util.getInterPolateColor(num, barStyle.grandientColor);
         } else if (barStyle.enumColor) {
-           let enumcolor = barStyle.enumColor[item.xname];
+           let enumcolor = barStyle.enumColor[item.name] || barStyle.enumColor[item.id];
            color = enumcolor && enumcolor.color;
            if(!color){
             color = barStyle.defaultColor[index % cLen]
@@ -205,8 +206,6 @@ export default class BarLayer extends Layer {
         } 
         this.geojsonLayer.updateLabels();
         if (this.options.barTooltip.show) {
-            // TODO: bdp
-            // this._toolTipHelper = TooltipHelper;
             this._map.on('mousemove', this._mousemoveEvtHandler, this);
         }
     }
@@ -236,7 +235,7 @@ export default class BarLayer extends Layer {
             this._currentSelectObj.material.transparent = false;
             this._currentSelectObj.material.opacity = 1;
             this._currentSelectObj = null;
-            // this._toolTipHelper.hideTooltip(); // TODO: bdp
+            this._toolTipHelper.hideTooltip(); // TODO: bdp
         }
 
         for (var i = 0; i < intersects.length; i++) {
@@ -253,7 +252,7 @@ export default class BarLayer extends Layer {
                     <div style="color:#${color};"><span>${udata['yname']}：</span> ${udata['formattedVal']}</div>
                 `;
                 // console.log(udata.name);
-                // this._toolTipHelper.showTooltip(cx, cy, content); // TODO: bdp
+                this._toolTipHelper.showTooltip(cx, cy, content); // TODO: bdp
                 break;
             }
         }
@@ -262,7 +261,7 @@ export default class BarLayer extends Layer {
                 this._currentSelectObj.material.transparent = false;
                 this._currentSelectObj.material.opacity = 1;
                 this._currentSelectObj = null;
-                // this._toolTipHelper.hideTooltip(); // TODO: bdp
+                this._toolTipHelper.hideTooltip(); // TODO: bdp
             }
         }
     }
