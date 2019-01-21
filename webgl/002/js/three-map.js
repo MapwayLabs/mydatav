@@ -14,7 +14,8 @@ export default class ThreeMap extends EventEmiter {
             camera: {
                 fov: 45,
                 near: 0.1,
-                far: 2000
+                far: 2000,
+                distanceRatio: 1.35 // 相机离物理最佳距离（刚好看到物体全部）的倍数
             },
             orbitControlOptions: {
                 minDistance: 0, // 最小距离
@@ -139,27 +140,33 @@ export default class ThreeMap extends EventEmiter {
             if (this.options.region === 'world') {
                 this._orbitControl.object.position.set(16.42515, 369.562538, 333.99466);
                 this._orbitControl.target = new THREE.Vector3(10.06448, 51.62625, 6.71498);
-            } else {
-                let cameraOptions = this.options.camera;
-                let a = (Math.PI / 180) * (cameraOptions.fov / 2);
-                // let b = Math.max(bounds.getWidth(), bounds.getHeight()) / 2;
-                let b = bounds.getHeight() / 2;
-                let distance = b / Math.tan(a);
+            } else if (this.options.region === 'china') {
+                let d = this.getDistance(bounds.getHeight());
                 let center = bounds.getCenter();
-                this._orbitControl.object.position.set(0, 0, distance);
-                this._orbitControl.object.translateX(center[0]);
-                this._orbitControl.object.translateY(center[1]);
-                this._orbitControl.target = new THREE.Vector3(center[0], center[1], 0);
+                let scaleD = d * 0.5; 
+                this._orbitControl.object.position.set(center[0], center[1], scaleD);
+                this._orbitControl.target = new THREE.Vector3(center[0], 0, -center[1]);
+                this._orbitControl.minDistance = d * 0.25;
+                this._orbitControl.maxDistance = d * 2;
+            } else {
+                let d = this.getDistance(bounds.getHeight());
+                let scaleD = d * this.options.camera.distanceRatio;
+                let center = bounds.getCenter();
+                this._orbitControl.object.position.set(center[0], scaleD, -center[1]);
+                this._orbitControl.target = new THREE.Vector3(center[0], 0, -center[1]);
+                this._orbitControl.minDistance = d * 0.5;
+                this._orbitControl.maxDistance = d * 2;
             }
         } else {
             // sphere
             let d = this.getDistance(this.options.global.R*2);
-            d*=1.5;
-            this._orbitControl.object.position.set(0, 0, d);
+            let scaleD = d * this.options.camera.distanceRatio;
+            this._orbitControl.object.position.set(0, 0, scaleD);
             this._orbitControl.target = new THREE.Vector3(0, 0, 0);
         }
         this._orbitControl.update();
     }
+    // 获取相机到物体的距离，看到全部物体时
     getDistance(height) {
         // 视角
         const deg = THREE.Math.degToRad(this.options.camera.fov) / 2;
