@@ -34,7 +34,9 @@ export default class TextLayer extends Layer {
         if (this._data == null || !this._data.length) {return;}
         this._data.forEach(d => {
             const projCenter = this._map.projectLngLat(d.center);
-            const altitude = d.altitude; 
+            const altitude = d.altitude;
+            // TODO: 为了避免文字覆盖，对每个文字设置不同的对齐方式 
+            this.options.textStyle.textAlign = d.textAlign || this.options.textStyle.textAlign || null;
             const textSprite = new TextSprite(d.text, this.options.textStyle).getSprite();
             const scale = this.options.textStyle.scale;
 

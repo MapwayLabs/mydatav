@@ -289,10 +289,28 @@ __webpack_require__.r(__webpack_exports__);
 
 // 柱状图层
 class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
-    constructor (data, geojsonLayer, options) {
+    constructor (data, geojsonLayer, options, tooltipHelper, bdpChart) {
         super(data, options);
 
         const defaultOptions = {
+            // 是否自动适配尺寸。如果设置为 true，配置项中的 depth\offset\scale 等尺寸会根据当前行政区来自动适配，用户传入的值就无效了。
+            isAutoResize: true, 
+            // 适配参数，仅当 isAutoResize 设置为 true 时有效。
+            resizeParam: {
+                barStyle: {
+                    width: 0.5,
+                    minHeight: 0.5,
+                    maxHeight: 7,
+                    bevelThickness: 0.1,
+                    bevelSize: 0.08
+                },
+                barText: {
+                    offset: 0.8,
+                    textStyle: {
+                        scale: 10
+                    }
+                }
+            }, 
             barStyle: {
                 width: 1, // 底边长
                 minHeight: 3, // 最小高度
@@ -308,6 +326,7 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 show: true,
                 offset: 1,
                 textStyle: {
+                    scale: 1,
                     fontWeight: 'normal',
                     fontFamily: 'Microsoft YaHei',
                     fontColor: '#000',
@@ -335,7 +354,13 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             min: null,
             max: null
         };
+        
+        this._toolTipHelper = tooltipHelper;
+        this.bdpChart = bdpChart;
 
+        if (this.options.isAutoResize) {
+            this._initResizeOptions();
+        }
         this._initBarData();
         this._initColorData();
         this._initMinMax();
@@ -348,7 +373,7 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         _layer__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.onRemove.call(this, map);
         this._textLayer && this._map.removeLayer(this._textLayer);
         if (this.options.barTooltip.show) {
-            // this._toolTipHelper.hideTooltip(); // TODO: bdp
+            this._toolTipHelper && this._toolTipHelper.hideTooltip();
             this._map.off('mousemove', this._mousemoveEvtHandler, this);
         }
     }
@@ -370,15 +395,25 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         return false;
     }
     getFormattedVal(value) {
-        // TODO: me
-        return value;
-        // bdp
-        let formattedVal = bdpChart.helper.dataLabelFormatter(this._data.y.formatter, value, this._data.y.aggregator);
+        if (!this.bdpChart) {return value;}
+        // TODO: bdp
+        let formattedVal = this.bdpChart.helper.dataLabelFormatter(this._data.y.formatter, value, this._data.y.aggregator);
         // 如果未设置单位，则使用自定义单位
-        if (this._data.y.formatter.num.unit === '1') {
-            formattedVal += this._data.y.unit_adv;
+        if (!this._data.y[0].formatter.num.unit || this._data.y[0].formatter.num.unit === '1') {
+            tempobj.formattedVal += this._data.y[0].unit_adv
         }
         return formattedVal;
+    }
+    _initResizeOptions() {
+        const ratio = this.geojsonLayer.getRatio();
+        const resizeParam = this.options.resizeParam;
+        this.options.barStyle.width = resizeParam.barStyle.width * ratio;
+        this.options.barStyle.minHeight = resizeParam.barStyle.minHeight * ratio;
+        this.options.barStyle.maxHeight = resizeParam.barStyle.maxHeight * ratio;
+        this.options.barStyle.bevelThickness = resizeParam.barStyle.bevelThickness * ratio;
+        this.options.barStyle.bevelSize = resizeParam.barStyle.bevelSize * ratio;
+        this.options.barText.offset = resizeParam.barText.offset * ratio;
+        this.options.barText.textStyle.scale = resizeParam.barText.textStyle.scale * ratio;
     }
     _initBarData() {
         const features = this.geojsonLayer.getFeatures();
@@ -463,7 +498,7 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             let num = _util__WEBPACK_IMPORTED_MODULE_1__["normalizeValue"](this._colorsData[index], xmin, xmax, ymin, ymax);
             color = _util__WEBPACK_IMPORTED_MODULE_1__["getInterPolateColor"](num, barStyle.grandientColor);
         } else if (barStyle.enumColor) {
-           let enumcolor = barStyle.enumColor[item.xname];
+           let enumcolor = barStyle.enumColor[item.name] || barStyle.enumColor[item.id];
            color = enumcolor && enumcolor.color;
            if(!color){
             color = barStyle.defaultColor[index % cLen]
@@ -487,10 +522,8 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         if (this.options.barText.show) {
             this._addTextLayer();
         } 
-        this.geojsonLayer.updateLabels();
+        this.geojsonLayer.updateLabels(this);
         if (this.options.barTooltip.show) {
-            // TODO: bdp
-            // this._toolTipHelper = TooltipHelper;
             this._map.on('mousemove', this._mousemoveEvtHandler, this);
         }
     }
@@ -520,7 +553,7 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             this._currentSelectObj.material.transparent = false;
             this._currentSelectObj.material.opacity = 1;
             this._currentSelectObj = null;
-            // this._toolTipHelper.hideTooltip(); // TODO: bdp
+            this._toolTipHelper && this._toolTipHelper.hideTooltip(); // TODO: bdp
         }
 
         for (var i = 0; i < intersects.length; i++) {
@@ -537,7 +570,7 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                     <div style="color:#${color};"><span>${udata['yname']}：</span> ${udata['formattedVal']}</div>
                 `;
                 // console.log(udata.name);
-                // this._toolTipHelper.showTooltip(cx, cy, content); // TODO: bdp
+                this._toolTipHelper && this._toolTipHelper.showTooltip(cx, cy, content); // TODO: bdp
                 break;
             }
         }
@@ -546,7 +579,7 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 this._currentSelectObj.material.transparent = false;
                 this._currentSelectObj.material.opacity = 1;
                 this._currentSelectObj = null;
-                // this._toolTipHelper.hideTooltip(); // TODO: bdp
+                this._toolTipHelper && this._toolTipHelper.hideTooltip(); // TODO: bdp
             }
         }
     }
@@ -1442,6 +1475,15 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
     constructor(data, options) {
         super(data, options);
         const defaultOptions = {
+            // 是否自动适配尺寸。如果设置为 true，配置项中的 depth\offset\scale 等尺寸会根据当前行政区来自动适配，用户传入的值就无效了。
+            isAutoResize: true, 
+            // 适配参数，仅当 isAutoResize 设置为 true 时有效。
+            resizeParam: {
+                depth: 1.5,
+                offset: 0,
+                scale1: 20,
+                scale2: 16
+            }, 
             isExtrude: true, // 是否拉伸面
             depth: 16, // 拉伸厚度
             // 地区名字
@@ -1452,7 +1494,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                     scale: 1, // 缩放比例
                     fontWeight: 'normal',
                     fontFamily: 'Microsoft YaHei',
-                    fontColor: '#f00',
+                    fontColor: 'rgba(0, 0, 0, 0.8)',
                     textAlign: 'center',
                     textBaseline: 'middle'
                 },
@@ -1460,7 +1502,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                     scale: 1, // 缩放比例
                     fontWeight: 'normal',
                     fontFamily: 'Microsoft YaHei',
-                    fontColor: '#0f0',
+                    fontColor: 'rgba(0, 0, 0, 0.5)',
                     textAlign: 'center',
                     textBaseline: 'middle' 
                 }
@@ -1483,6 +1525,9 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
     onAdd(map) {
         _layer__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.onAdd.call(this, map); 
         this._initBoundsAndCenter();
+        if (this.options.isAutoResize) {
+            this._initResizeOptions();
+        }
         this._draw();
         this.updateLabels();
         this._map.on('mousemove', this._mousemoveEvtHandler, this);
@@ -1508,6 +1553,9 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         } else {
             return 0;
         }
+    }
+    getRatio() {
+        return this._ratio;
     }
     createFeatureArray(json) {
         var feature_array = [];
@@ -1638,6 +1686,15 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             }
         }
     }
+    _initResizeOptions() {
+        const ratio = this._map.getRatio(this._bounds);
+        const resizeParam = this.options.resizeParam;
+        this.options.depth = resizeParam.depth * ratio;
+        this.options.areaText.offset = resizeParam.offset * ratio;
+        this.options.areaText.textStyle.scale = resizeParam.scale1 * ratio;
+        this.options.areaText.nullTextStyle.scale = resizeParam.scale2 * ratio;
+        this._ratio = ratio;
+    }
     _initFeatures() {
         this._features = this.createFeatureArray(this._data);
     }
@@ -1725,15 +1782,38 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             }
         }
     }
-    updateLabels() {
+    updateLabels(barLayer) {
         if (this._features == null || !this._features.length) {return;}
+        let barWidth = 0;
+        if (barLayer) {
+            barWidth = barLayer.options.barStyle.width;
+        }
         let textData = [];
         let nullTextData = [];
+        let forceBoundsCenter = true;
+        if (this._map.options.region === 'china' || this._map.options.region === 'world') {
+            forceBoundsCenter = false;
+        }
         this._features.forEach(f => {
             let yoffset = this.getDepth();
             let tempobj = {};
-            tempobj.text = _maphelper__WEBPACK_IMPORTED_MODULE_2__["getNormalizeName"](f);
-            tempobj.center = _maphelper__WEBPACK_IMPORTED_MODULE_2__["getNormalizeCenter"](f, true);
+            let name = _maphelper__WEBPACK_IMPORTED_MODULE_2__["getNormalizeName"](f);
+            // FIXME: 采用简单粗暴方法避免文字覆盖
+            tempobj.textAlign = 'center';
+            if (new RegExp(name).test('香港')) {
+                tempobj.textAlign = 'left'
+            } else if (new RegExp(name).test('澳门')) {
+                tempobj.textAlign = 'right'
+            } else if (new RegExp(name).test('广东')) {
+                tempobj.textBaseline = 'bottom'
+            } else if (new RegExp(name).test('北京')) {
+                tempobj.textAlign = 'right'
+            } else if (new RegExp(name).test('天津')) {
+                tempobj.textAlign = 'left'
+            }
+            tempobj.text = name;
+            tempobj.center = _maphelper__WEBPACK_IMPORTED_MODULE_2__["getNormalizeCenter"](f, forceBoundsCenter);
+            tempobj.center[1] += barWidth*2; // TODO: 避免文字覆盖柱子
             tempobj.altitude = yoffset + this.options.areaText.offset;
             if (f.hasBarData) {
                 textData.push(tempobj);
@@ -1902,7 +1982,9 @@ class TextLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         if (this._data == null || !this._data.length) {return;}
         this._data.forEach(d => {
             const projCenter = this._map.projectLngLat(d.center);
-            const altitude = d.altitude; 
+            const altitude = d.altitude;
+            // TODO: 为了避免文字覆盖，对每个文字设置不同的对齐方式 
+            this.options.textStyle.textAlign = d.textAlign || this.options.textStyle.textAlign || null;
             const textSprite = new _text_sprite__WEBPACK_IMPORTED_MODULE_2__["default"](d.text, this.options.textStyle).getSprite();
             const scale = this.options.textStyle.scale;
 
@@ -2353,6 +2435,22 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
         // 视区高度
         const d = (height / 2) / Math.tan(deg);
         return d;
+    }
+    // 获取适配比例
+    // 中国范围切换省市县行政区需要获取适配比例
+    getRatio(regionBounds) {
+        const chinaBounds = _maphelper__WEBPACK_IMPORTED_MODULE_2__["getBounds"]('china', this.options.crs);
+        if (this.options.crs === _maphelper__WEBPACK_IMPORTED_MODULE_2__["CRS"].epsg3857) {
+            let scale = this.options.SCALE_RATIO;
+            chinaBounds.scale(1/scale);
+        }
+
+        const h0 = chinaBounds.getHeight();
+        const d0 = this.getDistance(h0);
+        const h1 = regionBounds.getHeight();
+        const d1 = this.getDistance(h1);
+
+        return d1 / d0;
     }
     getContainerElement() {
         return this._el;

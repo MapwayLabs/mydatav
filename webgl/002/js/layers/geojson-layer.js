@@ -8,6 +8,15 @@ export default class GeoJSONLayer extends Layer {
     constructor(data, options) {
         super(data, options);
         const defaultOptions = {
+            // 是否自动适配尺寸。如果设置为 true，配置项中的 depth\offset\scale 等尺寸会根据当前行政区来自动适配，用户传入的值就无效了。
+            isAutoResize: true, 
+            // 适配参数，仅当 isAutoResize 设置为 true 时有效。
+            resizeParam: {
+                depth: 1.5,
+                offset: 0,
+                scale1: 20,
+                scale2: 16
+            }, 
             isExtrude: true, // 是否拉伸面
             depth: 16, // 拉伸厚度
             // 地区名字
@@ -18,7 +27,7 @@ export default class GeoJSONLayer extends Layer {
                     scale: 1, // 缩放比例
                     fontWeight: 'normal',
                     fontFamily: 'Microsoft YaHei',
-                    fontColor: '#f00',
+                    fontColor: 'rgba(0, 0, 0, 0.8)',
                     textAlign: 'center',
                     textBaseline: 'middle'
                 },
@@ -26,7 +35,7 @@ export default class GeoJSONLayer extends Layer {
                     scale: 1, // 缩放比例
                     fontWeight: 'normal',
                     fontFamily: 'Microsoft YaHei',
-                    fontColor: '#0f0',
+                    fontColor: 'rgba(0, 0, 0, 0.5)',
                     textAlign: 'center',
                     textBaseline: 'middle' 
                 }
@@ -49,6 +58,9 @@ export default class GeoJSONLayer extends Layer {
     onAdd(map) {
         Layer.prototype.onAdd.call(this, map); 
         this._initBoundsAndCenter();
+        if (this.options.isAutoResize) {
+            this._initResizeOptions();
+        }
         this._draw();
         this.updateLabels();
         this._map.on('mousemove', this._mousemoveEvtHandler, this);
@@ -74,6 +86,9 @@ export default class GeoJSONLayer extends Layer {
         } else {
             return 0;
         }
+    }
+    getRatio() {
+        return this._ratio;
     }
     createFeatureArray(json) {
         var feature_array = [];
@@ -204,6 +219,15 @@ export default class GeoJSONLayer extends Layer {
             }
         }
     }
+    _initResizeOptions() {
+        const ratio = this._map.getRatio(this._bounds);
+        const resizeParam = this.options.resizeParam;
+        this.options.depth = resizeParam.depth * ratio;
+        this.options.areaText.offset = resizeParam.offset * ratio;
+        this.options.areaText.textStyle.scale = resizeParam.scale1 * ratio;
+        this.options.areaText.nullTextStyle.scale = resizeParam.scale2 * ratio;
+        this._ratio = ratio;
+    }
     _initFeatures() {
         this._features = this.createFeatureArray(this._data);
     }
@@ -291,15 +315,38 @@ export default class GeoJSONLayer extends Layer {
             }
         }
     }
-    updateLabels() {
+    updateLabels(barLayer) {
         if (this._features == null || !this._features.length) {return;}
+        let barWidth = 0;
+        if (barLayer) {
+            barWidth = barLayer.options.barStyle.width;
+        }
         let textData = [];
         let nullTextData = [];
+        let forceBoundsCenter = true;
+        if (this._map.options.region === 'china' || this._map.options.region === 'world') {
+            forceBoundsCenter = false;
+        }
         this._features.forEach(f => {
             let yoffset = this.getDepth();
             let tempobj = {};
-            tempobj.text = mapHelper.getNormalizeName(f);
-            tempobj.center = mapHelper.getNormalizeCenter(f, true);
+            let name = mapHelper.getNormalizeName(f);
+            // FIXME: 采用简单粗暴方法避免文字覆盖
+            tempobj.textAlign = 'center';
+            if (new RegExp(name).test('香港')) {
+                tempobj.textAlign = 'left'
+            } else if (new RegExp(name).test('澳门')) {
+                tempobj.textAlign = 'right'
+            } else if (new RegExp(name).test('广东')) {
+                tempobj.textBaseline = 'bottom'
+            } else if (new RegExp(name).test('北京')) {
+                tempobj.textAlign = 'right'
+            } else if (new RegExp(name).test('天津')) {
+                tempobj.textAlign = 'left'
+            }
+            tempobj.text = name;
+            tempobj.center = mapHelper.getNormalizeCenter(f, forceBoundsCenter);
+            tempobj.center[1] += barWidth*2; // TODO: 避免文字覆盖柱子
             tempobj.altitude = yoffset + this.options.areaText.offset;
             if (f.hasBarData) {
                 textData.push(tempobj);

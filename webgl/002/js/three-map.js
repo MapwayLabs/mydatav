@@ -174,6 +174,22 @@ export default class ThreeMap extends EventEmiter {
         const d = (height / 2) / Math.tan(deg);
         return d;
     }
+    // 获取适配比例
+    // 中国范围切换省市县行政区需要获取适配比例
+    getRatio(regionBounds) {
+        const chinaBounds = mapHelper.getBounds('china', this.options.crs);
+        if (this.options.crs === mapHelper.CRS.epsg3857) {
+            let scale = this.options.SCALE_RATIO;
+            chinaBounds.scale(1/scale);
+        }
+
+        const h0 = chinaBounds.getHeight();
+        const d0 = this.getDistance(h0);
+        const h1 = regionBounds.getHeight();
+        const d1 = this.getDistance(h1);
+
+        return d1 / d0;
+    }
     getContainerElement() {
         return this._el;
     }

@@ -5,10 +5,28 @@ import TextLayer from './text-layer';
 
 // 柱状图层
 export default class BarLayer extends Layer {
-    constructor (data, geojsonLayer, options, tooltipHelper) {
+    constructor (data, geojsonLayer, options, tooltipHelper, bdpChart) {
         super(data, options);
 
         const defaultOptions = {
+            // 是否自动适配尺寸。如果设置为 true，配置项中的 depth\offset\scale 等尺寸会根据当前行政区来自动适配，用户传入的值就无效了。
+            isAutoResize: true, 
+            // 适配参数，仅当 isAutoResize 设置为 true 时有效。
+            resizeParam: {
+                barStyle: {
+                    width: 0.5,
+                    minHeight: 0.5,
+                    maxHeight: 7,
+                    bevelThickness: 0.1,
+                    bevelSize: 0.08
+                },
+                barText: {
+                    offset: 0.8,
+                    textStyle: {
+                        scale: 10
+                    }
+                }
+            }, 
             barStyle: {
                 width: 1, // 底边长
                 minHeight: 3, // 最小高度
@@ -54,7 +72,11 @@ export default class BarLayer extends Layer {
         };
         
         this._toolTipHelper = tooltipHelper;
+        this.bdpChart = bdpChart;
 
+        if (this.options.isAutoResize) {
+            this._initResizeOptions();
+        }
         this._initBarData();
         this._initColorData();
         this._initMinMax();
@@ -89,13 +111,25 @@ export default class BarLayer extends Layer {
         return false;
     }
     getFormattedVal(value) {
+        if (!this.bdpChart) {return value;}
         // TODO: bdp
-        let formattedVal = bdpChart.helper.dataLabelFormatter(this._data.y.formatter, value, this._data.y.aggregator);
+        let formattedVal = this.bdpChart.helper.dataLabelFormatter(this._data.y.formatter, value, this._data.y.aggregator);
         // 如果未设置单位，则使用自定义单位
         if (!this._data.y[0].formatter.num.unit || this._data.y[0].formatter.num.unit === '1') {
             tempobj.formattedVal += this._data.y[0].unit_adv
         }
         return formattedVal;
+    }
+    _initResizeOptions() {
+        const ratio = this.geojsonLayer.getRatio();
+        const resizeParam = this.options.resizeParam;
+        this.options.barStyle.width = resizeParam.barStyle.width * ratio;
+        this.options.barStyle.minHeight = resizeParam.barStyle.minHeight * ratio;
+        this.options.barStyle.maxHeight = resizeParam.barStyle.maxHeight * ratio;
+        this.options.barStyle.bevelThickness = resizeParam.barStyle.bevelThickness * ratio;
+        this.options.barStyle.bevelSize = resizeParam.barStyle.bevelSize * ratio;
+        this.options.barText.offset = resizeParam.barText.offset * ratio;
+        this.options.barText.textStyle.scale = resizeParam.barText.textStyle.scale * ratio;
     }
     _initBarData() {
         const features = this.geojsonLayer.getFeatures();
@@ -204,7 +238,7 @@ export default class BarLayer extends Layer {
         if (this.options.barText.show) {
             this._addTextLayer();
         } 
-        this.geojsonLayer.updateLabels();
+        this.geojsonLayer.updateLabels(this);
         if (this.options.barTooltip.show) {
             this._map.on('mousemove', this._mousemoveEvtHandler, this);
         }
@@ -235,7 +269,7 @@ export default class BarLayer extends Layer {
             this._currentSelectObj.material.transparent = false;
             this._currentSelectObj.material.opacity = 1;
             this._currentSelectObj = null;
-            this._toolTipHelper.hideTooltip(); // TODO: bdp
+            this._toolTipHelper && this._toolTipHelper.hideTooltip(); // TODO: bdp
         }
 
         for (var i = 0; i < intersects.length; i++) {
@@ -252,7 +286,7 @@ export default class BarLayer extends Layer {
                     <div style="color:#${color};"><span>${udata['yname']}：</span> ${udata['formattedVal']}</div>
                 `;
                 // console.log(udata.name);
-                this._toolTipHelper.showTooltip(cx, cy, content); // TODO: bdp
+                this._toolTipHelper && this._toolTipHelper.showTooltip(cx, cy, content); // TODO: bdp
                 break;
             }
         }
@@ -261,7 +295,7 @@ export default class BarLayer extends Layer {
                 this._currentSelectObj.material.transparent = false;
                 this._currentSelectObj.material.opacity = 1;
                 this._currentSelectObj = null;
-                this._toolTipHelper.hideTooltip(); // TODO: bdp
+                this._toolTipHelper && this._toolTipHelper.hideTooltip(); // TODO: bdp
             }
         }
     }
