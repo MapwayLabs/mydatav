@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>threejs三维流线图</title>
+    <title>3D中国平面地图</title>
     <script src="../../lib/threejs/three.js"></script>
     <script src="../../lib/threejs/js/controls/OrbitControls.js"></script>
     <script src="./dist/threejsmap.js"></script>
@@ -17,6 +17,7 @@
             padding: 0;
             height: 100%;
         }
+
         #threemap {
             position: absolute;
             left: 0;
@@ -31,11 +32,10 @@
     <div id="threemap"></div>
     <script>
         // ./china_province.json  geo-china-beijing.json world2 countriesgeo.json
-        $.getJSON('../../data/world2.json', function (data) {
-            // map.setView();
-            let mapOptions = {
+        $.getJSON('../../data/china_province.json', function (data) {
+            const mapOptions = {
                 type: 'plane', // plane or sphere ,平面或球面
-                region: 'world', // china or world, 中国或世界地图
+                region: 'china', // china or world, 中国或世界地图
                 crs: 'EPSG:3857', // 地图采用的地理坐标系 EPSG:4326: 经纬度，EPSG:3857: 墨卡托
                 SCALE_RATIO: 100000, // 地球墨卡托平面缩放比例
                 containerClassName: 'three-map-container', // 地图容器类名
@@ -48,31 +48,33 @@
                     minDistance: 0, // 最小距离
                     maxDistance: Infinity, // 最大距离
                     // 垂直方向翻转角度，范围：0-180 度
-                    minPolarAngle: 0, 
+                    minPolarAngle: 0,
                     maxPolarAngle: 80,
                     // 横向旋转角度，范围：-180-180 度，Infinity 表示不限制
-                    minAzimuthAngle: -90, 
+                    minAzimuthAngle: -90,
                     maxAzimuthAngle: 90
                 },
                 light: {
-                // 主光源：太阳光 THREE.DirectionalLight
-                main: {
-                    color: '#E6E8EA',
-                    intensity: 0.8, // 主光源的强度，0-1
-                    shadow: false, // 主光源是否投射阴影。默认关闭。开启阴影可以给场景带来更真实和有层次的光照效果。但是同时也会增加程序的运行开销。
-                    shadowQuality: 'medium', // 阴影的质量。可选'low', 'medium', 'high', 'ultra'
-                    alpha: 40, // 主光源绕 x 轴，即上下旋转的角度。配合 beta 控制光源的方向。
-                    beta: 40 // 主光源绕 y 轴，即左右旋转的角度。
-                },
-                // 环境光源 THREE.AmbientLight
-                ambient: {
-                    color: '#E6E8EA',
-                    intensity: 0.6
+                    // 主光源：太阳光 THREE.DirectionalLight
+                    main: {
+                        color: '#E6E8EA',
+                        intensity: 0.8, // 主光源的强度，0-1
+                        shadow: false, // 主光源是否投射阴影。默认关闭。开启阴影可以给场景带来更真实和有层次的光照效果。但是同时也会增加程序的运行开销。
+                        shadowQuality: 'medium', // 阴影的质量。可选'low', 'medium', 'high', 'ultra'
+                        alpha: 40, // 主光源绕 x 轴，即上下旋转的角度。配合 beta 控制光源的方向。
+                        beta: 40 // 主光源绕 y 轴，即左右旋转的角度。
+                    },
+                    // 环境光源 THREE.AmbientLight
+                    ambient: {
+                        color: '#E6E8EA',
+                        intensity: 0.6
+                    }
                 }
             }
-            }
-            const map = new TMap.ThreeMap('threemap', mapOptions);
-            var geoOptions = {
+            window.map = new TMap.ThreeMap('threemap', mapOptions);
+
+            // geojsonlayer
+            const geoOptions = {
                 isExtrude: true, // 是否拉伸面
                 depth: 16, // 拉伸厚度
                 // isAreaText: true, // 是否显示地区名称
@@ -94,7 +96,7 @@
                         fontFamily: 'Microsoft YaHei',
                         fontColor: '#0f0',
                         textAlign: 'center',
-                        textBaseline: 'middle' 
+                        textBaseline: 'middle'
                     }
                 },
                 lineMaterial: {
@@ -107,37 +109,11 @@
                     side: THREE.DoubleSide
                 }
             };
-            window.map = map;
             window.geojsonLayer = new TMap.GeoJSONLayer(data, geoOptions);
-            map.addLayer(window.geojsonLayer);
-            map.setView(window.geojsonLayer.getBounds());
-            $.getJSON('../../data/flyline.json', function(fdata) {
-                let flOptions = {
-                    heightLimit:50,
-                    // geojsonLayer: window.geojsonLayer
-                    lineStyle: {
-                        show: true,
-                        color: '#5092FF',
-                        opacity: 0.3,
-                        width: 3
-                    },
-                    effect: {
-                        show: true,
-                        segmentNumber: 1,
-                        period: 1, // 尾迹特效的周期
-                        constantSpeed: 50, // 尾迹特效是否是固定速度，设置后忽略period值
-                        trailWidth: 8, // 尾迹宽度
-                        trailLength: 0.1, // 尾迹长度，范围 0-1，为线条长度百分比
-                        trailColor: '#29D8FF', // 尾迹颜色，默认跟线颜色相同
-                        trailOpacity: 1, // 尾迹不透明度，默认跟线相同
-                        // spotIntensity: 1000 // 无效参数
-                    }
-                };
-                let fl = new TMap.FlyLineLayer(fdata, window.geojsonLayer, flOptions);
-                map.addLayer(fl);
-            });
-            $.getJSON('../../data/bardata.json', function(data) {
-                let barOptions = {
+            window.map.addLayer(window.geojsonLayer);
+            window.map.setView(window.geojsonLayer.getBounds());
+            $.getJSON('../../data/bardata_china.json', function (bardata) {
+                const barOptions = {
                     barStyle: {
                         width: 2, // 底边长
                         minHeight: 3, // 最小高度
@@ -145,7 +121,10 @@
                         bevelThickness: 0.12,
                         bevelSize: 0.1,
                         bevelSegments: 100,
-                        defaultColor: ["#5182E4", "#9BCC66", "#3FB27E", "#F7CB4A", "#F88D48", "#F35352", "#CE62D6", "#8954D4", "#5156B8", "#51B4F1", "#69D4DB", "#D42D6B"],
+                        defaultColor: ["#5182E4", "#9BCC66", "#3FB27E", "#F7CB4A", "#F88D48",
+                            "#F35352", "#CE62D6", "#8954D4", "#5156B8", "#51B4F1", "#69D4DB",
+                            "#D42D6B"
+                        ],
                         grandientColor: null,
                         enumColor: null
                     },
@@ -164,8 +143,8 @@
                         show: true
                     }
                 };
-                let barlayer = new TMap.BarLayer(data, window.geojsonLayer, barOptions);
-                map.addLayer(barlayer);
+                window.barlayer = new TMap.BarLayer(bardata, window.geojsonLayer, barOptions);
+                window.map.addLayer(window.barlayer);
             });
         });
     </script>
