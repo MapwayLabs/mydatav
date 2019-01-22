@@ -109,7 +109,7 @@
             window.geojsonLayer = new TMap.GeoJSONLayer(data, geoOptions);
             window.map.addLayer(window.geojsonLayer);
             window.map.setView(window.geojsonLayer.getBounds());
-            $.getJSON('../../data/bardata_china.json', function (bardata) {
+            $.getJSON('../../data/bardata_china2.json', function (bardata) {
                 const barOptions = {
                     barStyle: {
                         width: 2, // 底边长
