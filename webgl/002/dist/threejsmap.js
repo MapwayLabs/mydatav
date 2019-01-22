@@ -364,9 +364,6 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         this._initBarData();
         this._initColorData();
         this._initMinMax();
-        // test
-        // console.log(this._barData.data);
-        // console.log(this._colorsData.data);
     }
     onAdd(map) {
         _layer__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.onAdd.call(this, map); 
@@ -519,7 +516,7 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             if (isNaN(num)) {
                 throw new Error('柱形图颜色计算错误！');
             }
-            color = _util__WEBPACK_IMPORTED_MODULE_1__["getInterPolateColor"](num, barStyle.grandientColor);
+            color = this.getInterPolateColor(num, barStyle.grandientColor);
         } else if (barStyle.enumColor) {
            let enumcolor = barStyle.enumColor[item.name] || barStyle.enumColor[item.id];
            color = enumcolor && enumcolor.color;
@@ -530,6 +527,27 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             color = barStyle.defaultColor[index % cLen]
         }
         return color;
+    }
+    getInterPolateColor(num, g) {
+        num = Math.round(num);
+        g = g || [
+            { value: 1, color: '#EF6064'},
+            { value: 0, color: '#FFA9A9'}
+        ]
+        if (this._imgData == null) {
+            const canvas = document.createElement('canvas');
+            canvas.height = 1;
+            canvas.width = 256;
+            const ctx = canvas.getContext('2d');
+            const grandient = ctx.createLinearGradient(0, 0, 256, 0);
+            g.forEach(item => {
+                grandient.addColorStop(item.value, item.color);
+            })
+            ctx.fillStyle = grandient;
+            ctx.fillRect(0, 0, 256, 1);
+            this._imgData = ctx.getImageData(0, 0, 256, 1).data;
+        }
+        return `rgba(${this._imgData[4 * (num-1)]},${this._imgData[4 * (num-1)+1]},${this._imgData[4 * (num-1)+2]},${this._imgData[4 * (num-1)+3]})`
     }
     _draw() {
         if (this._barData.data == null || !this._barData.data.length) {return;}
@@ -1504,16 +1522,17 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             resizeParam: {
                 depth: 1.5,
                 offset: 0,
-                scale1: 20,
-                scale2: 16
+                scale1: 22,
+                scale2: 20
             }, 
             isExtrude: true, // 是否拉伸面
             depth: 16, // 拉伸厚度
             // 地区名字
             areaText: {
-                show: true,
+                show: true, // 是否显示【无数据】区域文字，不能控制无数据区域文字
                 offset: 1, // 文字离地面高度
                 textStyle: { // 有数据地区的名字样式
+                    show: true, // 是否显示有数据地区文字
                     scale: 1, // 缩放比例
                     fontWeight: 'normal',
                     fontFamily: 'Microsoft YaHei',
@@ -1539,7 +1558,10 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 color: 0x00ff00,
                 side: THREE.DoubleSide
             },
-            highLightColor: '#639fc0'
+            hightLight: {
+                show: false,
+                color: '#639fc0'
+            }
         };
         this.options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](true, defaultOptions, options);
 
@@ -1553,7 +1575,9 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         }
         this._draw();
         this.updateLabels();
-        this._map.on('mousemove', this._mousemoveEvtHandler, this);
+        if (this.options.hightLight.show) {
+            this._map.on('mousemove', this._mousemoveEvtHandler, this);
+        }
     }
     onRemove(map) {
         _layer__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.onRemove.call(this, map);
@@ -1793,7 +1817,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             let udata = object.userData;
             if (udata && udata.type === 'area') {
                 object.userData.oldColor = object.material.color;
-                object.material.color = new THREE.Color(this.options.highLightColor);
+                object.material.color = new THREE.Color(this.options.hightLight.color);
                 this._currentSelectObj = object;
                 break;
             }
@@ -1850,17 +1874,21 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         const nullTextOptions = {
             textStyle: this.options.areaText.nullTextStyle
         };
-        if (this._textLayer) {
-            this._textLayer.update(textData);
-        } else {
-            this._textLayer = new _text_layer__WEBPACK_IMPORTED_MODULE_3__["default"](textData, textOptions);
-            this._map.addLayer(this._textLayer);
+        if (this.options.areaText.textStyle.show) {
+            if (this._textLayer) {
+                this._textLayer.update(textData);
+            } else {
+                this._textLayer = new _text_layer__WEBPACK_IMPORTED_MODULE_3__["default"](textData, textOptions);
+                this._map.addLayer(this._textLayer);
+            }
         }
-        if (this._nulltextLayer && this.options.areaText.show) {
-            this._nulltextLayer.update(nullTextData);
-        } else if(this._nulltextLayer == null && this.options.areaText.show){
-            this._nulltextLayer = new _text_layer__WEBPACK_IMPORTED_MODULE_3__["default"](nullTextData, nullTextOptions);
-            this._map.addLayer(this._nulltextLayer);
+        if (this.options.areaText.show) {
+            if (this._nulltextLayer) {
+                this._nulltextLayer.update(nullTextData);
+            } else {
+                this._nulltextLayer = new _text_layer__WEBPACK_IMPORTED_MODULE_3__["default"](nullTextData, nullTextOptions);
+                this._map.addLayer(this._nulltextLayer);
+            }
         }
     }
     drawOutLine(points, mesh) {
@@ -2156,9 +2184,9 @@ function getBounds(geojson, crs) {
     // 中国和世界范围写死，避免大量计算
     if (geojson === 'world') {
         let xmin = -180;
-        let ymin = -85;
+        let ymin = -58.502571;
         let xmax = 180;
-        let ymax = 85;
+        let ymax = 83.610184;
         let lb = [xmin, ymin];
         let rt = [xmax, ymax];
         if (crs === CRS.epsg3857) {
@@ -2423,12 +2451,19 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
         // TODO: 自动适配
         if (this.options.type === 'plane') {
             if (this.options.region === 'world') {
-                this._orbitControl.object.position.set(16.42515, 369.562538, 333.99466);
-                this._orbitControl.target = new THREE.Vector3(10.06448, 51.62625, 6.71498);
+                // this._orbitControl.object.position.set(16.42515, 369.562538, 333.99466);
+                // this._orbitControl.target = new THREE.Vector3(10.06448, 51.62625, 6.71498);
+                let d = this.getDistance(bounds.getHeight());
+                let scaleD = d * this.options.camera.distanceRatio;
+                let center = bounds.getCenter();
+                this._orbitControl.object.position.set(center[0], scaleD, -center[1]);
+                this._orbitControl.target = new THREE.Vector3(center[0], 0, -center[1]);
+                this._orbitControl.minDistance = d * 0.5;
+                this._orbitControl.maxDistance = d * 2;
             } else if (this.options.region === 'china') {
                 let d = this.getDistance(bounds.getHeight());
                 let center = bounds.getCenter();
-                let scaleD = d * 0.5; 
+                let scaleD = d * 0.2; 
                 this._orbitControl.object.position.set(center[0], center[1], scaleD);
                 this._orbitControl.target = new THREE.Vector3(center[0], 0, -center[1]);
                 this._orbitControl.minDistance = d * 0.25;
@@ -2701,7 +2736,7 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
 /*!********************!*\
   !*** ./js/util.js ***!
   \********************/
-/*! exports provided: hasClass, addClass, removeClass, getCmpStyle, isInPage, getDpr, isFunction, isPlainObject, isEmptyObject, extend, stamp, inherit, isNullOrUdf, getRandomColor, isWebGLAvailable, normalizeValue, getInterPolateColor, lightenDarkenColor */
+/*! exports provided: hasClass, addClass, removeClass, getCmpStyle, isInPage, getDpr, isFunction, isPlainObject, isEmptyObject, extend, stamp, inherit, isNullOrUdf, getRandomColor, isWebGLAvailable, normalizeValue, lightenDarkenColor */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2722,7 +2757,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getRandomColor", function() { return getRandomColor; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isWebGLAvailable", function() { return isWebGLAvailable; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "normalizeValue", function() { return normalizeValue; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getInterPolateColor", function() { return getInterPolateColor; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "lightenDarkenColor", function() { return lightenDarkenColor; });
 function hasClass(el, className) {
     return el.classList ? el.classList.contains(className) : new RegExp('(^|\\s)' + className + '(\\s|$)').test(el.className);
@@ -2930,30 +2964,6 @@ function normalizeValue(value, xmin, xmax, ymin, ymax, type = 0) {
         else {return ymin;}
     }
     return ymin + (ymax - ymin) * (value - xmin) / (xmax - xmin);
-}
-
-// 获取渐变色
-var imgData;
-function getInterPolateColor(num, g) {
-    num = Math.round(num);
-    g = g || [
-        { value: 1, color: '#EF6064'},
-        { value: 0, color: '#FFA9A9'}
-    ]
-    if (imgData == null) {
-        const canvas = document.createElement('canvas');
-        canvas.height = 1;
-        canvas.width = 256;
-        const ctx = canvas.getContext('2d');
-        const grandient = ctx.createLinearGradient(0, 0, 256, 0);
-        g.forEach(item => {
-            grandient.addColorStop(item.value, item.color);
-        })
-        ctx.fillStyle = grandient;
-        ctx.fillRect(0, 0, 256, 1);
-        imgData = ctx.getImageData(0, 0, 256, 1).data;
-    }
-    return `rgba(${imgData[4 * (num-1)]},${imgData[4 * (num-1)+1]},${imgData[4 * (num-1)+2]},${imgData[4 * (num-1)+3]})`
 }
 
 // 获取一个颜色的高亮或更暗色 https://css-tricks.com/snippets/javascript/lighten-darken-color/
