@@ -49,9 +49,9 @@ export function getBounds(geojson, crs) {
     // 中国和世界范围写死，避免大量计算
     if (geojson === 'world') {
         let xmin = -180;
-        let ymin = -85;
+        let ymin = -58.502571;
         let xmax = 180;
-        let ymax = 85;
+        let ymax = 83.610184;
         let lb = [xmin, ymin];
         let rt = [xmax, ymax];
         if (crs === CRS.epsg3857) {

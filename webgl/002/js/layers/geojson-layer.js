@@ -21,9 +21,10 @@ export default class GeoJSONLayer extends Layer {
             depth: 16, // 拉伸厚度
             // 地区名字
             areaText: {
-                show: true,
+                show: true, // 是否显示【无数据】区域文字，不能控制无数据区域文字
                 offset: 1, // 文字离地面高度
                 textStyle: { // 有数据地区的名字样式
+                    show: true, // 是否显示有数据地区文字
                     scale: 1, // 缩放比例
                     fontWeight: 'normal',
                     fontFamily: 'Microsoft YaHei',
@@ -365,17 +366,21 @@ export default class GeoJSONLayer extends Layer {
         const nullTextOptions = {
             textStyle: this.options.areaText.nullTextStyle
         };
-        if (this._textLayer) {
-            this._textLayer.update(textData);
-        } else {
-            this._textLayer = new TextLayer(textData, textOptions);
-            this._map.addLayer(this._textLayer);
+        if (this.options.areaText.textStyle.show) {
+            if (this._textLayer) {
+                this._textLayer.update(textData);
+            } else {
+                this._textLayer = new TextLayer(textData, textOptions);
+                this._map.addLayer(this._textLayer);
+            }
         }
-        if (this._nulltextLayer && this.options.areaText.show) {
-            this._nulltextLayer.update(nullTextData);
-        } else if(this._nulltextLayer == null && this.options.areaText.show){
-            this._nulltextLayer = new TextLayer(nullTextData, nullTextOptions);
-            this._map.addLayer(this._nulltextLayer);
+        if (this.options.areaText.show) {
+            if (this._nulltextLayer) {
+                this._nulltextLayer.update(nullTextData);
+            } else {
+                this._nulltextLayer = new TextLayer(nullTextData, nullTextOptions);
+                this._map.addLayer(this._nulltextLayer);
+            }
         }
     }
     drawOutLine(points, mesh) {

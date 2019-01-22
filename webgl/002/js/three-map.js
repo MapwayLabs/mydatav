@@ -138,8 +138,15 @@ export default class ThreeMap extends EventEmiter {
         // TODO: 自动适配
         if (this.options.type === 'plane') {
             if (this.options.region === 'world') {
-                this._orbitControl.object.position.set(16.42515, 369.562538, 333.99466);
-                this._orbitControl.target = new THREE.Vector3(10.06448, 51.62625, 6.71498);
+                // this._orbitControl.object.position.set(16.42515, 369.562538, 333.99466);
+                // this._orbitControl.target = new THREE.Vector3(10.06448, 51.62625, 6.71498);
+                let d = this.getDistance(bounds.getHeight());
+                let scaleD = d * this.options.camera.distanceRatio;
+                let center = bounds.getCenter();
+                this._orbitControl.object.position.set(center[0], scaleD, -center[1]);
+                this._orbitControl.target = new THREE.Vector3(center[0], 0, -center[1]);
+                this._orbitControl.minDistance = d * 0.5;
+                this._orbitControl.maxDistance = d * 2;
             } else if (this.options.region === 'china') {
                 let d = this.getDistance(bounds.getHeight());
                 let center = bounds.getCenter();
