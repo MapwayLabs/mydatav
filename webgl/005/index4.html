@@ -9,25 +9,27 @@
     <script src="../../lib/threejs/three.js"></script>
     <script src="../../lib/threejs/js/controls/OrbitControls.js"></script>
     <style>
-        .text-canvas {
+        #glcanvas {
             position: absolute;
-            left: 10px;
-            top: 10px;
+            left: 0;
+            top: 0;
             z-index: 1;
-            background: #fff;
+            background: #000;
+            bottom: 0;
+            right: 0;
         }
     </style>
 </head>
 
 <body>
-    <canvas id="glcanvas" width="640" height="480"></canvas>
+    <canvas id="glcanvas"></canvas>
     <script>
         // 画布
         var renderer = new THREE.WebGLRenderer({
             antialias: true, // 抗锯齿
             canvas: document.getElementById("glcanvas")
         });
-        // renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setSize(window.innerWidth, window.innerHeight);
         // document.body.appendChild(renderer.domElement);
         renderer.domElement.style.backgroundColor = "#000";
 
@@ -44,9 +46,24 @@
 
         // OrbitControls
         var controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.object.position.set(256, 256, 256);
-        controls.target = new THREE.Vector3(0, 0, 0);
+        var dis = (256/2) / Math.tan(Math.PI/8);
+        // controls.object.position.set(0, dis*1.5, -0);
+        controls.object.position.set(128, 195, dis*1.5);
+        controls.target = new THREE.Vector3(128, 0, -0);
+        // camera.position.set(256, 256, 256);
+        // camera.position.set(160, 256, -128);
+        // camera.translateZ(-128);
+        // camera.translateX(160);
+        // scene.translateX(-160);
+        // scene.translateZ(128);
+        // controls.target = new THREE.Vector3(160, 0, -128);
+        // scene.translateZ(-128);
+        // scene.translateX(-160);
+        // scene.rotateX(Math.PI / 2);
         controls.update();
+
+        // 灯光
+        scene.add(new THREE.AmbientLight(0xffffff, 0.8));
 
         // 坐标轴
         function drawAxis(len) {
@@ -85,13 +102,48 @@
         }
         drawAxis(256);
 
-        var geometry = new THREE.BoxBufferGeometry( 32, 32, 32 );
-        var material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
-        var cube = new THREE.Mesh( geometry, material );
-        scene.add( cube );
+        // 平面
+        var planeGeometry = new THREE.PlaneGeometry(256, 256, 8, 8);
+        var planeMaterial = new THREE.MeshBasicMaterial({
+            wireframe: true,
+            color: 0xffff00,
+            side: THREE.DoubleSide
+        });
+        var plane = new THREE.Mesh(planeGeometry, planeMaterial);
+        // 当用固定的全局坐标系看待变换时，变换实际发生的顺序与代码中的调用顺序正好相反
+        // plane.translateZ(-128);
+        // plane.translateX(160);
+        plane.rotateX(-Math.PI / 2);
+        scene.add(plane);
+
+        // 柱体
+        const shape = new THREE.Shape();
+        shape.moveTo(0, 0);
+        shape.lineTo(32, 0);
+        shape.lineTo(32, 32);
+        shape.lineTo(0, 32);
+        shape.lineTo(0, 0);
+  
+        const extrudeSettings = {
+          curveSegments: 0,
+          steps: 0,
+          depth: 64,
+          bevelEnabled: true,
+          bevelThickness: 0.1,
+          bevelSize: 0.08,
+          bevelSegments: 100
+        };
+        const geometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings);
+        const material = new THREE.MeshPhongMaterial({ color: '#f00' });
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.rotateX(-Math.PI/2);
+        scene.add(mesh);
+        // mesh.position.set(160, 0, -128);
 
         function animate() {
             requestAnimationFrame(animate);
+
+            camera.updateProjectionMatrix();
 
             controls.update();
 
