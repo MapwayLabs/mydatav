@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>3D中国-世界地图</title>
+    <script src="../../lib/threejs/three.js"></script>
+    <script src="../../lib/threejs/js/controls/OrbitControls.js"></script>
+    <script src="./dist/threejsmap.js"></script>
+    <script src="../../lib/jquery.min.js"></script>
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+
+        #threemap {
+            position: absolute;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            background: #24273C;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="threemap"></div>
+    <script>
+        // ./china_province.json  geo-china-beijing.json world2 countriesgeo.json
+        $.getJSON('../../data/world2.json', function (data) {
+            let worldMapOptions = {
+                type: 'plane', // plane or sphere ,平面或球面
+                region: 'world', // china or world, 中国或世界地图
+                crs: 'EPSG:3857', // 地图采用的地理坐标系 EPSG:4326: 经纬度，EPSG:3857: 墨卡托
+                orbitControlOptions: {
+                    minDistance: 10,
+                    maxDistance: 1000,
+                    minPolarAngle: 0,
+                    maxPolarAngle: 80,
+                    minAzimuthAngle: -90,
+                    maxAzimuthAngle: 90
+                },
+                light: {
+                    // 主光源：太阳光 THREE.DirectionalLight
+                    main: {
+                        color: '#ffffff',
+                        intensity: 1
+                    },
+                    // 环境光源 THREE.AmbientLight
+                    ambient: {
+                        color: '#ffffff',
+                        intensity: 0.6
+                    }
+                }
+            }
+            window.map = new TMap.ThreeMap('threemap', worldMapOptions);
+            let worldGeoOptions = {
+                isAutoResize: false,
+                isExtrude: false, // 是否拉伸面
+                depth: 10, // 拉伸厚度
+                areaText: {
+                    show: false,
+                    offset: 1,
+                    textStyle: {
+                        show: false,
+                        scale: 28
+                    },
+                    nullTextStyle: {
+                        scale: 24
+                    }
+                },
+                lineOpacity: 0.3,
+                lineMaterial: {
+                    color: '#000'
+                },
+                areaMaterial: { // 面材质配置
+                    color: '#343752'
+                },
+                hightLight: {
+                    show: false
+                }
+            };
+            window.geojsonLayer = new TMap.GeoJSONLayer(data, worldGeoOptions);
+            window.map.addLayer(window.geojsonLayer);
+            window.map.setView(window.geojsonLayer.getBounds());
+            $.getJSON('../../data/china_outline.json', function (data) {
+                let chinaGeoOptions = {
+                    isAutoResize: false,
+                    isExtrude: false, // 是否拉伸面
+                    depth: 6, // 拉伸厚度
+                    areaText: {
+                        show: false,
+                        offset: 0.1,
+                        textStyle: {
+                            show: false,
+                            scale: 1
+                        },
+                        nullTextStyle: {
+                            scale: 1
+                        }
+                    },
+                    lineOpacity: 0.5,
+                    lineMaterial: {
+                        color: '#0f0'
+                    },
+                    areaMaterial: {
+                        color: '#343752'
+                    },
+                    hightLight: {
+                        show: false
+                    }
+                };
+                window.chinaGeojsonLayer = new TMap.GeoJSONLayer(data, chinaGeoOptions);
+                window.map.addLayer(window.chinaGeojsonLayer);
+            });
+        });
+    </script>
+</body>
+
+</html>
