@@ -14,8 +14,8 @@ export default class GeoJSONLayer extends Layer {
             resizeParam: {
                 depth: 1.5,
                 offset: 0,
-                scale1: 20,
-                scale2: 16
+                scale1: 22,
+                scale2: 20
             }, 
             isExtrude: true, // 是否拉伸面
             depth: 16, // 拉伸厚度
@@ -49,7 +49,10 @@ export default class GeoJSONLayer extends Layer {
                 color: 0x00ff00,
                 side: THREE.DoubleSide
             },
-            highLightColor: '#639fc0'
+            hightLight: {
+                show: false,
+                color: '#639fc0'
+            }
         };
         this.options = Util.extend(true, defaultOptions, options);
 
@@ -63,7 +66,9 @@ export default class GeoJSONLayer extends Layer {
         }
         this._draw();
         this.updateLabels();
-        this._map.on('mousemove', this._mousemoveEvtHandler, this);
+        if (this.options.hightLight.show) {
+            this._map.on('mousemove', this._mousemoveEvtHandler, this);
+        }
     }
     onRemove(map) {
         Layer.prototype.onRemove.call(this, map);
@@ -303,7 +308,7 @@ export default class GeoJSONLayer extends Layer {
             let udata = object.userData;
             if (udata && udata.type === 'area') {
                 object.userData.oldColor = object.material.color;
-                object.material.color = new THREE.Color(this.options.highLightColor);
+                object.material.color = new THREE.Color(this.options.hightLight.color);
                 this._currentSelectObj = object;
                 break;
             }

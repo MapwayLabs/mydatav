@@ -364,6 +364,9 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         this._initBarData();
         this._initColorData();
         this._initMinMax();
+        // test
+        // console.log(this._barData.data);
+        // console.log(this._colorsData.data);
     }
     onAdd(map) {
         _layer__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.onAdd.call(this, map); 
@@ -399,8 +402,8 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         // TODO: bdp
         let formattedVal = this.bdpChart.helper.dataLabelFormatter(this._data.y.formatter, value, this._data.y.aggregator);
         // 如果未设置单位，则使用自定义单位
-        if (!this._data.y[0].formatter.num.unit || this._data.y[0].formatter.num.unit === '1') {
-            tempobj.formattedVal += this._data.y[0].unit_adv
+        if (!this._data.y.formatter.num.unit || this._data.y.formatter.num.unit === '1') {
+            formattedVal += this._data.y.unit_adv;
         }
         return formattedVal;
     }
@@ -433,6 +436,7 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                         id: props.id || f.id,
                         name: props.name,
                         xname: x.data[i],
+                        ylabelName: y.name,
                         index: i,
                         center: _maphelper__WEBPACK_IMPORTED_MODULE_2__["getNormalizeCenter"](f),
                         value: Number(y.data[i])
@@ -466,7 +470,7 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             this._colorsData.min = Math.min(...cData);
             this._colorsData.max = Math.max(...cData);
         } else {
-            this._colorsData.data = this._barData.data;
+            this._colorsData.data = this._barData.vals;
             this._colorsData.min = this._barData.min;
             this._colorsData.max = this._barData.max;
         }
@@ -483,7 +487,23 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         let xmax = this._barData.max;
         let ymin = this.options.barStyle.minHeight;
         let ymax = this.options.barStyle.maxHeight;
-        let barHeight = _util__WEBPACK_IMPORTED_MODULE_1__["normalizeValue"](item.value, xmin, xmax, ymin, ymax);
+        /**调整比例关系 只有两类数时，柱子高度成比例*/
+        // 去重
+        let datavals = this._barData.vals.filter((val, index, arr) => arr.indexOf(val)===index);
+        if (datavals.length === 2 && xmax !== 0 && xmin !== 0 && xmax !== xmin) {
+            let ratio = 0;
+            if (xmax * xmin > 0) {
+                if (xmin > 0) {
+                    ratio = xmin / xmax;
+                } else {
+                    ratio = Math.abs(xmax / xmin);
+                }
+            } else {
+                ratio = 1 / (xmax - xmin);
+            }
+            ymin = Math.max(ymax * ratio, ymin);
+        }
+        let barHeight = _util__WEBPACK_IMPORTED_MODULE_1__["normalizeValue"](item.value, xmin, xmax, ymin, ymax, 0);
         return barHeight;
     }
     getBarColor(item, index) {
@@ -495,7 +515,10 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             let xmax = this._colorsData.max;
             let ymin = 1;
             let ymax = 256;
-            let num = _util__WEBPACK_IMPORTED_MODULE_1__["normalizeValue"](this._colorsData[index], xmin, xmax, ymin, ymax);
+            let num = _util__WEBPACK_IMPORTED_MODULE_1__["normalizeValue"](this._colorsData.data[index], xmin, xmax, ymin, ymax, 1);
+            if (isNaN(num)) {
+                throw new Error('柱形图颜色计算错误！');
+            }
             color = _util__WEBPACK_IMPORTED_MODULE_1__["getInterPolateColor"](num, barStyle.grandientColor);
         } else if (barStyle.enumColor) {
            let enumcolor = barStyle.enumColor[item.name] || barStyle.enumColor[item.id];
@@ -567,7 +590,7 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 
                 let content = `
                     <div class="mb4" style="text-align:center;">${udata['name']}</div>
-                    <div style="color:#${color};"><span>${udata['yname']}：</span> ${udata['formattedVal']}</div>
+                    <div style="color:#${color};"><span>${udata['ylabelName']}：</span> ${udata['formattedVal']}</div>
                 `;
                 // console.log(udata.name);
                 this._toolTipHelper && this._toolTipHelper.showTooltip(cx, cy, content); // TODO: bdp
@@ -2896,12 +2919,15 @@ function isWebGLAvailable () {
  * xmax, xmin 目前数据的最大、最小值
  * ymax, ymin 目标区间的最大、最小值
  */
-function normalizeValue(value, xmin, xmax, ymin, ymax) {
+function normalizeValue(value, xmin, xmax, ymin, ymax, type = 0) {
     if (xmax === 0 && xmin === 0) {
         return ymin;
     }
     if (xmin === xmax) {
-        return (ymax + ymin) / 2;
+        // type =0 柱子高度相同时，取中值
+        // type !=0 颜色相同时，取最小值
+        if (type === 0) {return (ymax + ymin) / 2;}
+        else {return ymin;}
     }
     return ymin + (ymax - ymin) * (value - xmin) / (xmax - xmin);
 }
@@ -2909,6 +2935,7 @@ function normalizeValue(value, xmin, xmax, ymin, ymax) {
 // 获取渐变色
 var imgData;
 function getInterPolateColor(num, g) {
+    num = Math.round(num);
     g = g || [
         { value: 1, color: '#EF6064'},
         { value: 0, color: '#FFA9A9'}

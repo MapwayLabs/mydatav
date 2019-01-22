@@ -193,37 +193,17 @@ export function isWebGLAvailable () {
  * xmax, xmin 目前数据的最大、最小值
  * ymax, ymin 目标区间的最大、最小值
  */
-export function normalizeValue(value, xmin, xmax, ymin, ymax) {
+export function normalizeValue(value, xmin, xmax, ymin, ymax, type = 0) {
     if (xmax === 0 && xmin === 0) {
         return ymin;
     }
     if (xmin === xmax) {
-        return (ymax + ymin) / 2;
+        // type =0 柱子高度相同时，取中值
+        // type !=0 颜色相同时，取最小值
+        if (type === 0) {return (ymax + ymin) / 2;}
+        else {return ymin;}
     }
     return ymin + (ymax - ymin) * (value - xmin) / (xmax - xmin);
-}
-
-// 获取渐变色
-var imgData;
-export function getInterPolateColor(num, g) {
-    g = g || [
-        { value: 1, color: '#EF6064'},
-        { value: 0, color: '#FFA9A9'}
-    ]
-    if (imgData == null) {
-        const canvas = document.createElement('canvas');
-        canvas.height = 1;
-        canvas.width = 256;
-        const ctx = canvas.getContext('2d');
-        const grandient = ctx.createLinearGradient(0, 0, 256, 0);
-        g.forEach(item => {
-            grandient.addColorStop(item.value, item.color);
-        })
-        ctx.fillStyle = grandient;
-        ctx.fillRect(0, 0, 256, 1);
-        imgData = ctx.getImageData(0, 0, 256, 1).data;
-    }
-    return `rgba(${imgData[4 * (num-1)]},${imgData[4 * (num-1)+1]},${imgData[4 * (num-1)+2]},${imgData[4 * (num-1)+3]})`
 }
 
 // 获取一个颜色的高亮或更暗色 https://css-tricks.com/snippets/javascript/lighten-darken-color/

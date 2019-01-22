@@ -113,11 +113,10 @@ export default class BarLayer extends Layer {
     getFormattedVal(value) {
         if (!this.bdpChart) {return value;}
         // TODO: bdp
-        let oldData = this._data.oldData;
-        let formattedVal = this.bdpChart.helper.dataLabelFormatter(oldData.y.formatter, value, oldData.y.aggregator);
+        let formattedVal = this.bdpChart.helper.dataLabelFormatter(this._data.y.formatter, value, this._data.y.aggregator);
         // 如果未设置单位，则使用自定义单位
-        if (!oldData.y[0].formatter.num.unit || oldData.y[0].formatter.num.unit === '1') {
-            formattedVal += oldData.y[0].unit_adv;
+        if (!this._data.y.formatter.num.unit || this._data.y.formatter.num.unit === '1') {
+            formattedVal += this._data.y.unit_adv;
         }
         return formattedVal;
     }
@@ -150,6 +149,7 @@ export default class BarLayer extends Layer {
                         id: props.id || f.id,
                         name: props.name,
                         xname: x.data[i],
+                        ylabelName: y.name,
                         index: i,
                         center: mapHelper.getNormalizeCenter(f),
                         value: Number(y.data[i])
@@ -183,7 +183,7 @@ export default class BarLayer extends Layer {
             this._colorsData.min = Math.min(...cData);
             this._colorsData.max = Math.max(...cData);
         } else {
-            this._colorsData.data = this._barData.data;
+            this._colorsData.data = this._barData.vals;
             this._colorsData.min = this._barData.min;
             this._colorsData.max = this._barData.max;
         }
@@ -200,7 +200,23 @@ export default class BarLayer extends Layer {
         let xmax = this._barData.max;
         let ymin = this.options.barStyle.minHeight;
         let ymax = this.options.barStyle.maxHeight;
-        let barHeight = Util.normalizeValue(item.value, xmin, xmax, ymin, ymax);
+        /**调整比例关系 只有两类数时，柱子高度成比例*/
+        // 去重
+        let datavals = this._barData.vals.filter((val, index, arr) => arr.indexOf(val)===index);
+        if (datavals.length === 2 && xmax !== 0 && xmin !== 0 && xmax !== xmin) {
+            let ratio = 0;
+            if (xmax * xmin > 0) {
+                if (xmin > 0) {
+                    ratio = xmin / xmax;
+                } else {
+                    ratio = Math.abs(xmax / xmin);
+                }
+            } else {
+                ratio = 1 / (xmax - xmin);
+            }
+            ymin = Math.max(ymax * ratio, ymin);
+        }
+        let barHeight = Util.normalizeValue(item.value, xmin, xmax, ymin, ymax, 0);
         return barHeight;
     }
     getBarColor(item, index) {
@@ -212,8 +228,11 @@ export default class BarLayer extends Layer {
             let xmax = this._colorsData.max;
             let ymin = 1;
             let ymax = 256;
-            let num = Util.normalizeValue(this._colorsData[index], xmin, xmax, ymin, ymax);
-            color = Util.getInterPolateColor(num, barStyle.grandientColor);
+            let num = Util.normalizeValue(this._colorsData.data[index], xmin, xmax, ymin, ymax, 1);
+            if (isNaN(num)) {
+                throw new Error('柱形图颜色计算错误！');
+            }
+            color = this.getInterPolateColor(num, barStyle.grandientColor);
         } else if (barStyle.enumColor) {
            let enumcolor = barStyle.enumColor[item.name] || barStyle.enumColor[item.id];
            color = enumcolor && enumcolor.color;
@@ -224,6 +243,27 @@ export default class BarLayer extends Layer {
             color = barStyle.defaultColor[index % cLen]
         }
         return color;
+    }
+    getInterPolateColor(num, g) {
+        num = Math.round(num);
+        g = g || [
+            { value: 1, color: '#EF6064'},
+            { value: 0, color: '#FFA9A9'}
+        ]
+        if (this._imgData == null) {
+            const canvas = document.createElement('canvas');
+            canvas.height = 1;
+            canvas.width = 256;
+            const ctx = canvas.getContext('2d');
+            const grandient = ctx.createLinearGradient(0, 0, 256, 0);
+            g.forEach(item => {
+                grandient.addColorStop(item.value, item.color);
+            })
+            ctx.fillStyle = grandient;
+            ctx.fillRect(0, 0, 256, 1);
+            this._imgData = ctx.getImageData(0, 0, 256, 1).data;
+        }
+        return `rgba(${this._imgData[4 * (num-1)]},${this._imgData[4 * (num-1)+1]},${this._imgData[4 * (num-1)+2]},${this._imgData[4 * (num-1)+3]})`
     }
     _draw() {
         if (this._barData.data == null || !this._barData.data.length) {return;}
@@ -284,7 +324,7 @@ export default class BarLayer extends Layer {
                 
                 let content = `
                     <div class="mb4" style="text-align:center;">${udata['name']}</div>
-                    <div style="color:#${color};"><span>${udata['yname']}：</span> ${udata['formattedVal']}</div>
+                    <div style="color:#${color};"><span>${udata['ylabelName']}：</span> ${udata['formattedVal']}</div>
                 `;
                 // console.log(udata.name);
                 this._toolTipHelper && this._toolTipHelper.showTooltip(cx, cy, content); // TODO: bdp
