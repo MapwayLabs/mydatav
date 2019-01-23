@@ -293,6 +293,9 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         super(data, options);
 
         const defaultOptions = {
+            // 柱子显示是否与底图 geojson 数据匹配。
+            ///如果设置为 true，则会根据json数据来匹配 x 轴数据，只有匹配上的数据才会得到展示。
+            isMatchGeoJson: true, 
             // 是否自动适配尺寸。如果设置为 true，配置项中的 depth\offset\scale 等尺寸会根据当前行政区来自动适配，用户传入的值就无效了。
             isAutoResize: true, 
             // 适配参数，仅当 isAutoResize 设置为 true 时有效。
@@ -416,6 +419,46 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         this.options.barText.textStyle.scale = resizeParam.barText.textStyle.scale * ratio;
     }
     _initBarData() {
+        if (this.options.isMatchGeoJson) {
+            this._initMatchGeoBarData();
+        } else {
+            this._initNoMatchGeoBarData();
+        }
+    }
+    _initNoMatchGeoBarData() {
+        const x = this._data.x;
+        const y = this._data.y;
+        
+        let barData = [];
+        let vals = [];
+        let xlength = x.data.length;
+        for (let i = 0; i < xlength; i++) {
+            // 如果有位置数据，使用位置数据
+            let center;
+            if (x.location_data && x.location_data.length) {
+                center = [x.location_data[i].longitude, x.location_data[i].latitude];
+            }
+            if (!center) {
+                continue;
+            }
+            let value = Number(y.data[i]);
+            let tempobj = {
+                name: x.data[i],
+                xname: x.data[i],
+                ylabelName: y.name,
+                index: i,
+                center: center,
+                value: value,
+                formattedVal: this.getFormattedVal(value)
+            };
+            barData.push(tempobj);
+            vals.push(value);
+        }
+
+        this._barData.data = barData;
+        this._barData.vals = vals;
+    }
+    _initMatchGeoBarData() {
         const features = this.geojsonLayer.getFeatures();
         const x = this._data.x;
         const y = this._data.y;
@@ -428,14 +471,22 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             let i = 0;
             for (; i < xlength; i++) {
                 let ismatch = this.isMatch(x.data[i], f);
+                // 如果匹配到底图
                 if (ismatch) {
+                    // 如果有位置数据，使用位置数据
+                    let center;
+                    if (x.location_data && x.location_data.length) {
+                        center = [x.location_data[i].longitude, x.location_data[i].latitude];
+                    } else {
+                        center = _maphelper__WEBPACK_IMPORTED_MODULE_2__["getNormalizeCenter"](f);
+                    }
                     let tempobj = {
                         id: props.id || f.id,
                         name: props.name,
                         xname: x.data[i],
                         ylabelName: y.name,
                         index: i,
-                        center: _maphelper__WEBPACK_IMPORTED_MODULE_2__["getNormalizeCenter"](f),
+                        center: center,
                         value: Number(y.data[i])
                     };
                     tempobj.formattedVal = this.getFormattedVal(tempobj.value);
@@ -563,7 +614,9 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         if (this.options.barText.show) {
             this._addTextLayer();
         } 
-        this.geojsonLayer.updateLabels(this);
+        if (this.options.isMatchGeoJson) {
+            this.geojsonLayer.updateLabels(this);
+        }
         if (this.options.barTooltip.show) {
             this._map.on('mousemove', this._mousemoveEvtHandler, this);
         }
@@ -1975,6 +2028,9 @@ class Layer extends _eventemiter__WEBPACK_IMPORTED_MODULE_1__["default"] {
     }
     getData() {
         return this._data;
+    }
+    getMap() {
+        return this._map;
     }
     onAdd(map) {
         this._map = map;

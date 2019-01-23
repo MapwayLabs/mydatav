@@ -14,6 +14,9 @@ export default class Layer extends EventEmiter {
     getData() {
         return this._data;
     }
+    getMap() {
+        return this._map;
+    }
     onAdd(map) {
         this._map = map;
     }
