@@ -119,6 +119,7 @@
             });
             $.getJSON('../../data/bardata.json', function (data) {
                 let barOptions = {
+                    isMatchGeoJson: false,
                     isAutoResize: false, 
                     barStyle: {
                         width: 1.5, // 底边长
