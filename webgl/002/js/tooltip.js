@@ -11,8 +11,18 @@ export default class ToolTip {
         this.options = Util.extend(true, defaultOptions, options);
     
         this._el = document.createElement("div");
-        Util.addClass(this._el, 'tooltip sankey-tooltip ' + this.options.className);
+        // Util.addClass(this._el, 'tooltip sankey-tooltip ' + this.options.className);
+        Util.addClass(this._el, this.options.className);
         this._el.style.display = 'none';
+        this._el.style.position = 'absolute';
+        this._el.style.backgroundColor = '#fff';
+        this._el.style.borderRadius = '2px';
+        this._el.style.color = 'rgba(10, 18, 32, 0.64)';
+        this._el.style.fontSize = '12px';
+        this._el.style.lineHeight = 1.4;
+        this._el.style.opacity = 0.9;
+        this._el.style.padding = '8px 10px';
+        this._el.style.userSelect = 'none';
        
         if (!parentElement) {
             throw new Error('未提供tootip父元素！');
