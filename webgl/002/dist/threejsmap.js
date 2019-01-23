@@ -1617,7 +1617,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 show: false,
                 color: '#639fc0'
             },
-            tootip: {
+            tooltip: {
                 show: true
             }
         };
@@ -1636,7 +1636,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         if (this.options.hightLight.show) {
             this._map.on('mousemove', this._mousemoveEvtHandler, this);
         }
-        if (this.options.tootip.show) {
+        if (this.options.tooltip.show) {
             this._tooltip = new _tooltip__WEBPACK_IMPORTED_MODULE_4__["default"](this._map.getContainerElement());
         }
     }
@@ -2827,8 +2827,18 @@ class ToolTip {
         this.options = _util__WEBPACK_IMPORTED_MODULE_0__["extend"](true, defaultOptions, options);
     
         this._el = document.createElement("div");
-        _util__WEBPACK_IMPORTED_MODULE_0__["addClass"](this._el, 'tooltip sankey-tooltip ' + this.options.className);
+        // Util.addClass(this._el, 'tooltip sankey-tooltip ' + this.options.className);
+        _util__WEBPACK_IMPORTED_MODULE_0__["addClass"](this._el, this.options.className);
         this._el.style.display = 'none';
+        this._el.style.position = 'absolute';
+        this._el.style.backgroundColor = '#fff';
+        this._el.style.borderRadius = '2px';
+        this._el.style.color = 'rgba(10, 18, 32, 0.64)';
+        this._el.style.fontSize = '12px';
+        this._el.style.lineHeight = 1.4;
+        this._el.style.opacity = 0.9;
+        this._el.style.padding = '8px 10px';
+        this._el.style.userSelect = 'none';
        
         if (!parentElement) {
             throw new Error('未提供tootip父元素！');
