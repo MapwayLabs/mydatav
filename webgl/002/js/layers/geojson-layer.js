@@ -2,6 +2,7 @@ import Layer from './layer';
 import * as Util from '../util';
 import * as mapHelper from '../maphelper';
 import TextLayer from './text-layer';
+import ToolTip from '../tooltip';
 
 // geojson 地图
 export default class GeoJSONLayer extends Layer {
@@ -53,6 +54,9 @@ export default class GeoJSONLayer extends Layer {
             hightLight: {
                 show: false,
                 color: '#639fc0'
+            },
+            tootip: {
+                show: true
             }
         };
         this.options = Util.extend(true, defaultOptions, options);
@@ -70,12 +74,17 @@ export default class GeoJSONLayer extends Layer {
         if (this.options.hightLight.show) {
             this._map.on('mousemove', this._mousemoveEvtHandler, this);
         }
+        if (this.options.tootip.show) {
+            this._tooltip = new ToolTip(this._map.getContainerElement());
+        }
     }
     onRemove(map) {
         Layer.prototype.onRemove.call(this, map);
         this._textLayer && this._map.removeLayer(this._textLayer);
         this._nulltextLayer && this._map.removeLayer(this._nulltextLayer);
         this._map.off('mousemove', this._mousemoveEvtHandler, this);
+        this._tooltip && this._tooltip.remove();
+        this._tooltip = null;
     }
     getBounds() {
         return this._bounds;
@@ -242,6 +251,9 @@ export default class GeoJSONLayer extends Layer {
         for (let i = 0, len = this._features.length; i < len; i++) {
             let feature = this._features[i];
             let geometry = feature.geometry;
+            let userData = {
+                name: mapHelper.getNormalizeName(feature)
+            };
             if (geometry == null) continue;
             if (geometry.type == 'Point') {
 
@@ -258,7 +270,7 @@ export default class GeoJSONLayer extends Layer {
                     if (this._map.options.crs === mapHelper.CRS.epsg3857) {
                         convert_array = this.convertCoordinates(coordinate_array);
                     }
-                    this.drawPolygon(convert_array);
+                    this.drawPolygon(convert_array, userData);
                 }
 
             } else if (geometry.type == 'MultiPolygon') {
@@ -269,7 +281,7 @@ export default class GeoJSONLayer extends Layer {
                         if (this._map.options.crs === mapHelper.CRS.epsg3857) {
                             convert_array = this.convertCoordinates(coordinate_array);
                         }
-                        this.drawPolygon(convert_array);
+                        this.drawPolygon(convert_array, userData);
                     }
                 }
             } else {
@@ -302,6 +314,7 @@ export default class GeoJSONLayer extends Layer {
         if (this._currentSelectObj) {
             this._currentSelectObj.material.color = this._currentSelectObj.userData.oldColor;
             this._currentSelectObj = null;
+            this._tooltip && this._tooltip.close();
         }
 
         for (var i = 0; i < intersects.length; i++) {
@@ -311,6 +324,8 @@ export default class GeoJSONLayer extends Layer {
                 object.userData.oldColor = object.material.color;
                 object.material.color = new THREE.Color(this.options.hightLight.color);
                 this._currentSelectObj = object;
+                let content = `${udata['name']}`;
+                this._tooltip && this._tooltip.open(sx, sy, content);
                 break;
             }
         }
@@ -318,6 +333,7 @@ export default class GeoJSONLayer extends Layer {
             if (this._currentSelectObj) {
                 this._currentSelectObj.material.color = this._currentSelectObj.userData.oldColor;
                 this._currentSelectObj = null;
+                this._tooltip && this._tooltip.close();
             }
         }
     }
@@ -400,7 +416,7 @@ export default class GeoJSONLayer extends Layer {
         line.renderOrder = 98;
         mesh.add(line);
     }
-    drawPolygon(points) {
+    drawPolygon(points, userData) {
         const shape = new THREE.Shape();
         for (let i = 0; i < points.length; i++) {
             let point = points[i];
@@ -431,9 +447,7 @@ export default class GeoJSONLayer extends Layer {
         let mesh = new THREE.Mesh(geometry, material);
         this.drawOutLine(points, mesh);
         mesh.rotateX(-Math.PI/2);
-        mesh.userData = {
-            type: 'area'
-        };
+        mesh.userData = Util.extend({type: 'area'}, userData);
         this._container.add(mesh);
     }
 }

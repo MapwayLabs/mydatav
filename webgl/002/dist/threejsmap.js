@@ -1559,6 +1559,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../util */ "./js/util.js");
 /* harmony import */ var _maphelper__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../maphelper */ "./js/maphelper.js");
 /* harmony import */ var _text_layer__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./text-layer */ "./js/layers/text-layer.js");
+/* harmony import */ var _tooltip__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../tooltip */ "./js/tooltip.js");
+
 
 
 
@@ -1614,6 +1616,9 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             hightLight: {
                 show: false,
                 color: '#639fc0'
+            },
+            tootip: {
+                show: true
             }
         };
         this.options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](true, defaultOptions, options);
@@ -1631,12 +1636,17 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         if (this.options.hightLight.show) {
             this._map.on('mousemove', this._mousemoveEvtHandler, this);
         }
+        if (this.options.tootip.show) {
+            this._tooltip = new _tooltip__WEBPACK_IMPORTED_MODULE_4__["default"](this._map.getContainerElement());
+        }
     }
     onRemove(map) {
         _layer__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.onRemove.call(this, map);
         this._textLayer && this._map.removeLayer(this._textLayer);
         this._nulltextLayer && this._map.removeLayer(this._nulltextLayer);
         this._map.off('mousemove', this._mousemoveEvtHandler, this);
+        this._tooltip && this._tooltip.remove();
+        this._tooltip = null;
     }
     getBounds() {
         return this._bounds;
@@ -1803,6 +1813,9 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         for (let i = 0, len = this._features.length; i < len; i++) {
             let feature = this._features[i];
             let geometry = feature.geometry;
+            let userData = {
+                name: _maphelper__WEBPACK_IMPORTED_MODULE_2__["getNormalizeName"](feature)
+            };
             if (geometry == null) continue;
             if (geometry.type == 'Point') {
 
@@ -1819,7 +1832,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                     if (this._map.options.crs === _maphelper__WEBPACK_IMPORTED_MODULE_2__["CRS"].epsg3857) {
                         convert_array = this.convertCoordinates(coordinate_array);
                     }
-                    this.drawPolygon(convert_array);
+                    this.drawPolygon(convert_array, userData);
                 }
 
             } else if (geometry.type == 'MultiPolygon') {
@@ -1830,7 +1843,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                         if (this._map.options.crs === _maphelper__WEBPACK_IMPORTED_MODULE_2__["CRS"].epsg3857) {
                             convert_array = this.convertCoordinates(coordinate_array);
                         }
-                        this.drawPolygon(convert_array);
+                        this.drawPolygon(convert_array, userData);
                     }
                 }
             } else {
@@ -1863,6 +1876,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         if (this._currentSelectObj) {
             this._currentSelectObj.material.color = this._currentSelectObj.userData.oldColor;
             this._currentSelectObj = null;
+            this._tooltip && this._tooltip.close();
         }
 
         for (var i = 0; i < intersects.length; i++) {
@@ -1872,6 +1886,8 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 object.userData.oldColor = object.material.color;
                 object.material.color = new THREE.Color(this.options.hightLight.color);
                 this._currentSelectObj = object;
+                let content = `${udata['name']}`;
+                this._tooltip && this._tooltip.open(sx, sy, content);
                 break;
             }
         }
@@ -1879,6 +1895,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             if (this._currentSelectObj) {
                 this._currentSelectObj.material.color = this._currentSelectObj.userData.oldColor;
                 this._currentSelectObj = null;
+                this._tooltip && this._tooltip.close();
             }
         }
     }
@@ -1961,7 +1978,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         line.renderOrder = 98;
         mesh.add(line);
     }
-    drawPolygon(points) {
+    drawPolygon(points, userData) {
         const shape = new THREE.Shape();
         for (let i = 0; i < points.length; i++) {
             let point = points[i];
@@ -1992,9 +2009,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         let mesh = new THREE.Mesh(geometry, material);
         this.drawOutLine(points, mesh);
         mesh.rotateX(-Math.PI/2);
-        mesh.userData = {
-            type: 'area'
-        };
+        mesh.userData = _util__WEBPACK_IMPORTED_MODULE_1__["extend"]({type: 'area'}, userData);
         this._container.add(mesh);
     }
 }
@@ -2781,6 +2796,63 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
         window.cancelAnimationFrame(this._animateId);
         if (_util__WEBPACK_IMPORTED_MODULE_1__["isInPage"](this._container) && _util__WEBPACK_IMPORTED_MODULE_1__["isInPage"](this._el)) {
             this._container.removeChild(this._el);
+            this._el = null;
+        }
+    }
+}
+
+/***/ }),
+
+/***/ "./js/tooltip.js":
+/*!***********************!*\
+  !*** ./js/tooltip.js ***!
+  \***********************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ToolTip; });
+/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./util */ "./js/util.js");
+
+
+class ToolTip {
+    constructor(parentElement, options = {}) {
+        const defaultOptions = {
+            offsetX: 6,
+            offsetY: 8,
+            className: 'chart-map-3d-tooltip',
+            activeClassName: 'chart-map-3d-tooltip-active'
+        };
+        this.options = _util__WEBPACK_IMPORTED_MODULE_0__["extend"](true, defaultOptions, options);
+    
+        this._el = document.createElement("div");
+        _util__WEBPACK_IMPORTED_MODULE_0__["addClass"](this._el, 'tooltip sankey-tooltip ' + this.options.className);
+        this._el.style.display = 'none';
+       
+        if (!parentElement) {
+            throw new Error('未提供tootip父元素！');
+        }
+        parentElement.appendChild(this._el);
+    }
+    open(x, y, content) {
+        if (this._el) {
+            this._el.innerHTML = content;
+            this._el.style.left = x + this.options.offsetX + 'px';
+            this._el.style.top = y + this.options.offsetY + 'px';
+            _util__WEBPACK_IMPORTED_MODULE_0__["addClass"](this._el, this.options.activeClassName);
+            this._el.style.display = 'block';
+        }
+    }
+    close() {
+        if (this._el) {
+            _util__WEBPACK_IMPORTED_MODULE_0__["removeClass"](this._el, this.options.activeClassName);
+            this._el.style.display = 'none';
+        }   
+    }
+    remove() {
+        if (this._el && this._el.parentElement) {
+            this._el.parentElement.removeChild(this._el);
             this._el = null;
         }
     }

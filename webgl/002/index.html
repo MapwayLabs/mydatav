@@ -25,6 +25,15 @@
             right: 0;
             bottom: 0;
         }
+
+        .tooltip {
+            position: absolute;
+            display: none;
+            background: #000;
+            opacity: 0.6;
+            color: white;
+            font-size: 14px;
+        }
     </style>
 </head>
 
@@ -39,11 +48,11 @@
                 region: 'world', // china or world, 中国或世界地图
                 crs: 'EPSG:3857', // 地图采用的地理坐标系 EPSG:4326: 经纬度，EPSG:3857: 墨卡托
                 orbitControlOptions: {
-                    minDistance: 10, 
+                    minDistance: 10,
                     maxDistance: 1000,
-                    minPolarAngle: 0, 
+                    minPolarAngle: 0,
                     maxPolarAngle: 80,
-                    minAzimuthAngle: -90, 
+                    minAzimuthAngle: -90,
                     maxAzimuthAngle: 90
                 },
                 light: {
@@ -62,7 +71,7 @@
             const map = new TMap.ThreeMap('threemap', mapOptions);
             var geoOptions = {
                 isAutoResize: false,
-                isExtrude: true, // 是否拉伸面
+                isExtrude: false, // 是否拉伸面
                 depth: 10, // 拉伸厚度
                 areaText: {
                     show: true,
@@ -74,7 +83,7 @@
                         scale: 24
                     }
                 },
-                lineOpacity: 0.5,
+                lineOpacity: 0.3,
                 lineMaterial: {
                     color: '#000',
                     linewidth: 1
@@ -85,8 +94,8 @@
                     side: THREE.DoubleSide
                 },
                 hightLight: {
-                 show: true
-               }
+                    show: true
+                }
             };
             window.map = map;
             window.geojsonLayer = new TMap.GeoJSONLayer(data, geoOptions);
@@ -119,8 +128,8 @@
             });
             $.getJSON('../../data/bardata.json', function (data) {
                 let barOptions = {
-                    isMatchGeoJson: false,
-                    isAutoResize: false, 
+                    isMatchGeoJson: true,
+                    isAutoResize: false,
                     barStyle: {
                         width: 1.5, // 底边长
                         minHeight: 3, // 最小高度
