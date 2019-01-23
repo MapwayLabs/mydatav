@@ -55,7 +55,7 @@ export default class GeoJSONLayer extends Layer {
                 show: false,
                 color: '#639fc0'
             },
-            tootip: {
+            tooltip: {
                 show: true
             }
         };
@@ -74,7 +74,7 @@ export default class GeoJSONLayer extends Layer {
         if (this.options.hightLight.show) {
             this._map.on('mousemove', this._mousemoveEvtHandler, this);
         }
-        if (this.options.tootip.show) {
+        if (this.options.tooltip.show) {
             this._tooltip = new ToolTip(this._map.getContainerElement());
         }
     }
