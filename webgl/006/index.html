@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>deck.gl</title>
+    <script src="../../lib/jquery.min.js"></script>
+    <script src="../../lib/deckgl.min.js"></script>
+    <script src="../../lib/mapbox-gl.js"></script>
+    <link rel="stylesheet" href="../../lib/mapbox-gl.css">
+    <style>
+        #my-deck-div {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            right: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="my-deck-div"></div>
+    <script>
+        const TOKEN = 'pk.eyJ1IjoibGluZ2h1YW0iLCJhIjoiY2o1dWYzYzlqMDQ4OTJxbzRiZWl5OHdtcyJ9._Ae66CF7CGUIoJlVdrXjqA';
+        const deckgl = new deck.DeckGL({
+            container: 'my-deck-div',
+            // map: true,
+            mapboxApiAccessToken: TOKEN,
+            mapStyle: 'mapbox://styles/mapbox/dark-v9',
+            viewState: {
+                latitude: 39,
+                longitude: 116,
+                zoom: 1,
+                bearing: 0,
+                pitch: 45
+            },
+            controller: true
+        });
+        $.getJSON('../../data/bardata_china.json', data => {
+            var geojsonLayer = new deck.GeoJsonLayer({
+                data
+            });
+            deckgl.getMapboxMap().addLayer(geojsonLayer);
+        });
+    </script>
+</body>
+
+</html>
