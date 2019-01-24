@@ -92,7 +92,7 @@
             $.getJSON('../../data/china_outline.json', function (data) {
                 let chinaGeoOptions = {
                     isAutoResize: false,
-                    isExtrude: false, // 是否拉伸面
+                    isExtrude: true, // 是否拉伸面
                     depth: 6, // 拉伸厚度
                     areaText: {
                         show: false,
@@ -114,6 +114,20 @@
                     },
                     hightLight: {
                         show: false
+                    },
+                    outline: {
+                        top: {
+                            show: true,
+                            color: '#0f0',
+                            width: 2,
+                            opacity: 1
+                        },
+                        bottom: {
+                            show: true,
+                            color: '#f00',
+                            width: 20,
+                            opacity: 1
+                        }
                     }
                 };
                 window.chinaGeojsonLayer = new TMap.GeoJSONLayer(data, chinaGeoOptions);

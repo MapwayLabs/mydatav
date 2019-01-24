@@ -1560,6 +1560,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _maphelper__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../maphelper */ "./js/maphelper.js");
 /* harmony import */ var _text_layer__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./text-layer */ "./js/layers/text-layer.js");
 /* harmony import */ var _tooltip__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../tooltip */ "./js/tooltip.js");
+/* harmony import */ var _custom_meshline__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./custom-meshline */ "./js/layers/custom-meshline.js");
 
 
 
@@ -1619,6 +1620,20 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             },
             tooltip: {
                 show: true
+            },
+            outline: {
+                top: {
+                    show: false,
+                    color: 0x00ff00,
+                    width: 1,
+                    opacity: 1
+                },
+                bottom: {
+                    show: false,
+                    color: 0x00ff00,
+                    width: 1,
+                    opacity: 1
+                }
             }
         };
         this.options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](true, defaultOptions, options);
@@ -1978,6 +1993,37 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         line.renderOrder = 98;
         mesh.add(line);
     }
+    drawOutLine2(points, mesh, isZoffset = false) {
+        const size = this._map.getContainerSize();
+
+        points = points.map(pt => new THREE.Vector3(pt[0], pt[1], 0));
+
+        const geometry = new THREE.Geometry().setFromPoints( points );
+        
+        const line = new _custom_meshline__WEBPACK_IMPORTED_MODULE_5__["MeshLine"]();
+        line.setGeometry(geometry);
+
+        const resolution = new THREE.Vector2(size.width, size.height);
+        const outlineOptions = this.options.outline;
+        let color = isZoffset ? outlineOptions.top.color : outlineOptions.bottom.color;
+        const lineColor = new THREE.Color(color);
+        const opacity = isZoffset ? outlineOptions.top.opacity : outlineOptions.bottom.opacity;
+        const linewidth = isZoffset ? outlineOptions.top.width : outlineOptions.bottom.width;
+        const shaderMaterial = new _custom_meshline__WEBPACK_IMPORTED_MODULE_5__["MeshLineMaterial"]({
+            resolution: resolution,
+            color: lineColor,
+            opacity: opacity,
+            sizeAttenuation: false,
+            lineWidth: linewidth
+        });
+
+        const lineMesh = new THREE.Mesh(line.geometry, shaderMaterial);
+        if (this.options.isExtrude && isZoffset) {
+            lineMesh.translateZ(this.options.depth);
+        }
+        lineMesh.renderOrder = 99;
+        mesh.add(lineMesh);
+    }
     drawPolygon(points, userData) {
         const shape = new THREE.Shape();
         for (let i = 0; i < points.length; i++) {
@@ -2008,6 +2054,12 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         
         let mesh = new THREE.Mesh(geometry, material);
         this.drawOutLine(points, mesh);
+        if (this.options.outline.top.show) {
+            this.drawOutLine2(points, mesh, true);
+        }
+        if (this.options.outline.bottom.show) {
+            this.drawOutLine2(points, mesh, false);
+        }
         mesh.rotateX(-Math.PI/2);
         mesh.userData = _util__WEBPACK_IMPORTED_MODULE_1__["extend"]({type: 'area'}, userData);
         this._container.add(mesh);

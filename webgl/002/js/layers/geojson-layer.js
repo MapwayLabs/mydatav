@@ -3,7 +3,7 @@ import * as Util from '../util';
 import * as mapHelper from '../maphelper';
 import TextLayer from './text-layer';
 import ToolTip from '../tooltip';
-
+import {MeshLine, MeshLineMaterial} from './custom-meshline';
 // geojson 地图
 export default class GeoJSONLayer extends Layer {
     constructor(data, options) {
@@ -57,6 +57,20 @@ export default class GeoJSONLayer extends Layer {
             },
             tooltip: {
                 show: true
+            },
+            outline: {
+                top: {
+                    show: false,
+                    color: 0x00ff00,
+                    width: 1,
+                    opacity: 1
+                },
+                bottom: {
+                    show: false,
+                    color: 0x00ff00,
+                    width: 1,
+                    opacity: 1
+                }
             }
         };
         this.options = Util.extend(true, defaultOptions, options);
@@ -416,6 +430,37 @@ export default class GeoJSONLayer extends Layer {
         line.renderOrder = 98;
         mesh.add(line);
     }
+    drawOutLine2(points, mesh, isZoffset = false) {
+        const size = this._map.getContainerSize();
+
+        points = points.map(pt => new THREE.Vector3(pt[0], pt[1], 0));
+
+        const geometry = new THREE.Geometry().setFromPoints( points );
+        
+        const line = new MeshLine();
+        line.setGeometry(geometry);
+
+        const resolution = new THREE.Vector2(size.width, size.height);
+        const outlineOptions = this.options.outline;
+        let color = isZoffset ? outlineOptions.top.color : outlineOptions.bottom.color;
+        const lineColor = new THREE.Color(color);
+        const opacity = isZoffset ? outlineOptions.top.opacity : outlineOptions.bottom.opacity;
+        const linewidth = isZoffset ? outlineOptions.top.width : outlineOptions.bottom.width;
+        const shaderMaterial = new MeshLineMaterial({
+            resolution: resolution,
+            color: lineColor,
+            opacity: opacity,
+            sizeAttenuation: false,
+            lineWidth: linewidth
+        });
+
+        const lineMesh = new THREE.Mesh(line.geometry, shaderMaterial);
+        if (this.options.isExtrude && isZoffset) {
+            lineMesh.translateZ(this.options.depth);
+        }
+        lineMesh.renderOrder = 99;
+        mesh.add(lineMesh);
+    }
     drawPolygon(points, userData) {
         const shape = new THREE.Shape();
         for (let i = 0; i < points.length; i++) {
@@ -446,6 +491,12 @@ export default class GeoJSONLayer extends Layer {
         
         let mesh = new THREE.Mesh(geometry, material);
         this.drawOutLine(points, mesh);
+        if (this.options.outline.top.show) {
+            this.drawOutLine2(points, mesh, true);
+        }
+        if (this.options.outline.bottom.show) {
+            this.drawOutLine2(points, mesh, false);
+        }
         mesh.rotateX(-Math.PI/2);
         mesh.userData = Util.extend({type: 'area'}, userData);
         this._container.add(mesh);
