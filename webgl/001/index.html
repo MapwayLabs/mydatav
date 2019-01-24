@@ -106,8 +106,10 @@
 
         var canvas = document.createElement("canvas");
         canvas.className = 'text-canvas';
+        canvas.width = 64;
+        canvas.height = 64;
         document.body.appendChild(canvas);
-        function drawText(textStr) {
+        function drawText(textStr, fontSize = 16) {
             // var canvas = document.createElement("canvas");
             // webgl 规定 canvas 宽高为2的n次幂
             // canvas.width = 128;
@@ -118,18 +120,23 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             // draw
-            ctx.font = "26px Arial";
-            ctx.fillStyle = "green";
+            ctx.font = fontSize + "px Arial";
+            ctx.fillStyle = "#f00";
             ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
             var textWidth = ctx.measureText(textStr).width;
             var textHeight = ctx.measureText('国').width;
             // ctx.fillText(textStr, canvas.width / 2, canvas.height / 2 + 5);
             // ctx.fillRect(0, 0, canvas.width, canvas.height);
-            canvas.width = wrapNum(textWidth)*window.devicePixelRatio;
-            canvas.height = wrapNum(textHeight)*window.devicePixelRatio;
-            canvas.style.width = wrapNum(textWidth) + 'px';
-            canvas.style.height = wrapNum(textHeight) + 'px';
-            ctx.fillText(textStr, (canvas.width - textWidth) / 2, (canvas.height-textHeight) / 2 + textHeight);
+            // canvas.width = wrapNum(textWidth)*window.devicePixelRatio;
+            // canvas.height = wrapNum(textHeight)*window.devicePixelRatio;
+          
+            // canvas.style.width = 64 + 'px';
+            // canvas.style.height = 64 + 'px';
+            // canvas.style.width = wrapNum(textWidth) + 'px';
+            // canvas.style.height = wrapNum(textHeight) + 'px';
+            // ctx.fillText(textStr, (canvas.width - textWidth) / 2, (canvas.height-textHeight) / 2 + textHeight);
+            ctx.fillText(textStr, canvas.width / 2-3, canvas.height / 2+5);
             var texture = new THREE.Texture(canvas);
             texture.needsUpdate = true;
 
@@ -141,13 +148,14 @@
             scene.add(sprite);
             return sprite;
         }
-        var textSprite = drawText('100');
+        var textSprite = drawText('100', 16);
         // textSprite.scale.set(200, 200, 1);
         textSprite.position.set(32, 0, 0);
         setTextScale(textSprite);
         
         function setTextScale(textSprite, poiRect) {
-            poiRect = { w: canvas.width, h: canvas.height }
+            // poiRect = { w: canvas.width, h: canvas.height }
+            poiRect = { w: 64, h: 64 }
             const DEG2RAD = Math.PI / 180;
             let pos = textSprite.position;
             let distance = camera.position.distanceTo(pos);
@@ -155,6 +163,8 @@
             let ratio = 2 * top / window.innerHeight;
             let scaleX = poiRect.w * ratio;
             let scaleY = poiRect.h * ratio;
+            // console.log(scaleX);
+            // console.log(scaleY);
 
             textSprite.scale.set(scaleX, scaleY, 1);
         }
