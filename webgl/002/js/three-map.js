@@ -1,6 +1,7 @@
-import EventEmiter from './eventemiter'
-import * as Util from './util'
-import * as mapHelper from './maphelper'
+import EventEmiter from './eventemiter';
+import * as Util from './util';
+import * as mapHelper from './maphelper';
+import TextLayer from './layers/text-layer';
 
 export default class ThreeMap extends EventEmiter {
     constructor(el, options) {
@@ -389,6 +390,13 @@ export default class ThreeMap extends EventEmiter {
         this._orbitControl.update();
         if(this.options.type === 'sphere' && this.options.global.animation) {
             this._scene.rotation.y -= 0.005 * this.options.global.animationSpeed;
+        }
+         // update text layer scale to fix size
+        for (let id in this._layers) {
+            let layer = this._layers[id];
+            if (layer instanceof TextLayer) {
+                layer.updateScale();
+            }
         }
         this._renderer.render(this._scene, this._camera);
     }

@@ -9,14 +9,18 @@ export default class TextLayer extends Layer {
         const defaultOptions = {
             textStyle: {
                 scale: 1,
+                fontStyle: 'normal',
                 fontWeight: 'normal',
+                fontSize: '16px',
                 fontFamily: 'Microsoft YaHei',
                 fontColor: '#000',
                 textAlign: 'center',
-                textBaseline: 'middle'
+                textBaseline: 'middle',
+                maxWidth: 512
             }
         };
         Util.extend(true, defaultOptions, options);
+        this._textSprites = [];
     }
     onAdd(map) {
         Layer.prototype.onAdd.call(this, map); 
@@ -28,19 +32,33 @@ export default class TextLayer extends Layer {
     update(data) {
         this._container.remove(...this._container.children);
         this._data = data;
+        this._textSprites = [];
         this._draw();
+    }
+    updateScale() {
+        if (!this._map) {
+            return;
+        }
+        const camera = this._map.getCamera();
+        const size = this._map.getContainerSize();
+        this._textSprites.forEach(sprite => {
+            sprite.setScale(camera, size);
+        });
     }
     _draw() {
         if (this._data == null || !this._data.length) {return;}
         this._data.forEach(d => {
             const projCenter = this._map.projectLngLat(d.center);
             const altitude = d.altitude;
-            // TODO: 为了避免文字覆盖，对每个文字设置不同的对齐方式 
-            this.options.textStyle.textAlign = d.textAlign || this.options.textStyle.textAlign || null;
-            const textSprite = new TextSprite(d.text, this.options.textStyle).getSprite();
-            const scale = this.options.textStyle.scale;
+            // 为了避免文字覆盖，对每个文字设置不同的对齐方式 
+            if (d.textAlign != null) {
+                this.options.textStyle.textAlign = d.textAlign;
+            }
+            const ts = new TextSprite(d.text, this.options.textStyle);
+            const textSprite = ts.getSprite();
+            // const scale = this.options.textStyle.scale;
 
-            textSprite.scale.set(scale, scale, 1);
+            // textSprite.scale.set(scale, scale, 1);
             textSprite.position.set(projCenter[0], altitude, -projCenter[1]);
             textSprite.rotateX(-Math.PI/2);
 
@@ -49,6 +67,7 @@ export default class TextLayer extends Layer {
             textSprite.material.depthTest=false; // 是否采用深度测试，必须加
     
             this._container.add(textSprite);
+            this._textSprites.push(ts);
         });
     }
 }

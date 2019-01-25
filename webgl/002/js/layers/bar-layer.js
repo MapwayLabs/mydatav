@@ -46,11 +46,14 @@ export default class BarLayer extends Layer {
                 offset: 1,
                 textStyle: {
                     scale: 1,
+                    fontStyle: 'normal',
                     fontWeight: 'normal',
+                    fontSize: '16px',
                     fontFamily: 'Microsoft YaHei',
                     fontColor: '#000',
                     textAlign: 'center',
-                    textBaseline: 'middle'
+                    textBaseline: 'middle',
+                    maxWidth: 512
                 }
             },
             barTooltip: {

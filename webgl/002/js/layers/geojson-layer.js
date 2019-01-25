@@ -27,19 +27,25 @@ export default class GeoJSONLayer extends Layer {
                 textStyle: { // 有数据地区的名字样式
                     show: true, // 是否显示有数据地区文字
                     scale: 1, // 缩放比例
+                    fontStyle: 'normal',
                     fontWeight: 'normal',
+                    fontSize: '16px',
                     fontFamily: 'Microsoft YaHei',
-                    fontColor: 'rgba(0, 0, 0, 0.8)',
+                    fontColor: '#000',
                     textAlign: 'center',
-                    textBaseline: 'middle'
+                    textBaseline: 'middle',
+                    maxWidth: 512
                 },
                 nullTextStyle: { // 无数据地区的名字样式
                     scale: 1, // 缩放比例
+                    fontStyle: 'normal',
                     fontWeight: 'normal',
+                    fontSize: '16px',
                     fontFamily: 'Microsoft YaHei',
-                    fontColor: 'rgba(0, 0, 0, 0.5)',
+                    fontColor: '#000',
                     textAlign: 'center',
-                    textBaseline: 'middle' 
+                    textBaseline: 'middle',
+                    maxWidth: 512
                 }
             },
             lineOpacity: 1,

@@ -235,3 +235,47 @@ export function lightenDarkenColor(col, amt) {
 
     return (usePound ? "#" : "") + (g | (b << 8) | (r << 16)).toString(16);
 }
+
+// 缓存文字宽度，减少计算量
+// idea from echarts/zrender
+let textWidthCache = {}; 
+let textWidthCacheCounter = 0;
+const TEXT_CACHE_MAX = 5000;
+export function measureText(text, font = 'normal normal 12px sans-serif') {
+    const key = text + ':' + font;
+    if (textWidthCache[key]) {
+        return textWidthCache[key];
+    }
+    const span = document.createElement("span");
+    span.style.visibility = "hidden";
+    span.style.display = "inline-block";
+    document.body.appendChild(span);
+    let result = {
+        width: 0,
+        height: 0
+    };
+    span.style.font = font;
+    if (typeof span.textContent !== "undefined") {
+        span.textContent = text;
+    } else {
+        span.innerText = text;
+    }
+    const cmpStyle = window.getComputedStyle(span);
+    result.width = parseFloat(cmpStyle.width);
+    result.height = parseFloat(cmpStyle.height);
+    if (textWidthCacheCounter > TEXT_CACHE_MAX) {
+        textWidthCache = {};
+        textWidthCacheCounter = 0;
+    }
+    textWidthCache[key] = result;
+    textWidthCacheCounter ++;
+    return result;
+}
+
+export function wrapNum(num) {
+    let i = 2;
+    while (i < num) {
+        i *= 2;
+    }
+    return i;
+}

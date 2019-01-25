@@ -330,11 +330,14 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 offset: 1,
                 textStyle: {
                     scale: 1,
+                    fontStyle: 'normal',
                     fontWeight: 'normal',
+                    fontSize: '16px',
                     fontFamily: 'Microsoft YaHei',
                     fontColor: '#000',
                     textAlign: 'center',
-                    textBaseline: 'middle'
+                    textBaseline: 'middle',
+                    maxWidth: 512
                 }
             },
             barTooltip: {
@@ -1590,19 +1593,25 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 textStyle: { // 有数据地区的名字样式
                     show: true, // 是否显示有数据地区文字
                     scale: 1, // 缩放比例
+                    fontStyle: 'normal',
                     fontWeight: 'normal',
+                    fontSize: '16px',
                     fontFamily: 'Microsoft YaHei',
-                    fontColor: 'rgba(0, 0, 0, 0.8)',
+                    fontColor: '#000',
                     textAlign: 'center',
-                    textBaseline: 'middle'
+                    textBaseline: 'middle',
+                    maxWidth: 512
                 },
                 nullTextStyle: { // 无数据地区的名字样式
                     scale: 1, // 缩放比例
+                    fontStyle: 'normal',
                     fontWeight: 'normal',
+                    fontSize: '16px',
                     fontFamily: 'Microsoft YaHei',
-                    fontColor: 'rgba(0, 0, 0, 0.5)',
+                    fontColor: '#000',
                     textAlign: 'center',
-                    textBaseline: 'middle' 
+                    textBaseline: 'middle',
+                    maxWidth: 512
                 }
             },
             lineOpacity: 1,
@@ -2131,14 +2140,18 @@ class TextLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         const defaultOptions = {
             textStyle: {
                 scale: 1,
+                fontStyle: 'normal',
                 fontWeight: 'normal',
+                fontSize: '16px',
                 fontFamily: 'Microsoft YaHei',
                 fontColor: '#000',
                 textAlign: 'center',
-                textBaseline: 'middle'
+                textBaseline: 'middle',
+                maxWidth: 512
             }
         };
         _util__WEBPACK_IMPORTED_MODULE_1__["extend"](true, defaultOptions, options);
+        this._textSprites = [];
     }
     onAdd(map) {
         _layer__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.onAdd.call(this, map); 
@@ -2150,19 +2163,33 @@ class TextLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
     update(data) {
         this._container.remove(...this._container.children);
         this._data = data;
+        this._textSprites = [];
         this._draw();
+    }
+    updateScale() {
+        if (!this._map) {
+            return;
+        }
+        const camera = this._map.getCamera();
+        const size = this._map.getContainerSize();
+        this._textSprites.forEach(sprite => {
+            sprite.setScale(camera, size);
+        });
     }
     _draw() {
         if (this._data == null || !this._data.length) {return;}
         this._data.forEach(d => {
             const projCenter = this._map.projectLngLat(d.center);
             const altitude = d.altitude;
-            // TODO: 为了避免文字覆盖，对每个文字设置不同的对齐方式 
-            this.options.textStyle.textAlign = d.textAlign || this.options.textStyle.textAlign || null;
-            const textSprite = new _text_sprite__WEBPACK_IMPORTED_MODULE_2__["default"](d.text, this.options.textStyle).getSprite();
-            const scale = this.options.textStyle.scale;
+            // 为了避免文字覆盖，对每个文字设置不同的对齐方式 
+            if (d.textAlign != null) {
+                this.options.textStyle.textAlign = d.textAlign;
+            }
+            const ts = new _text_sprite__WEBPACK_IMPORTED_MODULE_2__["default"](d.text, this.options.textStyle);
+            const textSprite = ts.getSprite();
+            // const scale = this.options.textStyle.scale;
 
-            textSprite.scale.set(scale, scale, 1);
+            // textSprite.scale.set(scale, scale, 1);
             textSprite.position.set(projCenter[0], altitude, -projCenter[1]);
             textSprite.rotateX(-Math.PI/2);
 
@@ -2171,6 +2198,7 @@ class TextLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             textSprite.material.depthTest=false; // 是否采用深度测试，必须加
     
             this._container.add(textSprite);
+            this._textSprites.push(ts);
         });
     }
 }
@@ -2194,11 +2222,14 @@ __webpack_require__.r(__webpack_exports__);
 class TextSprite {
     constructor(text, options) {
         const defaultOptions = {
+            fontStyle: 'normal',
             fontWeight: 'normal',
+            fontSize: '16px',
             fontFamily: 'Microsoft YaHei',
             fontColor: '#000',
             textAlign: 'center',
-            textBaseline: 'middle'
+            textBaseline: 'middle',
+            maxWidth: 512
         }
         this.options = _util__WEBPACK_IMPORTED_MODULE_0__["extend"](true, defaultOptions, options);
 
@@ -2209,22 +2240,53 @@ class TextSprite {
     getSprite() {
         return this._textSprite;
     }
+    getSize() {
+        return {
+            width: this._width,
+            height: this._height
+        };
+    }
+    // idea from https://www.cnblogs.com/dojo-lzz/p/7143276.html
+    setScale(camera, containerSize) {
+        const DEG2RAD = Math.PI / 180;
+        let pos = this._textSprite.position;
+        let distance = camera.position.distanceTo(pos);
+        let top = Math.tan(camera.fov / 2 * DEG2RAD) * distance;
+        let ratio = 2 * top / containerSize.height;
+        let scaleX = this._width * ratio;
+        let scaleY = this._height * ratio;
+        this._textSprite.scale.set(scaleX, scaleY, 1);
+    }
     _init() {
+        const font = `${this.options.fontStyle} ${this.options.fontWeight} ${this.options.fontSize} ${this.options.fontFamily}`;
+        const textSize = _util__WEBPACK_IMPORTED_MODULE_0__["measureText"](this._textStr, font);
+        
+        if (this.options.textAlign !== 'center') {
+            textSize.width *= 1.5;
+        }
+        if (this.options.textBaseline !== 'middle') {
+            textSize.height *= 1.5;
+        }
+
+        const canvasWidth = _util__WEBPACK_IMPORTED_MODULE_0__["wrapNum"](textSize.width);
+        const canvasHeight = _util__WEBPACK_IMPORTED_MODULE_0__["wrapNum"](textSize.height);
+        this._width = canvasWidth;
+        this._height = canvasHeight;
+
         const canvas = document.createElement("canvas");
         // webgl 规定 canvas 宽高为2的n次幂
-        canvas.width = 256;
-        canvas.height = 256;
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
 
         const ctx = canvas.getContext("2d");
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         // draw
-        const options = this.options;
-        ctx.font = "16px " + options.fontWeight + " " + options.fontFamily;
-        ctx.fillStyle = options.fontColor;
-        ctx.textAlign = options.textAlign;
-        ctx.textBaseline = options.textBaseline;
-        ctx.fillText(this._textStr, canvas.width / 2, canvas.height / 2 + 5);
+        ctx.font = font;
+        ctx.fillStyle = this.options.fontColor;
+        ctx.textAlign = this.options.textAlign;
+        ctx.textBaseline = this.options.textBaseline;
+        ctx.fillText(this._textStr, canvas.width / 2, canvas.height / 2, this.options.maxWidth);
 
         const texture = new THREE.Texture(canvas);
         texture.needsUpdate = true;
@@ -2434,6 +2496,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _eventemiter__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./eventemiter */ "./js/eventemiter.js");
 /* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./util */ "./js/util.js");
 /* harmony import */ var _maphelper__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./maphelper */ "./js/maphelper.js");
+/* harmony import */ var _layers_text_layer__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./layers/text-layer */ "./js/layers/text-layer.js");
+
 
 
 
@@ -2826,6 +2890,13 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
         if(this.options.type === 'sphere' && this.options.global.animation) {
             this._scene.rotation.y -= 0.005 * this.options.global.animationSpeed;
         }
+         // update text layer scale to fix size
+        for (let id in this._layers) {
+            let layer = this._layers[id];
+            if (layer instanceof _layers_text_layer__WEBPACK_IMPORTED_MODULE_3__["default"]) {
+                layer.updateScale();
+            }
+        }
         this._renderer.render(this._scene, this._camera);
     }
     _onContainerResize() {
@@ -2926,7 +2997,7 @@ class ToolTip {
 /*!********************!*\
   !*** ./js/util.js ***!
   \********************/
-/*! exports provided: hasClass, addClass, removeClass, getCmpStyle, isInPage, getDpr, isFunction, isPlainObject, isEmptyObject, extend, stamp, inherit, isNullOrUdf, getRandomColor, isWebGLAvailable, normalizeValue, lightenDarkenColor */
+/*! exports provided: hasClass, addClass, removeClass, getCmpStyle, isInPage, getDpr, isFunction, isPlainObject, isEmptyObject, extend, stamp, inherit, isNullOrUdf, getRandomColor, isWebGLAvailable, normalizeValue, lightenDarkenColor, measureText, wrapNum */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2948,6 +3019,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isWebGLAvailable", function() { return isWebGLAvailable; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "normalizeValue", function() { return normalizeValue; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "lightenDarkenColor", function() { return lightenDarkenColor; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "measureText", function() { return measureText; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "wrapNum", function() { return wrapNum; });
 function hasClass(el, className) {
     return el.classList ? el.classList.contains(className) : new RegExp('(^|\\s)' + className + '(\\s|$)').test(el.className);
 }
@@ -3184,6 +3257,50 @@ function lightenDarkenColor(col, amt) {
     else if (g < 0) g = 0;
 
     return (usePound ? "#" : "") + (g | (b << 8) | (r << 16)).toString(16);
+}
+
+// 缓存文字宽度，减少计算量
+// idea from echarts/zrender
+let textWidthCache = {}; 
+let textWidthCacheCounter = 0;
+const TEXT_CACHE_MAX = 5000;
+function measureText(text, font = 'normal normal 12px sans-serif') {
+    const key = text + ':' + font;
+    if (textWidthCache[key]) {
+        return textWidthCache[key];
+    }
+    const span = document.createElement("span");
+    span.style.visibility = "hidden";
+    span.style.display = "inline-block";
+    document.body.appendChild(span);
+    let result = {
+        width: 0,
+        height: 0
+    };
+    span.style.font = font;
+    if (typeof span.textContent !== "undefined") {
+        span.textContent = text;
+    } else {
+        span.innerText = text;
+    }
+    const cmpStyle = window.getComputedStyle(span);
+    result.width = parseFloat(cmpStyle.width);
+    result.height = parseFloat(cmpStyle.height);
+    if (textWidthCacheCounter > TEXT_CACHE_MAX) {
+        textWidthCache = {};
+        textWidthCacheCounter = 0;
+    }
+    textWidthCache[key] = result;
+    textWidthCacheCounter ++;
+    return result;
+}
+
+function wrapNum(num) {
+    let i = 2;
+    while (i < num) {
+        i *= 2;
+    }
+    return i;
 }
 
 /***/ })
