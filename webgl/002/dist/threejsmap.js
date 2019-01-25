@@ -1356,6 +1356,8 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                     let of = this._map.projectLngLat(f);
                     let ot = this._map.projectLngLat(t); 
                     this._drawPoints([of, ot]);
+                } else {
+                    this._drawPoints2([nf, nt]);
                 }
             }
             if (this.options.lineStyle.show) {
@@ -1395,6 +1397,26 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         points = points.map(pt => new THREE.Vector3(pt[0], pt[1], pt[2]));
         pointGeometry.setFromPoints(points);
         const pointsMaterial = new THREE.PointsMaterial( { color: color, alphaTest: 0.5, map: texture, size: size } );
+        const pointsObj = new THREE.Points( pointGeometry, pointsMaterial );
+        pointsObj.renderOrder=99;
+        pointsObj.material.depthTest=true;
+        this._container.add(pointsObj);
+    }
+    _drawPoints2(points) {
+        const loader = new THREE.TextureLoader();
+	    const texture = loader.load( '../../images/disc.png' );
+        const depth = this.geojsonLayer.getDepth();
+        const pointGeometry = new THREE.BufferGeometry();
+        const color = this.options.pointStyle.color;
+        const size = this.options.pointStyle.size;
+        points = points.map(pt => {
+            if (pt.length < 3) {
+                pt.push(depth);
+            }
+            return new THREE.Vector3(pt[0], pt[2], -pt[1]);
+        });
+        pointGeometry.setFromPoints(points);
+        const pointsMaterial = new THREE.PointsMaterial( { color: color, alphaTest: 0.5, map:texture, size: size } );
         const pointsObj = new THREE.Points( pointGeometry, pointsMaterial );
         pointsObj.renderOrder=99;
         pointsObj.material.depthTest=true;
