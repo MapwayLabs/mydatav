@@ -39,13 +39,15 @@
             45,
             window.innerWidth / window.innerHeight,
             1,
-            1000
+            10000
         );
+        camera.position.set(0, 0, 1500);
+        scene.add(new THREE.AmbientLight(0x00ff00, 0.6));
 
         // OrbitControls
         var controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.object.position.set(256, 256, 256);
-        controls.target = new THREE.Vector3(0, 0, 0);
+        // controls.object.position.set(256, 256, 256);
+        // controls.target = new THREE.Vector3(0, 0, 0);
         controls.update();
 
         // 坐标轴
@@ -86,40 +88,66 @@
         // drawAxis(256);
 
         // 加载模型 
-        var loader = new THREE.GLTFLoader();
+        function glLoader() {
+            var loader = new THREE.GLTFLoader();
+            // THREE.DRACOLoader.setDecoderPath('../../lib/threejs/js/libs/draco');
+            // loader.setDRACOLoader(new THREE.DRACOLoader());
+            // Load a glTF resource
+            loader.load(
+                // resource URL
+                '../../data/model3.glb',
+                // called when the resource is loaded
+                function (gltf) {
+                    scene.add(gltf.scene);
+                    scene.rotateX(-Math.PI/2);
+                    // scene.rotateZ(Math.PI/2);
+                    gltf.animations; // Array<THREE.AnimationClip>
+                    gltf.scene; // THREE.Scene
+                    gltf.scenes; // Array<THREE.Scene>
+                    gltf.cameras; // Array<THREE.Camera>
+                    gltf.asset; // Object
+                },
+                // called while loading is progressing
+                function (xhr) {
+                    console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+                },
+                // called when loading has errors
+                function (error) {
+                    console.log('An error happened');
+                }
+            );
+        }
+        glLoader();
 
-        THREE.DRACOLoader.setDecoderPath('../../lib/threejs/js/libs/draco');
-        loader.setDRACOLoader(new THREE.DRACOLoader());
+        function objLoader() {
+            var loader = new THREE.ObjectLoader();
 
-        // Load a glTF resource
-        loader.load(
-            // resource URL
-            '../../data/model.glb',
-            // called when the resource is loaded
-            function (gltf) {
+            loader.load(
+                // 资源的URL
+                "models/json/example.json",
 
-                scene.add(gltf.scene);
+                // onLoad回调
+                // Here the loaded data is assumed to be an object
+                function (obj) {
+                    // Add the loaded object to the scene
+                    scene.add(obj);
+                },
 
-                gltf.animations; // Array<THREE.AnimationClip>
-                gltf.scene; // THREE.Scene
-                gltf.scenes; // Array<THREE.Scene>
-                gltf.cameras; // Array<THREE.Camera>
-                gltf.asset; // Object
+                // onProgress回调
+                function (xhr) {
+                    console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+                },
 
-            },
-            // called while loading is progressing
-            function (xhr) {
+                // onError回调
+                function (err) {
+                    console.error('An error happened');
+                }
+            );
 
-                console.log((xhr.loaded / xhr.total * 100) + '% loaded');
-
-            },
-            // called when loading has errors
-            function (error) {
-
-                console.log('An error happened');
-
-            }
-        );
+            // 或者，解析先前加载的JSON结构
+            // var object = loader.parse(a_json_object);
+            // scene.add(object);
+        }
 
         function animate() {
             requestAnimationFrame(animate);
