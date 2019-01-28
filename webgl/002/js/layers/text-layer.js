@@ -19,7 +19,7 @@ export default class TextLayer extends Layer {
                 maxWidth: 512
             }
         };
-        Util.extend(true, defaultOptions, options);
+        this.options = Util.extend(true, defaultOptions, options);
         this._textSprites = [];
     }
     onAdd(map) {
