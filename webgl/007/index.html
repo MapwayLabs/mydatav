@@ -74,6 +74,18 @@
         }
         drawAxis(256);
 
+        // 圆形
+        function drawCircle() {
+            var geometry = new THREE.CircleBufferGeometry( 32, 32 );
+            var material = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
+            var circle = new THREE.Mesh( geometry, material );
+            circle.rotateX(-Math.PI/2);
+            circle.renderOrder=99;
+            circle.material.depthTest=false;
+            scene.add( circle );
+        }
+        drawCircle();
+
         // 平面
         var texture = new THREE.TextureLoader().load('../../images/地图CN_V01.jpg');
         // 立即使用纹理进行材质创建
