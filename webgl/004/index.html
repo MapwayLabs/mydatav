@@ -96,11 +96,20 @@
             scene.add(hemisphereLight);
         }
         function point([x, y, z]) {
-            var pointGeometry = new THREE.SphereGeometry(2, 100, 100);
-            var pointMaterial = new THREE.MeshBasicMaterial( {color: 0xff0000} );
-            var mesh = new THREE.Mesh(pointGeometry, pointMaterial);
-            mesh.position.set(x, y, z);
-            scene.add(mesh);
+            // var pointGeometry = new THREE.SphereGeometry(2, 100, 100);
+            // var pointMaterial = new THREE.MeshBasicMaterial( {color: 0xff0000} );
+            // var mesh = new THREE.Mesh(pointGeometry, pointMaterial);
+            // mesh.position.set(x, y, z);
+            // scene.add(mesh);
+
+
+            // 画法2
+            var starsGeometry = new THREE.BufferGeometry();
+            // starsGeometry.vertices.push( new THREE.Vector3(x, y, z) );
+            starsGeometry.setFromPoints([new THREE.Vector3(x, y, z)]);
+            var starsMaterial = new THREE.PointsMaterial( { color:  0xff0000, size: 10 } );
+            var starField = new THREE.Points( starsGeometry, starsMaterial );
+            scene.add( starField );
         }
         // 获取position
         function getPosition(lng, lat, alt) {
