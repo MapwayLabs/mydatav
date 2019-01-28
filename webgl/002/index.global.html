@@ -18,6 +18,7 @@
             height: 100%;
             background: #000;
         }
+
         #threemap {
             position: absolute;
             left: 0;
@@ -50,7 +51,7 @@
         map.setView();
         $.getJSON('../../data/flyline.json', function (fdata) {
             const flOptions = {
-                heightLimit:30,
+                heightLimit: 30,
                 lineStyle: {
                     show: true,
                     color: '#5092FF',
@@ -62,9 +63,22 @@
                     size: 10,
                     color: '#0f0',
                     opacity: 1,
-                    tooltip: false,
+                    tooltip: true,
                     hightLight: true,
-                    hightLightColor: '#f00'
+                    hightLightColor: '#f00',
+                    pointText: {
+                        show: true,
+                        yoffset: 0,
+                        textStyle: {
+                            fontStyle: 'normal',
+                            fontWeight: 'normal',
+                            fontSize: '10px',
+                            fontFamily: 'Microsoft YaHei',
+                            fontColor: '#f00',
+                            textAlign: 'center',
+                            textBaseline: 'middle'
+                        }
+                    }
                 },
                 effect: {
                     show: true,

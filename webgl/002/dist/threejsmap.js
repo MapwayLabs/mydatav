@@ -1290,7 +1290,21 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 opacity: 1,
                 tooltip: true,
                 hightLight: true,
-                hightLightColor: '#f00'
+                hightLightColor: '#f00',
+                pointText: {
+                    show: false,
+                    showField: 'name',
+                    yoffset: 1,
+                    textStyle: {
+                        fontStyle: 'normal',
+                        fontWeight: 'normal',
+                        fontSize: '12px',
+                        fontFamily: 'Microsoft YaHei',
+                        fontColor: '#000',
+                        textAlign: 'center',
+                        textBaseline: 'middle'
+                    }
+                }
             },
             // 飞线特效样式
             effect: {
@@ -1344,8 +1358,10 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
     _draw() {
         this._data.forEach(item => {
             let h = this.options.heightLimit;
-            let f = item.from.split(',').map(p => Number(p));
-            let t = item.to.split(',').map(p => Number(p));
+            let f = item.from.location.split(',').map(p => Number(p));
+            let fname = item.from.data;
+            let t = item.to.location.split(',').map(p => Number(p));
+            let tname = item.to.data;
             let m = [(f[0]+t[0])/2, (f[1]+t[1])/2];
             if (this._map.options.type === 'sphere') {
                 // 三维的第三个值表示海拔,需进行投影转换
@@ -1360,39 +1376,42 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 // 二维的第三个值表示离地面距离，不需投影
                 nm.push(h);
             }
+            // 处理飞线点
             if (this.options.pointStyle.show) {
                 if(this._map.options.type === 'sphere') {
                     const size = this.options.pointStyle.size;
                     f.push(size/2);
                     t.push(size/2);
-                    let of = this._map.projectLngLat(f);
-                    let ot = this._map.projectLngLat(t); 
+                    // let of = this._map.projectLngLat(f);
+                    // let ot = this._map.projectLngLat(t); 
                     // this._drawPoints([of, ot]);
                     let tempPt1 = {
-                        points: [of],
-                        info: { name: '111'}
+                        points: [f],
+                        info: { name: fname}
                     };
                     let tempPt2 = {
-                        points: [ot],
-                        info: { name: '222' }
+                        points: [t],
+                        info: { name: tname }
                     };
-                    this._pointsData.push(tempPt1, tempPt2);
+                    // this._pointsData.push(tempPt1, tempPt2);
+                    this._addPoints(tempPt1, tempPt2);
                 } else {
                     let depth = this.geojsonLayer.getDepth();
                     // this._drawPoints2([nf, nt]);
-                    let pt1 = nf.slice(0, 2);
+                    let pt1 = f.slice(0, 2);
                     pt1.push(depth);
-                    let pt2 = nt.slice(0, 2);
+                    let pt2 = t.slice(0, 2);
                     pt2.push(depth);
                     let tempPt1 = {
                         points: [pt1],
-                        info: { name: '111'}
+                        info: { name: fname}
                     };
                     let tempPt2 = {
                         points: [pt2],
-                        info: { name: '222' }
+                        info: { name: tname }
                     };
-                    this._pointsData.push(tempPt1, tempPt2);
+                    // this._pointsData.push(tempPt1, tempPt2);
+                    this._addPoints(tempPt1, tempPt2);
                 }
             }
             if (this.options.lineStyle.show) {
@@ -1403,6 +1422,23 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 this.uniforms.hasEffect.value = 1;
             }
         });
+    }
+    _addPoints() {
+        let ptArr = Array.from(arguments);
+        ptArr.forEach(ptObj => {
+            this._addPoint(ptObj);
+        });
+    }
+    _addPoint(ptObj) {
+        // 去重
+        let hasAdd = this._pointsData.some(item => {
+            let srcPt = item.points[0];
+            let targetPt = ptObj.points[0];
+            return srcPt[0] === targetPt[0] && srcPt[1] === targetPt[1];
+        });
+        if (!hasAdd) {
+            this._pointsData.push(ptObj);
+        }
     }
     _drawPoints() {
         if (!this.options.pointStyle.show || !this._pointsData.length) {
@@ -1422,7 +1458,8 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             hightLight: {
                 show: !!pointStyle.hightLight,
                 color: pointStyle.hightLightColor
-            }
+            },
+            pointText: pointStyle.pointText
         };
         this._pointLayer = new _point_layer__WEBPACK_IMPORTED_MODULE_3__["default"](this._pointsData, pointOptions);
         this._map.addLayer(this._pointLayer);
@@ -2176,6 +2213,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _layer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./layer */ "./js/layers/layer.js");
 /* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../util */ "./js/util.js");
 /* harmony import */ var _tooltip__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../tooltip */ "./js/tooltip.js");
+/* harmony import */ var _text_layer__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./text-layer */ "./js/layers/text-layer.js");
 
 
 
@@ -2197,6 +2235,20 @@ class PointLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             hightLight: {
                 show: true,
                 color: '#f00'
+            },
+            pointText: {
+                show: false,
+                showField: 'name',
+                yoffset: 1,
+                textStyle: {
+                    fontStyle: 'normal',
+                    fontWeight: 'normal',
+                    fontSize: '12px',
+                    fontFamily: 'Microsoft YaHei',
+                    fontColor: '#000',
+                    textAlign: 'center',
+                    textBaseline: 'middle'
+                }
             }
         };
         this.options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](true, defaultOptions, options); 
@@ -2210,10 +2262,16 @@ class PointLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         if (this.options.tooltip.show) {
             this._tooltip = new _tooltip__WEBPACK_IMPORTED_MODULE_2__["default"](this._map.getContainerElement());
         }
+        if (this.options.pointText.show) {
+           this._addTextLayer();
+        }
     }
     onRemove(map) {
         _layer__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.onRemove.call(this, map);
         this._map.off('mousemove', this._mousemoveEvtHandler, this);
+        if (this._textLayer) {
+            this._map.removeLayer(this._textLayer);
+        }
     }
     _draw() {
         this._data.forEach(item => {
@@ -2231,8 +2289,15 @@ class PointLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 if (!this._texture) this._texture = this._loader.load( this.options.style.texture );
                 materialOptions.map = this._texture;
             }
-
-            points = points.map(pt => new THREE.Vector3(pt[0], pt[2], -pt[1]));
+            
+            points = points.map(pt => {
+                let prjPt = this._map.projectLngLat(pt);
+                if (this._map.options.type === 'sphere') {
+                    return new THREE.Vector3(prjPt[0], prjPt[1], prjPt[2]);
+                } else {
+                    return new THREE.Vector3(prjPt[0], pt[2], -prjPt[1]);
+                }
+            });
 
             const pointGeometry = new THREE.BufferGeometry();
             pointGeometry.setFromPoints(points);
@@ -2242,6 +2307,7 @@ class PointLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
 
             const pointsObj = new THREE.Points( pointGeometry, pointsMaterial );
             if (this._map.options.type === 'plane') {
+                // 球形地图不要加此属性
                 pointsObj.renderOrder=99;
                 pointsObj.material.depthTest=false;
             }
@@ -2249,6 +2315,21 @@ class PointLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             
             this._container.add(pointsObj);
         });
+    }
+    _addTextLayer() {
+        let textData = [];
+        this._data.forEach(item => {
+            let info = item.info;
+            item.points.forEach(pt => {
+                let tempobj = {};
+                tempobj.center = [pt[0], pt[1]];
+                tempobj.altitude = this.options.pointText.yoffset +  pt[2];
+                tempobj.text = info ? info[this.options.pointText.showField] : '';
+                textData.push(tempobj);
+            });
+        });
+        this._textLayer = new _text_layer__WEBPACK_IMPORTED_MODULE_3__["default"](textData, { textStyle: this.options.pointText.textStyle });
+        this._map.addLayer(this._textLayer);
     }
     _mousemoveEvtHandler(event) {
         const mapSize = this._map.getContainerSize();
@@ -2331,7 +2412,7 @@ class TextLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         super(data, options);
         const defaultOptions = {
             textStyle: {
-                scale: 1,
+                scale: 1, // 注意：此属性失效
                 fontStyle: 'normal',
                 fontWeight: 'normal',
                 fontSize: '16px',

@@ -8,7 +8,7 @@ export default class TextLayer extends Layer {
         super(data, options);
         const defaultOptions = {
             textStyle: {
-                scale: 1,
+                scale: 1, // 注意：此属性失效
                 fontStyle: 'normal',
                 fontWeight: 'normal',
                 fontSize: '16px',

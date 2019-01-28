@@ -25,7 +25,21 @@ export default class FlyLineLayer extends Layer {
                 opacity: 1,
                 tooltip: true,
                 hightLight: true,
-                hightLightColor: '#f00'
+                hightLightColor: '#f00',
+                pointText: {
+                    show: false,
+                    showField: 'name',
+                    yoffset: 1,
+                    textStyle: {
+                        fontStyle: 'normal',
+                        fontWeight: 'normal',
+                        fontSize: '12px',
+                        fontFamily: 'Microsoft YaHei',
+                        fontColor: '#000',
+                        textAlign: 'center',
+                        textBaseline: 'middle'
+                    }
+                }
             },
             // 飞线特效样式
             effect: {
@@ -79,8 +93,10 @@ export default class FlyLineLayer extends Layer {
     _draw() {
         this._data.forEach(item => {
             let h = this.options.heightLimit;
-            let f = item.from.split(',').map(p => Number(p));
-            let t = item.to.split(',').map(p => Number(p));
+            let f = item.from.location.split(',').map(p => Number(p));
+            let fname = item.from.data;
+            let t = item.to.location.split(',').map(p => Number(p));
+            let tname = item.to.data;
             let m = [(f[0]+t[0])/2, (f[1]+t[1])/2];
             if (this._map.options.type === 'sphere') {
                 // 三维的第三个值表示海拔,需进行投影转换
@@ -95,39 +111,42 @@ export default class FlyLineLayer extends Layer {
                 // 二维的第三个值表示离地面距离，不需投影
                 nm.push(h);
             }
+            // 处理飞线点
             if (this.options.pointStyle.show) {
                 if(this._map.options.type === 'sphere') {
                     const size = this.options.pointStyle.size;
                     f.push(size/2);
                     t.push(size/2);
-                    let of = this._map.projectLngLat(f);
-                    let ot = this._map.projectLngLat(t); 
+                    // let of = this._map.projectLngLat(f);
+                    // let ot = this._map.projectLngLat(t); 
                     // this._drawPoints([of, ot]);
                     let tempPt1 = {
-                        points: [of],
-                        info: { name: '111'}
+                        points: [f],
+                        info: { name: fname}
                     };
                     let tempPt2 = {
-                        points: [ot],
-                        info: { name: '222' }
+                        points: [t],
+                        info: { name: tname }
                     };
-                    this._pointsData.push(tempPt1, tempPt2);
+                    // this._pointsData.push(tempPt1, tempPt2);
+                    this._addPoints(tempPt1, tempPt2);
                 } else {
                     let depth = this.geojsonLayer.getDepth();
                     // this._drawPoints2([nf, nt]);
-                    let pt1 = nf.slice(0, 2);
+                    let pt1 = f.slice(0, 2);
                     pt1.push(depth);
-                    let pt2 = nt.slice(0, 2);
+                    let pt2 = t.slice(0, 2);
                     pt2.push(depth);
                     let tempPt1 = {
                         points: [pt1],
-                        info: { name: '111'}
+                        info: { name: fname}
                     };
                     let tempPt2 = {
                         points: [pt2],
-                        info: { name: '222' }
+                        info: { name: tname }
                     };
-                    this._pointsData.push(tempPt1, tempPt2);
+                    // this._pointsData.push(tempPt1, tempPt2);
+                    this._addPoints(tempPt1, tempPt2);
                 }
             }
             if (this.options.lineStyle.show) {
@@ -138,6 +157,23 @@ export default class FlyLineLayer extends Layer {
                 this.uniforms.hasEffect.value = 1;
             }
         });
+    }
+    _addPoints() {
+        let ptArr = Array.from(arguments);
+        ptArr.forEach(ptObj => {
+            this._addPoint(ptObj);
+        });
+    }
+    _addPoint(ptObj) {
+        // 去重
+        let hasAdd = this._pointsData.some(item => {
+            let srcPt = item.points[0];
+            let targetPt = ptObj.points[0];
+            return srcPt[0] === targetPt[0] && srcPt[1] === targetPt[1];
+        });
+        if (!hasAdd) {
+            this._pointsData.push(ptObj);
+        }
     }
     _drawPoints() {
         if (!this.options.pointStyle.show || !this._pointsData.length) {
@@ -157,7 +193,8 @@ export default class FlyLineLayer extends Layer {
             hightLight: {
                 show: !!pointStyle.hightLight,
                 color: pointStyle.hightLightColor
-            }
+            },
+            pointText: pointStyle.pointText
         };
         this._pointLayer = new PointLayer(this._pointsData, pointOptions);
         this._map.addLayer(this._pointLayer);

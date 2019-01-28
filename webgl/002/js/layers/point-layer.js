@@ -1,7 +1,7 @@
 import Layer from './layer';
 import * as Util from '../util';
 import ToolTip from '../tooltip';
-
+import TextLayer from './text-layer';
 export default class PointLayer extends Layer {
     constructor(data, options) {
         // data: [{points:[],info:{}}, {points:[],info:null}, ....]
@@ -19,6 +19,20 @@ export default class PointLayer extends Layer {
             hightLight: {
                 show: true,
                 color: '#f00'
+            },
+            pointText: {
+                show: false,
+                showField: 'name',
+                yoffset: 1,
+                textStyle: {
+                    fontStyle: 'normal',
+                    fontWeight: 'normal',
+                    fontSize: '12px',
+                    fontFamily: 'Microsoft YaHei',
+                    fontColor: '#000',
+                    textAlign: 'center',
+                    textBaseline: 'middle'
+                }
             }
         };
         this.options = Util.extend(true, defaultOptions, options); 
@@ -32,10 +46,16 @@ export default class PointLayer extends Layer {
         if (this.options.tooltip.show) {
             this._tooltip = new ToolTip(this._map.getContainerElement());
         }
+        if (this.options.pointText.show) {
+           this._addTextLayer();
+        }
     }
     onRemove(map) {
         Layer.prototype.onRemove.call(this, map);
         this._map.off('mousemove', this._mousemoveEvtHandler, this);
+        if (this._textLayer) {
+            this._map.removeLayer(this._textLayer);
+        }
     }
     _draw() {
         this._data.forEach(item => {
@@ -53,8 +73,15 @@ export default class PointLayer extends Layer {
                 if (!this._texture) this._texture = this._loader.load( this.options.style.texture );
                 materialOptions.map = this._texture;
             }
-
-            points = points.map(pt => new THREE.Vector3(pt[0], pt[2], -pt[1]));
+            
+            points = points.map(pt => {
+                let prjPt = this._map.projectLngLat(pt);
+                if (this._map.options.type === 'sphere') {
+                    return new THREE.Vector3(prjPt[0], prjPt[1], prjPt[2]);
+                } else {
+                    return new THREE.Vector3(prjPt[0], pt[2], -prjPt[1]);
+                }
+            });
 
             const pointGeometry = new THREE.BufferGeometry();
             pointGeometry.setFromPoints(points);
@@ -64,6 +91,7 @@ export default class PointLayer extends Layer {
 
             const pointsObj = new THREE.Points( pointGeometry, pointsMaterial );
             if (this._map.options.type === 'plane') {
+                // 球形地图不要加此属性
                 pointsObj.renderOrder=99;
                 pointsObj.material.depthTest=false;
             }
@@ -71,6 +99,21 @@ export default class PointLayer extends Layer {
             
             this._container.add(pointsObj);
         });
+    }
+    _addTextLayer() {
+        let textData = [];
+        this._data.forEach(item => {
+            let info = item.info;
+            item.points.forEach(pt => {
+                let tempobj = {};
+                tempobj.center = [pt[0], pt[1]];
+                tempobj.altitude = this.options.pointText.yoffset +  pt[2];
+                tempobj.text = info ? info[this.options.pointText.showField] : '';
+                textData.push(tempobj);
+            });
+        });
+        this._textLayer = new TextLayer(textData, { textStyle: this.options.pointText.textStyle });
+        this._map.addLayer(this._textLayer);
     }
     _mousemoveEvtHandler(event) {
         const mapSize = this._map.getContainerSize();
