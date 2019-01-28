@@ -1419,7 +1419,7 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         const pointsMaterial = new THREE.PointsMaterial( { color: color, alphaTest: 0.5, map:texture, size: size } );
         const pointsObj = new THREE.Points( pointGeometry, pointsMaterial );
         pointsObj.renderOrder=99;
-        pointsObj.material.depthTest=true;
+        pointsObj.material.depthTest=false;
         this._container.add(pointsObj);
     }
     _drawLine(startPoint, endPoint, midPoint) {  

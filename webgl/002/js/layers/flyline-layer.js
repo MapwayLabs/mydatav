@@ -135,7 +135,7 @@ export default class FlyLineLayer extends Layer {
         const pointsMaterial = new THREE.PointsMaterial( { color: color, alphaTest: 0.5, map: texture, size: size } );
         const pointsObj = new THREE.Points( pointGeometry, pointsMaterial );
         pointsObj.renderOrder=99;
-        pointsObj.material.depthTest=true;
+        pointsObj.material.depthTest=false;
         this._container.add(pointsObj);
     }
     _drawPoints2(points) {
@@ -155,7 +155,7 @@ export default class FlyLineLayer extends Layer {
         const pointsMaterial = new THREE.PointsMaterial( { color: color, alphaTest: 0.5, map:texture, size: size } );
         const pointsObj = new THREE.Points( pointGeometry, pointsMaterial );
         pointsObj.renderOrder=99;
-        pointsObj.material.depthTest=true;
+        pointsObj.material.depthTest=false;
         this._container.add(pointsObj);
     }
     _drawLine(startPoint, endPoint, midPoint) {  
