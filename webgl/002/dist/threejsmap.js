@@ -1262,9 +1262,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _layer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./layer */ "./js/layers/layer.js");
 /* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../util */ "./js/util.js");
 /* harmony import */ var _custom_meshline__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./custom-meshline */ "./js/layers/custom-meshline.js");
+/* harmony import */ var _point_layer__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./point-layer */ "./js/layers/point-layer.js");
 
 
 // import { lineShader } from './shader/line';
+
 
 
 // 飞线图层
@@ -1282,8 +1284,13 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             },
             pointStyle: {
                 show: false,
+                size: 3,
+                texture: '../../images/disc.png', //  url or null
                 color: '#0f0',
-                size: 3
+                opacity: 1,
+                tooltip: true,
+                hightLight: true,
+                hightLightColor: '#f00'
             },
             // 飞线特效样式
             effect: {
@@ -1313,16 +1320,21 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             hasEffect: { value: 0 }
         };
         this._maxDistance = 0;
+        this._pointsData = [];
         this.animate();
     }
     onAdd(map) {
         _layer__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.onAdd.call(this, map); 
         this._draw();
+        this._drawPoints();
     }
     onRemove(map) {
         _layer__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.onRemove.call(this, map);
         if (this._animateId) {
             window.cancelAnimationFrame(this._animateId);
+        }
+        if (this._pointLayer) {
+            this._map.removeLayer(this._pointLayer);
         }
     }
     animate(time) {
@@ -1355,9 +1367,32 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                     t.push(size/2);
                     let of = this._map.projectLngLat(f);
                     let ot = this._map.projectLngLat(t); 
-                    this._drawPoints([of, ot]);
+                    // this._drawPoints([of, ot]);
+                    let tempPt1 = {
+                        points: [of],
+                        info: { name: '111'}
+                    };
+                    let tempPt2 = {
+                        points: [ot],
+                        info: { name: '222' }
+                    };
+                    this._pointsData.push(tempPt1, tempPt2);
                 } else {
-                    this._drawPoints2([nf, nt]);
+                    let depth = this.geojsonLayer.getDepth();
+                    // this._drawPoints2([nf, nt]);
+                    let pt1 = nf.slice(0, 2);
+                    pt1.push(depth);
+                    let pt2 = nt.slice(0, 2);
+                    pt2.push(depth);
+                    let tempPt1 = {
+                        points: [pt1],
+                        info: { name: '111'}
+                    };
+                    let tempPt2 = {
+                        points: [pt2],
+                        info: { name: '222' }
+                    };
+                    this._pointsData.push(tempPt1, tempPt2);
                 }
             }
             if (this.options.lineStyle.show) {
@@ -1368,6 +1403,29 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 this.uniforms.hasEffect.value = 1;
             }
         });
+    }
+    _drawPoints() {
+        if (!this.options.pointStyle.show || !this._pointsData.length) {
+            return;
+        }
+        const pointStyle = this.options.pointStyle;
+        const pointOptions = {
+            size: pointStyle.size,
+            style: {
+                texture: pointStyle.texture, //  url or null
+                color: pointStyle.color,
+                opacity: pointStyle.opacity,
+            },
+            tooltip: {
+                show: !!pointStyle.tooltip
+            },
+            hightLight: {
+                show: !!pointStyle.hightLight,
+                color: pointStyle.hightLightColor
+            }
+        };
+        this._pointLayer = new _point_layer__WEBPACK_IMPORTED_MODULE_3__["default"](this._pointsData, pointOptions);
+        this._map.addLayer(this._pointLayer);
     }
     _getCurve(startPoint, endPoint, midPoint) {
         const isGlobal = !!(this._map.options.type === 'sphere');
@@ -1388,40 +1446,7 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         let curve = new THREE.CatmullRomCurve3([startVector, middleVector, endVector]);
         return curve;
     }
-    _drawPoints(points) {
-        const loader = new THREE.TextureLoader();
-	    const texture = loader.load( '../../images/disc.png' );
-        const pointGeometry = new THREE.BufferGeometry();
-        const color = this.options.pointStyle.color;
-        const size = this.options.pointStyle.size;
-        points = points.map(pt => new THREE.Vector3(pt[0], pt[1], pt[2]));
-        pointGeometry.setFromPoints(points);
-        const pointsMaterial = new THREE.PointsMaterial( { color: color, alphaTest: 0.5, map: texture, size: size } );
-        const pointsObj = new THREE.Points( pointGeometry, pointsMaterial );
-        pointsObj.renderOrder=99;
-        pointsObj.material.depthTest=true;
-        this._container.add(pointsObj);
-    }
-    _drawPoints2(points) {
-        const loader = new THREE.TextureLoader();
-	    const texture = loader.load( '../../images/disc.png' );
-        const depth = this.geojsonLayer.getDepth();
-        const pointGeometry = new THREE.BufferGeometry();
-        const color = this.options.pointStyle.color;
-        const size = this.options.pointStyle.size;
-        points = points.map(pt => {
-            if (pt.length < 3) {
-                pt.push(depth);
-            }
-            return new THREE.Vector3(pt[0], pt[2], -pt[1]);
-        });
-        pointGeometry.setFromPoints(points);
-        const pointsMaterial = new THREE.PointsMaterial( { color: color, alphaTest: 0.5, map:texture, size: size } );
-        const pointsObj = new THREE.Points( pointGeometry, pointsMaterial );
-        pointsObj.renderOrder=99;
-        pointsObj.material.depthTest=false;
-        this._container.add(pointsObj);
-    }
+
     _drawLine(startPoint, endPoint, midPoint) {  
         const curve = this._getCurve(startPoint, endPoint, midPoint);
         const points = curve.getPoints( 50 );
@@ -2138,6 +2163,151 @@ class Layer extends _eventemiter__WEBPACK_IMPORTED_MODULE_1__["default"] {
 
 /***/ }),
 
+/***/ "./js/layers/point-layer.js":
+/*!**********************************!*\
+  !*** ./js/layers/point-layer.js ***!
+  \**********************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return PointLayer; });
+/* harmony import */ var _layer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./layer */ "./js/layers/layer.js");
+/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../util */ "./js/util.js");
+/* harmony import */ var _tooltip__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../tooltip */ "./js/tooltip.js");
+
+
+
+
+class PointLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
+    constructor(data, options) {
+        // data: [{points:[],info:{}}, {points:[],info:null}, ....]
+        super(data, options);
+        const defaultOptions = {
+            size: 3,
+            style: {
+                texture: '../../images/disc.png', //  url or null
+                color: '#0f0',
+                opacity: 1,
+            },
+            tooltip: {
+                show: false
+            },
+            hightLight: {
+                show: true,
+                color: '#f00'
+            }
+        };
+        this.options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](true, defaultOptions, options); 
+    }
+    onAdd(map) {
+        _layer__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.onAdd.call(this, map); 
+        this._draw();
+        if (this.options.hightLight.show || this.options.tooltip.show) {
+            this._map.on('mousemove', this._mousemoveEvtHandler, this);
+        }
+        if (this.options.tooltip.show) {
+            this._tooltip = new _tooltip__WEBPACK_IMPORTED_MODULE_2__["default"](this._map.getContainerElement());
+        }
+    }
+    onRemove(map) {
+        _layer__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.onRemove.call(this, map);
+        this._map.off('mousemove', this._mousemoveEvtHandler, this);
+    }
+    _draw() {
+        this._data.forEach(item => {
+            let points = item.points;
+            let info = item.info;
+            const materialOptions = {
+                color: this.options.style.color,
+                alphaTest: 0.1,
+                size: this.options.size,
+                opacity: this.options.style.opacity
+            };
+
+            if (this.options.style.texture) {
+                if (!this._loader) this._loader = new THREE.TextureLoader();
+                if (!this._texture) this._texture = this._loader.load( this.options.style.texture );
+                materialOptions.map = this._texture;
+            }
+
+            points = points.map(pt => new THREE.Vector3(pt[0], pt[2], -pt[1]));
+
+            const pointGeometry = new THREE.BufferGeometry();
+            pointGeometry.setFromPoints(points);
+
+            const pointsMaterial = new THREE.PointsMaterial( materialOptions );
+            pointsMaterial.transparent = true;
+
+            const pointsObj = new THREE.Points( pointGeometry, pointsMaterial );
+            if (this._map.options.type === 'plane') {
+                pointsObj.renderOrder=99;
+                pointsObj.material.depthTest=false;
+            }
+            pointsObj.userData = _util__WEBPACK_IMPORTED_MODULE_1__["extend"]({type: 'point'}, info);
+            
+            this._container.add(pointsObj);
+        });
+    }
+    _mousemoveEvtHandler(event) {
+        const mapSize = this._map.getContainerSize();
+        const camera = this._map.getCamera();
+        const sx = event.offsetX; 
+        const sy = event.offsetY;
+        const cx = event.clientX;
+        const cy = event.clientY;
+        //屏幕坐标转标准设备坐标
+        const x = (sx / mapSize.width) * 2 - 1; 
+        const y = -(sy / mapSize.height) * 2 + 1;
+        //标准设备坐标
+        const standardVector = new THREE.Vector3(x, y, 0.5); 
+        //标准设备坐标转世界坐标
+        const worldVector = standardVector.unproject(camera);
+        //射线投射方向单位向量(worldVector坐标减相机位置坐标)
+        const ray = worldVector.sub(camera.position).normalize();
+        //创建射线投射器对象
+        const raycaster = new THREE.Raycaster(camera.position, ray);
+        //返回射线选中的对象
+        const intersects = raycaster.intersectObjects(this._container.children);
+      
+        // 避免连续选中
+        if (this._currentSelectObj) {
+            if (this.options.hightLight.show) {
+                this._currentSelectObj.material.color = this._currentSelectObj.userData.oldColor;
+            }
+            this._currentSelectObj = null;
+            this._tooltip && this._tooltip.close();
+        }
+
+        for (var i = 0; i < intersects.length; i++) {
+            let object = intersects[i].object;
+            let udata = object.userData;
+            if (udata && udata.type === 'point') {
+                if (this.options.hightLight.show) {
+                    object.userData.oldColor = object.material.color;
+                    object.material.color = new THREE.Color(this.options.hightLight.color);
+                }
+                this._currentSelectObj = object;
+                let content = `${udata['name']}`;
+                this._tooltip && this._tooltip.open(sx, sy, content);
+                break;
+            }
+        }
+        if (i === intersects.length) {
+            if (this._currentSelectObj) {
+                if (this.options.hightLight.show) {
+                    this._currentSelectObj.material.color = this._currentSelectObj.userData.oldColor;
+                }
+                this._currentSelectObj = null;
+                this._tooltip && this._tooltip.close();
+            }
+        }
+    }
+}
+
+/***/ }),
+
 /***/ "./js/layers/text-layer.js":
 /*!*********************************!*\
   !*** ./js/layers/text-layer.js ***!
@@ -2172,7 +2342,7 @@ class TextLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 maxWidth: 512
             }
         };
-        _util__WEBPACK_IMPORTED_MODULE_1__["extend"](true, defaultOptions, options);
+        this.options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](true, defaultOptions, options);
         this._textSprites = [];
     }
     onAdd(map) {

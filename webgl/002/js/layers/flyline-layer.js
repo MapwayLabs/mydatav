@@ -2,6 +2,7 @@ import Layer from './layer';
 import * as Util from '../util';
 // import { lineShader } from './shader/line';
 import {MeshLine, MeshLineMaterial} from './custom-meshline';
+import PointLayer from './point-layer';
 
 // 飞线图层
 export default class FlyLineLayer extends Layer {
@@ -18,8 +19,13 @@ export default class FlyLineLayer extends Layer {
             },
             pointStyle: {
                 show: false,
+                size: 3,
+                texture: '../../images/disc.png', //  url or null
                 color: '#0f0',
-                size: 3
+                opacity: 1,
+                tooltip: true,
+                hightLight: true,
+                hightLightColor: '#f00'
             },
             // 飞线特效样式
             effect: {
@@ -49,16 +55,21 @@ export default class FlyLineLayer extends Layer {
             hasEffect: { value: 0 }
         };
         this._maxDistance = 0;
+        this._pointsData = [];
         this.animate();
     }
     onAdd(map) {
         Layer.prototype.onAdd.call(this, map); 
         this._draw();
+        this._drawPoints();
     }
     onRemove(map) {
         Layer.prototype.onRemove.call(this, map);
         if (this._animateId) {
             window.cancelAnimationFrame(this._animateId);
+        }
+        if (this._pointLayer) {
+            this._map.removeLayer(this._pointLayer);
         }
     }
     animate(time) {
@@ -91,9 +102,32 @@ export default class FlyLineLayer extends Layer {
                     t.push(size/2);
                     let of = this._map.projectLngLat(f);
                     let ot = this._map.projectLngLat(t); 
-                    this._drawPoints([of, ot]);
+                    // this._drawPoints([of, ot]);
+                    let tempPt1 = {
+                        points: [of],
+                        info: { name: '111'}
+                    };
+                    let tempPt2 = {
+                        points: [ot],
+                        info: { name: '222' }
+                    };
+                    this._pointsData.push(tempPt1, tempPt2);
                 } else {
-                    this._drawPoints2([nf, nt]);
+                    let depth = this.geojsonLayer.getDepth();
+                    // this._drawPoints2([nf, nt]);
+                    let pt1 = nf.slice(0, 2);
+                    pt1.push(depth);
+                    let pt2 = nt.slice(0, 2);
+                    pt2.push(depth);
+                    let tempPt1 = {
+                        points: [pt1],
+                        info: { name: '111'}
+                    };
+                    let tempPt2 = {
+                        points: [pt2],
+                        info: { name: '222' }
+                    };
+                    this._pointsData.push(tempPt1, tempPt2);
                 }
             }
             if (this.options.lineStyle.show) {
@@ -104,6 +138,29 @@ export default class FlyLineLayer extends Layer {
                 this.uniforms.hasEffect.value = 1;
             }
         });
+    }
+    _drawPoints() {
+        if (!this.options.pointStyle.show || !this._pointsData.length) {
+            return;
+        }
+        const pointStyle = this.options.pointStyle;
+        const pointOptions = {
+            size: pointStyle.size,
+            style: {
+                texture: pointStyle.texture, //  url or null
+                color: pointStyle.color,
+                opacity: pointStyle.opacity,
+            },
+            tooltip: {
+                show: !!pointStyle.tooltip
+            },
+            hightLight: {
+                show: !!pointStyle.hightLight,
+                color: pointStyle.hightLightColor
+            }
+        };
+        this._pointLayer = new PointLayer(this._pointsData, pointOptions);
+        this._map.addLayer(this._pointLayer);
     }
     _getCurve(startPoint, endPoint, midPoint) {
         const isGlobal = !!(this._map.options.type === 'sphere');
@@ -124,40 +181,7 @@ export default class FlyLineLayer extends Layer {
         let curve = new THREE.CatmullRomCurve3([startVector, middleVector, endVector]);
         return curve;
     }
-    _drawPoints(points) {
-        const loader = new THREE.TextureLoader();
-	    const texture = loader.load( '../../images/disc.png' );
-        const pointGeometry = new THREE.BufferGeometry();
-        const color = this.options.pointStyle.color;
-        const size = this.options.pointStyle.size;
-        points = points.map(pt => new THREE.Vector3(pt[0], pt[1], pt[2]));
-        pointGeometry.setFromPoints(points);
-        const pointsMaterial = new THREE.PointsMaterial( { color: color, alphaTest: 0.5, map: texture, size: size } );
-        const pointsObj = new THREE.Points( pointGeometry, pointsMaterial );
-        pointsObj.renderOrder=99;
-        pointsObj.material.depthTest=false;
-        this._container.add(pointsObj);
-    }
-    _drawPoints2(points) {
-        const loader = new THREE.TextureLoader();
-	    const texture = loader.load( '../../images/disc.png' );
-        const depth = this.geojsonLayer.getDepth();
-        const pointGeometry = new THREE.BufferGeometry();
-        const color = this.options.pointStyle.color;
-        const size = this.options.pointStyle.size;
-        points = points.map(pt => {
-            if (pt.length < 3) {
-                pt.push(depth);
-            }
-            return new THREE.Vector3(pt[0], pt[2], -pt[1]);
-        });
-        pointGeometry.setFromPoints(points);
-        const pointsMaterial = new THREE.PointsMaterial( { color: color, alphaTest: 0.5, map:texture, size: size } );
-        const pointsObj = new THREE.Points( pointGeometry, pointsMaterial );
-        pointsObj.renderOrder=99;
-        pointsObj.material.depthTest=false;
-        this._container.add(pointsObj);
-    }
+
     _drawLine(startPoint, endPoint, midPoint) {  
         const curve = this._getCurve(startPoint, endPoint, midPoint);
         const points = curve.getPoints( 50 );

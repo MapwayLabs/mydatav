@@ -36,7 +36,7 @@
             global: {
                 R: 220, // 球形地球半径
                 center: [170, 35], // 初始中心点
-                animation: true, // 是否转动
+                animation: false, // 是否转动
                 animationSpeed: 1.5, // 转动快慢
                 earthImgSrc: '../../images/earth.jpg', // 地球图片
                 light: {
@@ -59,8 +59,12 @@
                 },
                 pointStyle: {
                     show: true,
+                    size: 10,
                     color: '#0f0',
-                    size: 12
+                    opacity: 1,
+                    tooltip: false,
+                    hightLight: true,
+                    hightLightColor: '#f00'
                 },
                 effect: {
                     show: true,
