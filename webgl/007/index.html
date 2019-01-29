@@ -5,20 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>3D模型加载</title>
+    <title>纹理贴图</title>
     <script src="../../lib/threejs/three.js"></script>
     <script src="../../lib/threejs/js/controls/OrbitControls.js"></script>
-    <script src="../../lib/threejs/js/loaders/GLTFLoader.js"></script>
-    <script src="../../lib/threejs/js/loaders/DRACOLoader.js"></script>
-    <script src="../../lib/jquery.min.js"></script>
-    <style>
-        html,
-        body {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-        }
-    </style>
 </head>
 
 <body>
@@ -41,13 +30,11 @@
             1,
             10000
         );
-        camera.position.set(0, 0, 1500);
-        scene.add(new THREE.AmbientLight(0x00ff00, 0.6));
 
         // OrbitControls
         var controls = new THREE.OrbitControls(camera, renderer.domElement);
-        // controls.object.position.set(256, 256, 256);
-        // controls.target = new THREE.Vector3(0, 0, 0);
+        controls.object.position.set(256, 256, 256);
+        controls.target = new THREE.Vector3(0, 0, 0);
         controls.update();
 
         // 坐标轴
@@ -85,69 +72,24 @@
             var zline = new THREE.Line(zline_geom, zline_material);
             scene.add(zline);
         }
-        // drawAxis(256);
+        drawAxis(256);
 
-        // 加载模型 
-        function glLoader() {
-            var loader = new THREE.GLTFLoader();
-            // THREE.DRACOLoader.setDecoderPath('../../lib/threejs/js/libs/draco');
-            // loader.setDRACOLoader(new THREE.DRACOLoader());
-            // Load a glTF resource
-            loader.load(
-                // resource URL
-                '../../data/model3.glb',
-                // called when the resource is loaded
-                function (gltf) {
-                    scene.add(gltf.scene);
-                    scene.rotateX(-Math.PI/2);
-                    // scene.rotateZ(Math.PI/2);
-                    gltf.animations; // Array<THREE.AnimationClip>
-                    gltf.scene; // THREE.Scene
-                    gltf.scenes; // Array<THREE.Scene>
-                    gltf.cameras; // Array<THREE.Camera>
-                    gltf.asset; // Object
-                },
-                // called while loading is progressing
-                function (xhr) {
-                    console.log((xhr.loaded / xhr.total * 100) + '% loaded');
-                },
-                // called when loading has errors
-                function (error) {
-                    console.log('An error happened');
-                }
-            );
-        }
-        glLoader();
+        // 平面
+        var texture = new THREE.TextureLoader().load('../../images/地图CN_V01.jpg');
+        // 立即使用纹理进行材质创建
+        var material = new THREE.MeshBasicMaterial({
+            map: texture
+        });
+        var planeGeometry = new THREE.PlaneGeometry(1024, 256, 8, 8);
+        // var planeMaterial = new THREE.MeshBasicMaterial({
+        //     wireframe: true,
+        //     color: 0xffff00,
+        //     side: THREE.DoubleSide
+        // });
+        var plane = new THREE.Mesh(planeGeometry, material);
+        plane.rotateX(-Math.PI / 2);
+        scene.add(plane);
 
-        function objLoader() {
-            var loader = new THREE.ObjectLoader();
-
-            loader.load(
-                // 资源的URL
-                "models/json/example.json",
-
-                // onLoad回调
-                // Here the loaded data is assumed to be an object
-                function (obj) {
-                    // Add the loaded object to the scene
-                    scene.add(obj);
-                },
-
-                // onProgress回调
-                function (xhr) {
-                    console.log((xhr.loaded / xhr.total * 100) + '% loaded');
-                },
-
-                // onError回调
-                function (err) {
-                    console.error('An error happened');
-                }
-            );
-
-            // 或者，解析先前加载的JSON结构
-            // var object = loader.parse(a_json_object);
-            // scene.add(object);
-        }
 
         function animate() {
             requestAnimationFrame(animate);
