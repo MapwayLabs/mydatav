@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>发光线</title>
+    <script src="../../lib/threejs/three.js"></script>
+    <script src="../../lib/threejs/js/controls/OrbitControls.js"></script>
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <script>
+        var renderer, scene, camera, control;
+
+        function init() {
+            // 画布
+            renderer = new THREE.WebGLRenderer({
+                antialias: true // 抗锯齿
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+            renderer.domElement.style.backgroundColor = "#000";
+
+            // 场景
+            scene = new THREE.Scene();
+
+            // 相机
+            camera = new THREE.PerspectiveCamera(
+                45,
+                window.innerWidth / window.innerHeight,
+                1,
+                1000
+            );
+
+            // OrbitControls
+            control = new THREE.OrbitControls(camera, renderer.domElement);
+            control.object.position.set(256, 256, 256);
+            control.target = new THREE.Vector3(0, 0, 0);
+            control.update();
+
+        }
+        init();
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            control.update();
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', function () {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        //Create a closed wavey loop
+        var curve = new THREE.CatmullRomCurve3( [
+            new THREE.Vector3( -10, 10, 0 ),
+            new THREE.Vector3( 0, 13, 0 ),
+            new THREE.Vector3( 10, 10, 0 )
+        ] , false, 'catmullrom');
+
+        var points = curve.getPoints( 50 );
+        var geometry = new THREE.BufferGeometry().setFromPoints( points );
+
+        // var material = new THREE.LineBasicMaterial( { color : 0xff0000 } );
+        var texture = new THREE.TextureLoader().load('../../images/disc.png');
+        var material = new THREE.MeshBasicMaterial( { color : 0xff0000, map: texture} );
+
+        // Create the final object to add to the scene
+        var curveObject = new THREE.Line( geometry, material );
+        scene.add(curveObject);
+    </script>
+</body>
+
+</html>
