@@ -11,3 +11,5 @@ export {mapHelper}
 
 import * as Util from './util';
 export {Util};
+
+export { default as color } from './color';

@@ -18,6 +18,7 @@
             height: 100%;
             background: #000;
         }
+
         #threemap {
             position: absolute;
             left: 0;
@@ -36,7 +37,7 @@
             global: {
                 R: 220, // 球形地球半径
                 center: [170, 35], // 初始中心点
-                animation: true, // 是否转动
+                animation: false, // 是否转动
                 animationSpeed: 1.5, // 转动快慢
                 earthImgSrc: '../../images/earth.jpg', // 地球图片
                 light: {
@@ -50,7 +51,7 @@
         map.setView();
         $.getJSON('../../data/flyline.json', function (fdata) {
             const flOptions = {
-                heightLimit:30,
+                heightLimit: 30,
                 lineStyle: {
                     show: true,
                     color: '#5092FF',
@@ -59,8 +60,25 @@
                 },
                 pointStyle: {
                     show: true,
+                    size: 10,
                     color: '#0f0',
-                    size: 12
+                    opacity: 1,
+                    tooltip: true,
+                    hightLight: true,
+                    hightLightColor: '#f00',
+                    pointText: {
+                        show: false,
+                        yoffset: 0,
+                        textStyle: {
+                            fontStyle: 'normal',
+                            fontWeight: 'normal',
+                            fontSize: '10px',
+                            fontFamily: 'Microsoft YaHei',
+                            fontColor: '#f00',
+                            textAlign: 'center',
+                            textBaseline: 'middle'
+                        }
+                    }
                 },
                 effect: {
                     show: true,

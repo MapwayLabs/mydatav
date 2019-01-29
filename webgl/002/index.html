@@ -96,6 +96,9 @@
                 },
                 hightLight: {
                     show: true
+                },
+                tooltip: {
+                    show: false
                 }
             };
             window.map = map;
@@ -114,8 +117,26 @@
                     },
                     pointStyle: {
                         show: true,
-                        color: '#f00',
-                        size: 6
+                        size: 6,
+                        color: '#0f0',
+                        texture: '../../images/disc.png',
+                        opacity: 1,
+                        tooltip: true,
+                        hightLight: true,
+                        hightLightColor: '#f00',
+                        pointText: {
+                            show: true,
+                            yoffset: 3,
+                            textStyle: {
+                                fontStyle: 'normal',
+                                fontWeight: 'normal',
+                                fontSize: '10px',
+                                fontFamily: 'Microsoft YaHei',
+                                fontColor: '#f00',
+                                textAlign: 'center',
+                                textBaseline: 'middle'
+                            }
+                        } 
                     },
                     effect: {
                         show: true,
