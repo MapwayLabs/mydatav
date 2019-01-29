@@ -111,7 +111,11 @@ export default class ThreeMap extends EventEmiter {
         if (this.options.type === 'plane') {
             if (this.options.crs === mapHelper.CRS.epsg3857) {
                 let point = mapHelper.wgs84ToMecator(lnglat);
-                return mapHelper.scalePoint(point, 1/this.options.SCALE_RATIO);
+                let spt = mapHelper.scalePoint(point, 1/this.options.SCALE_RATIO);
+                if (lnglat.length === 3) {
+                    spt.push(lnglat[2]);
+                }
+                return spt;
             } else {
                 return lnglat;
             }
