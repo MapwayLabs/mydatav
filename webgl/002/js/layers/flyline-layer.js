@@ -97,7 +97,8 @@ export default class FlyLineLayer extends Layer {
             let fname = item.from.data;
             let t = item.to.location.split(',').map(p => Number(p));
             let tname = item.to.data;
-            let m = [(f[0]+t[0])/2, (f[1]+t[1])/2];
+            // let m = [(f[0]+t[0])/2, (f[1]+t[1])/2];
+            let m = this._getMiddleLngLat(f, t);
             if (this._map.options.type === 'sphere') {
                 // 三维的第三个值表示海拔,需进行投影转换
                 m.push(h);
@@ -157,6 +158,15 @@ export default class FlyLineLayer extends Layer {
                 this.uniforms.hasEffect.value = 1;
             }
         });
+    }
+    // 获取中心点经纬度，考虑大圆航线
+    _getMiddleLngLat(f, t) {
+        const lngDiff = Math.abs(f[0]-t[0]);
+        if (lngDiff > 180) {
+            return [ (f[0]+360+t[0])/2, (f[1]+t[1])/2 ];
+        } else {
+            return [ (f[0]+t[0])/2,(f[1]+t[1])/2 ];
+        }
     }
     _addPoints() {
         let ptArr = Array.from(arguments);
