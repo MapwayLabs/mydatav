@@ -1918,7 +1918,7 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
     _drawLine2(keyPoints) {  
         const size = this._map.getContainerSize();
         const curve = this._getCurve(keyPoints);
-        const points = curve.getPoints( 80 );
+        const points = curve.getPoints( 50 );
 
         const geometry = new THREE.Geometry().setFromPoints( points );
         
