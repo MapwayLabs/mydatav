@@ -5,7 +5,7 @@ import TextLayer from './text-layer';
 
 // 柱状图层
 export default class BarLayer extends Layer {
-    constructor (data, geojsonLayer, options, tooltipHelper, bdpChart) {
+    constructor (data, options, geojsonLayer, tooltipHelper, bdpChart) {
         super(data, options);
 
         const defaultOptions = {

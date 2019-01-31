@@ -150,7 +150,7 @@
                         // spotIntensity: 1000 // 无效参数
                     }
                 };
-                let fl = new TMap.FlyLineLayer(fdata, window.geojsonLayer, flOptions);
+                let fl = new TMap.FlyLineLayer(fdata, flOptions, window.geojsonLayer);
                 map.addLayer(fl);
             });
             $.getJSON('../../data/bardata.json', function (data) {
@@ -187,7 +187,7 @@
                         show: true
                     }
                 };
-                let barlayer = new TMap.BarLayer(data, window.geojsonLayer, barOptions);
+                let barlayer = new TMap.BarLayer(data, barOptions, window.geojsonLayer);
                 map.addLayer(barlayer);
             });
         });

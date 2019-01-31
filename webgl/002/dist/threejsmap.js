@@ -669,7 +669,7 @@ __webpack_require__.r(__webpack_exports__);
 
 // 柱状图层
 class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
-    constructor (data, geojsonLayer, options, tooltipHelper, bdpChart) {
+    constructor (data, options, geojsonLayer, tooltipHelper, bdpChart) {
         super(data, options);
 
         const defaultOptions = {
@@ -1086,42 +1086,29 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         let lnglat = [center[0], center[1], yoffset];
         let projCenter = this._map.projectLngLat(lnglat);
 
-        // test-start
-        // const drawPoint = () => {
-        //     var starsGeometry = new THREE.Geometry();
-        //     starsGeometry.vertices.push( new THREE.Vector3(projCenter[0], projCenter[1], projCenter[2]) );
-        //     var starsMaterial = new THREE.PointsMaterial( { color: 0xff0000, size: 10.0 } );
-        //     var starField = new THREE.Points( starsGeometry, starsMaterial );
-        //     this._container.add( starField );
-        // }
-        // drawPoint();
-        // test-end
-
         if (this._map.options.type === 'plane') {
             mesh.position.set(projCenter[0], projCenter[2], -projCenter[1]);
             mesh.rotateX(-Math.PI / 2);
         } else { 
             // 变换柱子，让其与球面垂直
+            // 先沿 Y 轴旋转，由于零度经线与z轴正半轴相差90度，故加经纬加90度偏移
             mesh.rotateY(THREE.Math.degToRad(center[0] + 90));
+            // 坐标在xz平面投影向量
             let v1 = new THREE.Vector3(projCenter[0], 0, projCenter[2]).normalize();
+            // y轴方向向量
             let v2 = new THREE.Vector3(0, 1, 0).normalize();
+            // 原始坐标向量
             let v3 = new THREE.Vector3(projCenter[0], projCenter[1], projCenter[2]).normalize();
-            let v = v1.clone().cross(v2.clone()).normalize(); // 法向量
+             // 法向量，clone防止原始向量被更改
+            let v = v1.clone().cross(v2.clone()).normalize();
+            // 旋转角
             let deg = v1.angleTo(v3);
             if (center[1] < 0) {
                 deg = -deg;
             }
-            // test
-            // var zline_geom = new THREE.Geometry();
-            // zline_geom.vertices.push(new THREE.Vector3(0, 0, 0));
-            // zline_geom.vertices.push(v3.clone().multiplyScalar(220));
-            // var zline_material = new THREE.LineBasicMaterial({
-            //     color: 0xff8c00
-            // });
-            // var zline = new THREE.Line(zline_geom, zline_material);
-            // this._container.add(zline);
-
+            // 沿着法向量旋转纬度角，注意相对于世界坐标系
             mesh.rotateOnWorldAxis(v, deg);
+            // 将柱子放到球面上
             mesh.position.set(projCenter[0], projCenter[1], projCenter[2]);
         }
         return mesh;
@@ -1690,7 +1677,7 @@ __webpack_require__.r(__webpack_exports__);
 
 // 飞线图层
 class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
-    constructor(data, geojsonLayer, options) {
+    constructor(data, options, geojsonLayer) {
         super(data, options);
         const defaultOptions = {
             heightLimit: 30, // 飞线最高点高度

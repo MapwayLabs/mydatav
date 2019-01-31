@@ -143,7 +143,7 @@
                         show: true
                     }
                 };
-                window.barlayer = new TMap.BarLayer(bardata, window.geojsonLayer, barOptions);
+                window.barlayer = new TMap.BarLayer(bardata, barOptions, window.geojsonLayer);
                 window.map.addLayer(window.barlayer);
             });
         });

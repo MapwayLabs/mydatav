@@ -6,7 +6,7 @@ import PointLayer from './point-layer';
 
 // 飞线图层
 export default class FlyLineLayer extends Layer {
-    constructor(data, geojsonLayer, options) {
+    constructor(data, options, geojsonLayer) {
         super(data, options);
         const defaultOptions = {
             heightLimit: 30, // 飞线最高点高度
