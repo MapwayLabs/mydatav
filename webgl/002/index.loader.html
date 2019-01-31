@@ -8,8 +8,12 @@
     <title>3D模型加载</title>
     <script src="../../lib/threejs/three.js"></script>
     <script src="../../lib/threejs/js/controls/OrbitControls.js"></script>
+    <script src="../../lib/threejs/js/loaders/LoaderSupport.js"></script>
     <script src="../../lib/threejs/js/loaders/GLTFLoader.js"></script>
     <script src="../../lib/threejs/js/loaders/DRACOLoader.js"></script>
+    <script src="../../lib/threejs/js/loaders/OBJLoader.js"></script>
+    <script src="../../lib/threejs/js/loaders/OBJLoader2.js"></script>
+    <script src="../../lib/threejs/js/loaders/MTLLoader.js"></script>
     <script src="../../lib/jquery.min.js"></script>
     <style>
         html,
@@ -27,6 +31,7 @@
         var renderer = new THREE.WebGLRenderer({
             antialias: true // 抗锯齿
         });
+        renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
         renderer.domElement.style.backgroundColor = "#000";
@@ -42,7 +47,7 @@
             10000
         );
         camera.position.set(0, 0, 1500);
-        scene.add(new THREE.AmbientLight(0x00ff00, 0.6));
+        scene.add(new THREE.AmbientLight(0xffffff, 0.6));
 
         // OrbitControls
         var controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -99,7 +104,7 @@
                 // called when the resource is loaded
                 function (gltf) {
                     scene.add(gltf.scene);
-                    scene.rotateX(-Math.PI/2);
+                    scene.rotateX(-Math.PI / 2);
                     // scene.rotateZ(Math.PI/2);
                     gltf.animations; // Array<THREE.AnimationClip>
                     gltf.scene; // THREE.Scene
@@ -117,37 +122,25 @@
                 }
             );
         }
-        glLoader();
+        // glLoader();
 
         function objLoader() {
-            var loader = new THREE.ObjectLoader();
 
-            loader.load(
-                // 资源的URL
-                "models/json/example.json",
-
-                // onLoad回调
-                // Here the loaded data is assumed to be an object
-                function (obj) {
-                    // Add the loaded object to the scene
-                    scene.add(obj);
-                },
-
-                // onProgress回调
-                function (xhr) {
-                    console.log((xhr.loaded / xhr.total * 100) + '% loaded');
-                },
-
-                // onError回调
-                function (err) {
-                    console.error('An error happened');
-                }
-            );
-
-            // 或者，解析先前加载的JSON结构
-            // var object = loader.parse(a_json_object);
-            // scene.add(object);
+            var mtlLoader = new THREE.MTLLoader();
+            mtlLoader.load('../../data/model/china_V1/china_V1.mtl', materials => {
+                materials.preload();
+                // instantiate the loader
+                var loader = new THREE.OBJLoader();
+                loader.setMaterials( materials );
+                // function called on successful load
+                var callbackOnLoad = function (object) {
+                    scene.add(object);
+                };
+                // load a resource from provided URL synchronously
+                loader.load('../../data/model/china_V1/china_V1.obj', callbackOnLoad, null, null, null, false);
+            });
         }
+        objLoader();
 
         function animate() {
             requestAnimationFrame(animate);
