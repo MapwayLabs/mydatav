@@ -26,6 +26,7 @@
             renderer = new THREE.WebGLRenderer({
                 antialias: true // 抗锯齿
             });
+            renderer.setPixelRatio(window.devicePixelRatio);
             renderer.setSize(window.innerWidth, window.innerHeight);
             document.body.appendChild(renderer.domElement);
             renderer.domElement.style.backgroundColor = "#000";
@@ -38,7 +39,7 @@
                 45,
                 window.innerWidth / window.innerHeight,
                 1,
-                1000
+                5000
             );
 
             // OrbitControls
@@ -65,23 +66,29 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        //Create a closed wavey loop
-        var curve = new THREE.CatmullRomCurve3( [
-            new THREE.Vector3( -10, 10, 0 ),
-            new THREE.Vector3( 0, 13, 0 ),
-            new THREE.Vector3( 10, 10, 0 )
-        ] , false, 'catmullrom');
+        var length = 12, width = 8;
 
-        var points = curve.getPoints( 50 );
-        var geometry = new THREE.BufferGeometry().setFromPoints( points );
+        var shape = new THREE.Shape();
+        shape.moveTo( 0,0 );
+        shape.lineTo( 0, width );
+        shape.lineTo( length, width );
+        shape.lineTo( length, 0 );
+        shape.lineTo( 0, 0 );
 
-        // var material = new THREE.LineBasicMaterial( { color : 0xff0000 } );
-        var texture = new THREE.TextureLoader().load('../../images/disc.png');
-        var material = new THREE.MeshBasicMaterial( { color : 0xff0000, map: texture} );
+        var extrudeSettings = {
+            steps: 2,
+            depth: 16,
+            bevelEnabled: true,
+            bevelThickness: 1,
+            bevelSize: 1,
+            bevelSegments: 1
+        };
 
-        // Create the final object to add to the scene
-        var curveObject = new THREE.Line( geometry, material );
-        scene.add(curveObject);
+        var geometry = new THREE.ExtrudeBufferGeometry( shape, extrudeSettings );
+        var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+        var material2 = new THREE.MeshBasicMaterial( { color: 0xff0000 } );
+        var mesh = new THREE.Mesh( geometry, [material,material2] ) ;
+        scene.add( mesh );
     </script>
 </body>
 
