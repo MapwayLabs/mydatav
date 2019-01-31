@@ -84,9 +84,10 @@
             bevelSegments: 1
         };
 
+        var texture = new THREE.TextureLoader().load('../../images/地图CN_V01.jpg');
         var geometry = new THREE.ExtrudeBufferGeometry( shape, extrudeSettings );
         var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
-        var material2 = new THREE.MeshBasicMaterial( { color: 0xff0000 } );
+        var material2 = new THREE.MeshBasicMaterial( { map: texture } );
         var mesh = new THREE.Mesh( geometry, [material,material2] ) ;
         scene.add( mesh );
     </script>

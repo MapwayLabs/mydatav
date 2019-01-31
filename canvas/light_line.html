@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="../lib/tween.js-master/src/Tween.js"></script>
+    <title>light_line</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <script>    
+        var canvas, ctx;
+        function initCanvas(width, height) {
+            canvas = document.createElement('canvas');
+            canvas.width = width || 300;
+            canvas.height = height || 150;
+            document.body.appendChild(canvas);
+            canvas.style.backgroundColor = "#ccc";
+            ctx = canvas.getContext('2d');
+        }
+        initCanvas(500, 500);
+
+        function drawLightLine() {
+            var gradient = ctx.createLinearGradient(10, 10, 10, 20);
+            gradient.addColorStop(0, 'rgba(255,0,0,0.1)');
+            gradient.addColorStop(0.25, 'rgba(255,0,0,0.2)');
+            gradient.addColorStop(0.5, 'rgba(255,0,0,1)');
+            gradient.addColorStop(0.75, 'rgba(255,0,0,0.2)');
+            gradient.addColorStop(1, 'rgba(255,0,0,0.1)');
+            ctx.fillStyle=gradient;
+            ctx.fillRect(10, 10, 200, 10);
+        }
+        drawLightLine();
+    </script>
+</body>
+
+</html>
