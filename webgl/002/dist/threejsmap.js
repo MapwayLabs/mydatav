@@ -988,9 +988,9 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         this._barData.data.forEach((item, index) => {
             let barHeight = this.getBarHeight(item);
             let barColor = this.getBarColor(item, index);
-            let yoffset = this.geojsonLayer.getDepth();
-            let projCenter = this._map.projectLngLat(item.center);
-            let bar = this._createBar(projCenter, barHeight, barColor, yoffset);
+            let yoffset = this.geojsonLayer ? this.geojsonLayer.getDepth() : 0;
+            // let projCenter = this._map.projectLngLat(item.center);
+            let bar = this._createBar(item.center, barHeight, barColor, yoffset);
             bar.userData = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](true, {type: 'bar'}, item);
             this._container.add(bar);   
         });
@@ -1083,8 +1083,47 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         const geometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings);
         const material = new THREE.MeshPhongMaterial({ color: color });
         const mesh = new THREE.Mesh(geometry, material);
-        mesh.position.set(center[0], yoffset, -center[1]);
-        mesh.rotateX(-Math.PI / 2);
+        let lnglat = [center[0], center[1], yoffset];
+        let projCenter = this._map.projectLngLat(lnglat);
+
+        // test-start
+        // const drawPoint = () => {
+        //     var starsGeometry = new THREE.Geometry();
+        //     starsGeometry.vertices.push( new THREE.Vector3(projCenter[0], projCenter[1], projCenter[2]) );
+        //     var starsMaterial = new THREE.PointsMaterial( { color: 0xff0000, size: 10.0 } );
+        //     var starField = new THREE.Points( starsGeometry, starsMaterial );
+        //     this._container.add( starField );
+        // }
+        // drawPoint();
+        // test-end
+
+        if (this._map.options.type === 'plane') {
+            mesh.position.set(projCenter[0], projCenter[2], -projCenter[1]);
+            mesh.rotateX(-Math.PI / 2);
+        } else { 
+            // 变换柱子，让其与球面垂直
+            mesh.rotateY(THREE.Math.degToRad(center[0] + 90));
+            let v1 = new THREE.Vector3(projCenter[0], 0, projCenter[2]).normalize();
+            let v2 = new THREE.Vector3(0, 1, 0).normalize();
+            let v3 = new THREE.Vector3(projCenter[0], projCenter[1], projCenter[2]).normalize();
+            let v = v1.clone().cross(v2.clone()).normalize(); // 法向量
+            let deg = v1.angleTo(v3);
+            if (center[1] < 0) {
+                deg = -deg;
+            }
+            // test
+            // var zline_geom = new THREE.Geometry();
+            // zline_geom.vertices.push(new THREE.Vector3(0, 0, 0));
+            // zline_geom.vertices.push(v3.clone().multiplyScalar(220));
+            // var zline_material = new THREE.LineBasicMaterial({
+            //     color: 0xff8c00
+            // });
+            // var zline = new THREE.Line(zline_geom, zline_material);
+            // this._container.add(zline);
+
+            mesh.rotateOnWorldAxis(v, deg);
+            mesh.position.set(projCenter[0], projCenter[1], projCenter[2]);
+        }
         return mesh;
     }
     _addTextLayer() {
@@ -3498,6 +3537,41 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
         // animate
         this._animate();
     }
+    // just a test function 画坐标轴
+    drawAxis(scene, len) {
+        if (len === undefined) {
+            len = 100;
+        }
+        // x 轴
+        var xline_geom = new THREE.Geometry();
+        xline_geom.vertices.push(new THREE.Vector3(0, 0, 0));
+        xline_geom.vertices.push(new THREE.Vector3(len, 0, 0));
+        var xline_material = new THREE.LineBasicMaterial({
+            color: 0xff0000
+        });
+        var xline = new THREE.Line(xline_geom, xline_material);
+        scene.add(xline);
+
+        // y 轴
+        var yline_geom = new THREE.Geometry();
+        yline_geom.vertices.push(new THREE.Vector3(0, 0, 0));
+        yline_geom.vertices.push(new THREE.Vector3(0, len, 0));
+        var yline_material = new THREE.LineBasicMaterial({
+            color: 0x00ff00
+        });
+        var yline = new THREE.Line(yline_geom, yline_material);
+        scene.add(yline);
+
+        // z 轴
+        var zline_geom = new THREE.Geometry();
+        zline_geom.vertices.push(new THREE.Vector3(0, 0, 0));
+        zline_geom.vertices.push(new THREE.Vector3(0, 0, len));
+        var zline_material = new THREE.LineBasicMaterial({
+            color: 0x0000ff
+        });
+        var zline = new THREE.Line(zline_geom, zline_material);
+        scene.add(zline);
+    }
     _initGlobal() {
         if (THREE == undefined) throw new Error('需先引入 threejs 库！');
         if (THREE.OrbitControls == undefined) throw new Error('需先引入 OrbitControls 组件！');
@@ -3554,12 +3628,20 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
         globeTextureLoader.load(this.options.global.earthImgSrc, texture => {
             const globeGgeometry = new THREE.SphereGeometry(this.options.global.R, 100, 100);
             const globeMaterial = new THREE.MeshStandardMaterial({map: texture});
+            // test code -start
+            // globeMaterial.transparent = true;
+            // globeMaterial.opacity = 0.6;
+            // test code - end
             const globeMesh = new THREE.Mesh(globeGgeometry, globeMaterial);
             this._scene.add(globeMesh);
             this._scene.rotation.x = THREE.Math.degToRad(this.options.global.center[1]);
             this._scene.rotation.y = THREE.Math.degToRad(this.options.global.center[0]);
         });
-
+        
+        // test code -start
+        // this.drawAxis(this._scene, this.options.global.R*2);
+        // test code -end
+        
         // animate
         this._animate();
     }

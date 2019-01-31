@@ -318,6 +318,41 @@ export default class ThreeMap extends EventEmiter {
         // animate
         this._animate();
     }
+    // just a test function 画坐标轴
+    drawAxis(scene, len) {
+        if (len === undefined) {
+            len = 100;
+        }
+        // x 轴
+        var xline_geom = new THREE.Geometry();
+        xline_geom.vertices.push(new THREE.Vector3(0, 0, 0));
+        xline_geom.vertices.push(new THREE.Vector3(len, 0, 0));
+        var xline_material = new THREE.LineBasicMaterial({
+            color: 0xff0000
+        });
+        var xline = new THREE.Line(xline_geom, xline_material);
+        scene.add(xline);
+
+        // y 轴
+        var yline_geom = new THREE.Geometry();
+        yline_geom.vertices.push(new THREE.Vector3(0, 0, 0));
+        yline_geom.vertices.push(new THREE.Vector3(0, len, 0));
+        var yline_material = new THREE.LineBasicMaterial({
+            color: 0x00ff00
+        });
+        var yline = new THREE.Line(yline_geom, yline_material);
+        scene.add(yline);
+
+        // z 轴
+        var zline_geom = new THREE.Geometry();
+        zline_geom.vertices.push(new THREE.Vector3(0, 0, 0));
+        zline_geom.vertices.push(new THREE.Vector3(0, 0, len));
+        var zline_material = new THREE.LineBasicMaterial({
+            color: 0x0000ff
+        });
+        var zline = new THREE.Line(zline_geom, zline_material);
+        scene.add(zline);
+    }
     _initGlobal() {
         if (THREE == undefined) throw new Error('需先引入 threejs 库！');
         if (THREE.OrbitControls == undefined) throw new Error('需先引入 OrbitControls 组件！');
@@ -374,12 +409,20 @@ export default class ThreeMap extends EventEmiter {
         globeTextureLoader.load(this.options.global.earthImgSrc, texture => {
             const globeGgeometry = new THREE.SphereGeometry(this.options.global.R, 100, 100);
             const globeMaterial = new THREE.MeshStandardMaterial({map: texture});
+            // test code -start
+            // globeMaterial.transparent = true;
+            // globeMaterial.opacity = 0.6;
+            // test code - end
             const globeMesh = new THREE.Mesh(globeGgeometry, globeMaterial);
             this._scene.add(globeMesh);
             this._scene.rotation.x = THREE.Math.degToRad(this.options.global.center[1]);
             this._scene.rotation.y = THREE.Math.degToRad(this.options.global.center[0]);
         });
-
+        
+        // test code -start
+        // this.drawAxis(this._scene, this.options.global.R*2);
+        // test code -end
+        
         // animate
         this._animate();
     }

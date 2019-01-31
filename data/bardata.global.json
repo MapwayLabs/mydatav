@@ -1,0 +1,12 @@
+{
+    "x": {
+        "name": "地区",
+        "data": ["AFG", "BTN", "KHM", "DNK"],
+        "location_data": [{"longitude": 0, "latitude": 0},{"longitude": 90, "latitude": 0},{"longitude": 0, "latitude": -89},{"longitude": 45, "latitude": 45}]
+    },
+    "y": {
+        "name": "数值", 
+        "data": [4, 3, 2, 6]
+    },
+    "colors": [4, 3, 2, 6]
+}

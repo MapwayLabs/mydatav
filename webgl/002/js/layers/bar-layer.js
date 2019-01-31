@@ -324,9 +324,9 @@ export default class BarLayer extends Layer {
         this._barData.data.forEach((item, index) => {
             let barHeight = this.getBarHeight(item);
             let barColor = this.getBarColor(item, index);
-            let yoffset = this.geojsonLayer.getDepth();
-            let projCenter = this._map.projectLngLat(item.center);
-            let bar = this._createBar(projCenter, barHeight, barColor, yoffset);
+            let yoffset = this.geojsonLayer ? this.geojsonLayer.getDepth() : 0;
+            // let projCenter = this._map.projectLngLat(item.center);
+            let bar = this._createBar(item.center, barHeight, barColor, yoffset);
             bar.userData = Util.extend(true, {type: 'bar'}, item);
             this._container.add(bar);   
         });
@@ -419,8 +419,34 @@ export default class BarLayer extends Layer {
         const geometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings);
         const material = new THREE.MeshPhongMaterial({ color: color });
         const mesh = new THREE.Mesh(geometry, material);
-        mesh.position.set(center[0], yoffset, -center[1]);
-        mesh.rotateX(-Math.PI / 2);
+        let lnglat = [center[0], center[1], yoffset];
+        let projCenter = this._map.projectLngLat(lnglat);
+
+        if (this._map.options.type === 'plane') {
+            mesh.position.set(projCenter[0], projCenter[2], -projCenter[1]);
+            mesh.rotateX(-Math.PI / 2);
+        } else { 
+            // 变换柱子，让其与球面垂直
+            // 先沿 Y 轴旋转，由于零度经线与z轴正半轴相差90度，故加经纬加90度偏移
+            mesh.rotateY(THREE.Math.degToRad(center[0] + 90));
+            // 坐标在xz平面投影向量
+            let v1 = new THREE.Vector3(projCenter[0], 0, projCenter[2]).normalize();
+            // y轴方向向量
+            let v2 = new THREE.Vector3(0, 1, 0).normalize();
+            // 原始坐标向量
+            let v3 = new THREE.Vector3(projCenter[0], projCenter[1], projCenter[2]).normalize();
+             // 法向量，clone防止原始向量被更改
+            let v = v1.clone().cross(v2.clone()).normalize();
+            // 旋转角
+            let deg = v1.angleTo(v3);
+            if (center[1] < 0) {
+                deg = -deg;
+            }
+            // 沿着法向量旋转纬度角，注意相对于世界坐标系
+            mesh.rotateOnWorldAxis(v, deg);
+            // 将柱子放到球面上
+            mesh.position.set(projCenter[0], projCenter[1], projCenter[2]);
+        }
         return mesh;
     }
     _addTextLayer() {

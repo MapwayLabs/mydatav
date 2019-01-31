@@ -92,8 +92,45 @@
                     // spotIntensity: 1000 // 无效参数
                 }
             };
-            let fl = new TMap.FlyLineLayer(fdata, null, flOptions);
-            map.addLayer(fl);
+            // let fl = new TMap.FlyLineLayer(fdata, null, flOptions);
+            // map.addLayer(fl);
+        });
+        $.getJSON('../../data/bardata.global.json', function (data) {
+            let barOptions = {
+                isMatchGeoJson: false,
+                isAutoResize: false,
+                barStyle: {
+                    width: 3, // 底边长
+                    minHeight: 10, // 最小高度
+                    maxHeight: 100, // 最大高度
+                    bevelThickness: 0.1,
+                    bevelSize: 0.08,
+                    bevelSegments: 100,
+                    defaultColor: ["#5182E4", "#9BCC66", "#3FB27E", "#F7CB4A", "#F88D48",
+                        "#F35352", "#CE62D6", "#8954D4", "#5156B8", "#51B4F1", "#69D4DB",
+                        "#D42D6B"
+                    ],
+                    grandientColor: null,
+                    enumColor: null
+                },
+                barText: {
+                    show: false,
+                    offset: 2,
+                    textStyle: {
+                        scale: 38,
+                        fontWeight: 'normal',
+                        fontFamily: 'Microsoft YaHei',
+                        fontColor: '#000',
+                        textAlign: 'center',
+                        textBaseline: 'middle'
+                    }
+                },
+                barTooltip: {
+                    show: true
+                }
+            };
+            let barlayer = new TMap.BarLayer(data, null, barOptions);
+            map.addLayer(barlayer);
         });
     </script>
 </body>
