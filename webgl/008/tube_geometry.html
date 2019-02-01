@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>发光线</title>
+    <script src="../../lib/threejs/three.js"></script>
+    <script src="../../lib/threejs/js/controls/OrbitControls.js"></script>
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <script>
+        var renderer, scene, camera, control;
+
+        function init() {
+            // 画布
+            renderer = new THREE.WebGLRenderer({
+                antialias: true // 抗锯齿
+            });
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+            renderer.domElement.style.backgroundColor = "#000";
+
+            // 场景
+            scene = new THREE.Scene();
+
+            // 相机
+            camera = new THREE.PerspectiveCamera(
+                45,
+                window.innerWidth / window.innerHeight,
+                1,
+                5000
+            );
+
+            // OrbitControls
+            control = new THREE.OrbitControls(camera, renderer.domElement);
+            control.object.position.set(256, 256, 256);
+            control.target = new THREE.Vector3(0, 0, 0);
+            control.update();
+
+        }
+        init();
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            control.update();
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', function () {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+        
+        scene.add(new THREE.AmbientLight(0xff0000, 1.0));
+        // var texture = new THREE.TextureLoader().load('../../images/地图CN_V01.jpg');
+        function generateCanvasTexture() {
+            var canvas = document.createElement('canvas');
+            canvas.width = 128;
+            canvas.height = 128;
+            canvas.style.backgroundColor = "#ccc";
+            var ctx = canvas.getContext('2d');
+
+            ctx.beginPath();
+            ctx.fillStyle = '#f00';
+            ctx.fillRect(0, 0, 128, 32);
+            ctx.beginPath();
+            ctx.fillStyle = '#0f0';
+            ctx.fillRect(0, 96, 128, 32);
+
+            var canvastexture = new THREE.CanvasTexture(canvas);
+            // canvastexture.wrapS = THREE.RepeatWrapping;
+            canvastexture.wrapT = THREE.RepeatWrapping;
+            return canvastexture;
+        }
+        var texture = generateCanvasTexture();
+        //Create a closed wavey loop
+        var curve = new THREE.CatmullRomCurve3([
+            new THREE.Vector3(-10, 0, 10),
+            new THREE.Vector3(-5, 5, 5),
+            new THREE.Vector3(0, 0, 0),
+            new THREE.Vector3(5, -5, 5),
+            new THREE.Vector3(10, 0, 10)
+        ]);
+        // var points = curve.getPoints(50);
+        var geometry = new THREE.TubeBufferGeometry( curve, 64, 0.1, 16, false );
+        var material = new THREE.MeshBasicMaterial({
+            color: 0x00ffff
+        });
+        var material2 = new THREE.MeshBasicMaterial({
+            map: texture
+        });
+        var material3 = new THREE.MeshPhongMaterial({
+            color: 0xff0000,
+            emissive: 0xff0000,
+            emissiveIntensity: 1,
+            shininess: 100,
+            specular: 0xff0000,
+
+        });
+        var mesh = new THREE.Mesh( geometry, material3 );
+        scene.add( mesh );
+    </script>
+</body>
+
+</html>

@@ -26,17 +26,33 @@
             canvas.style.backgroundColor = "#ccc";
             ctx = canvas.getContext('2d');
         }
-        initCanvas(500, 500);
+        initCanvas(128, 128);
 
         function drawLightLine() {
-            var gradient = ctx.createLinearGradient(10, 10, 10, 20);
-            gradient.addColorStop(0, 'rgba(255,0,0,0.1)');
-            gradient.addColorStop(0.25, 'rgba(255,0,0,0.2)');
-            gradient.addColorStop(0.5, 'rgba(255,0,0,1)');
-            gradient.addColorStop(0.75, 'rgba(255,0,0,0.2)');
-            gradient.addColorStop(1, 'rgba(255,0,0,0.1)');
-            ctx.fillStyle=gradient;
-            ctx.fillRect(10, 10, 200, 10);
+            // method1
+            // var gradient = ctx.createLinearGradient(10, 10, 10, 20);
+            // gradient.addColorStop(0, 'rgba(255,0,0,0.1)');
+            // gradient.addColorStop(0.25, 'rgba(255,0,0,0.2)');
+            // gradient.addColorStop(0.5, 'rgba(255,0,0,1)');
+            // gradient.addColorStop(0.75, 'rgba(255,0,0,0.2)');
+            // gradient.addColorStop(1, 'rgba(255,0,0,0.1)');
+            // ctx.fillStyle=gradient;
+            // ctx.fillRect(10, 10, 200, 10);
+
+            // method2  
+            // ctx.shadowOffsetX = 0;
+            // ctx.shadowOffsetY = 0;
+            // ctx.shadowBlur = 25;
+            // ctx.shadowColor = '#f00';
+            // ctx.fillStyle = '#f00';
+            // ctx.fillRect(10, 10, 200, 3);
+
+            ctx.beginPath();
+            ctx.fillStyle = '#f00';
+            ctx.fillRect(0, 0, 128, 32);
+            ctx.beginPath();
+            ctx.fillStyle = '#0f0';
+            ctx.fillRect(0, 96, 128, 32);
         }
         drawLightLine();
     </script>

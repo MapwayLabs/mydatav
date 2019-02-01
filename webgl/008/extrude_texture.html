@@ -83,10 +83,36 @@
             bevelSize: 1,
             bevelSegments: 1
         };
+      
+        // var texture = new THREE.TextureLoader().load('../../images/地图CN_V01.jpg');
+        function generateCanvasTexture() {
+            var canvas = document.createElement('canvas');
+            canvas.width = 128;
+            canvas.height = 128;
+            canvas.style.backgroundColor = "#ccc";
+            var ctx = canvas.getContext('2d');
 
-        var texture = new THREE.TextureLoader().load('../../images/地图CN_V01.jpg');
+            // var gradient = ctx.createLinearGradient(10, 10, 10, 20);
+            // gradient.addColorStop(0, 'rgba(255,0,0,0.1)');
+            // gradient.addColorStop(0.25, 'rgba(255,0,0,0.2)');
+            // gradient.addColorStop(0.5, 'rgba(255,0,0,1)');
+            // gradient.addColorStop(0.75, 'rgba(255,0,0,0.2)');
+            // gradient.addColorStop(1, 'rgba(255,0,0,0.1)');
+            ctx.beginPath();
+            ctx.fillStyle = '#f00';
+            ctx.fillRect(0, 0, 128, 32);
+            ctx.beginPath();
+            ctx.fillStyle = '#0f0';
+            ctx.fillRect(0, 96, 128, 32);
+
+            var canvastexture =  new THREE.CanvasTexture(canvas);
+            // canvastexture.wrapS = THREE.RepeatWrapping;
+            canvastexture.wrapT = THREE.RepeatWrapping;
+            return canvastexture;
+        }
+        var texture = generateCanvasTexture();
         var geometry = new THREE.ExtrudeBufferGeometry( shape, extrudeSettings );
-        var material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+        var material = new THREE.MeshBasicMaterial( { color: 0x00ffff } );
         var material2 = new THREE.MeshBasicMaterial( { map: texture } );
         var mesh = new THREE.Mesh( geometry, [material,material2] ) ;
         scene.add( mesh );
