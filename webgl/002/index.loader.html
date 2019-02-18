@@ -46,7 +46,7 @@
             1,
             10000
         );
-        camera.position.set(0, 0, 1500);
+        camera.position.set(0, 0, 500);
         scene.add(new THREE.AmbientLight(0xffffff, 0.6));
 
         // OrbitControls
@@ -90,7 +90,7 @@
             var zline = new THREE.Line(zline_geom, zline_material);
             scene.add(zline);
         }
-        // drawAxis(256);
+        drawAxis(256);
 
         // 加载模型 
         function glLoader() {
@@ -141,6 +141,15 @@
             });
         }
         objLoader();
+        
+        // test-point
+        var geometry = new THREE.CircleBufferGeometry( 2, 32 );
+        var material = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
+        var circle = new THREE.Mesh( geometry, material );
+        circle.renderOrder = 99;
+        circle.depthTest = true;
+        circle.position.set(2, 0, 14);
+        scene.add( circle );
 
         function animate() {
             requestAnimationFrame(animate);

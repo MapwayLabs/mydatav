@@ -76,23 +76,24 @@
 
         // 圆形
         function drawCircle() {
-            var geometry = new THREE.CircleBufferGeometry( 32, 32 );
-            var material = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
+            var geometry = new THREE.CircleBufferGeometry( 1, 32 );
+            var material = new THREE.MeshBasicMaterial( { color: 0xff0000 } );
             var circle = new THREE.Mesh( geometry, material );
             circle.rotateX(-Math.PI/2);
             circle.renderOrder=99;
             circle.material.depthTest=false;
+            circle.position.set(100, 0, -30);
             scene.add( circle );
         }
         drawCircle();
 
         // 平面
-        var texture = new THREE.TextureLoader().load('../../images/地图CN_V01.jpg');
+        var texture = new THREE.TextureLoader().load('../../images/earth.jpg');
         // 立即使用纹理进行材质创建
         var material = new THREE.MeshBasicMaterial({
             map: texture
         });
-        var planeGeometry = new THREE.PlaneGeometry(1024, 256, 8, 8);
+        var planeGeometry = new THREE.PlaneGeometry(360, 180, 8, 8);
         // var planeMaterial = new THREE.MeshBasicMaterial({
         //     wireframe: true,
         //     color: 0xffff00,
