@@ -56,15 +56,22 @@ export default class TextSprite {
         this._height = canvasHeight;
 
         const canvas = document.createElement("canvas");
-        // webgl 规定 canvas 宽高为2的n次幂
+        // webgl 规定 canvas 宽高为2的n次幂，对老式GPU的支持
         canvas.width = canvasWidth;
         canvas.height = canvasHeight;
+
+        const dpr = Util.getDpr();
+        canvas.style.width = canvasWidth + "px";
+        canvas.style.height = canvasHeight + "px";
+        canvas.height = canvasHeight * dpr;
+        canvas.width = canvasWidth * dpr;
 
         const ctx = canvas.getContext("2d");
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         // draw
-        ctx.font = font;
+        const drpFont = `${this.options.fontStyle} ${this.options.fontWeight} ${parseInt(this.options.fontSize) * dpr + 'px'} ${this.options.fontFamily}`;
+        ctx.font = drpFont;
         ctx.fillStyle = this.options.fontColor;
         ctx.textAlign = this.options.textAlign;
         ctx.textBaseline = this.options.textBaseline;
