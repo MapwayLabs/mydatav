@@ -134,7 +134,7 @@
         document.body.appendChild(canvas);
         
         var textWidth, textHeight, canvasWidth, canvasHeight;
-        function drawText(textStr, fontSize = 16) {
+        function drawText(textStr, fontSize = 18) {
             // var canvas = document.createElement("canvas");
             // webgl 规定 canvas 宽高为2的n次幂
             // canvas.width = 128;
@@ -149,25 +149,25 @@
             canvas.width = canvasWidth;
             canvas.height = canvasHeight;
 
-            // if (window.devicePixelRatio) {
+            if (window.devicePixelRatio) {
 
-                // canvas.style.width = canvasWidth + "px";
+                canvas.style.width = canvasWidth + "px";
 
-                // canvas.style.height = canvasHeight + "px";
+                canvas.style.height = canvasHeight + "px";
 
-                // canvas.height = canvasHeight * window.devicePixelRatio;
+                canvas.height = canvasHeight * window.devicePixelRatio;
 
-                // canvas.width = canvasWidth * window.devicePixelRatio;
+                canvas.width = canvasWidth * window.devicePixelRatio;
 
                 // ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
 
-            // };
+            };
 
             // ctx.fillStyle = renderer.domElement.style.backgroundColor;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             // draw
-            ctx.font = fontSize + "px  'Microsoft YaHei',宋体";
+            ctx.font = fontSize*window.devicePixelRatio + "px  'Microsoft YaHei',宋体";
             ctx.fillStyle = "#f00";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
@@ -192,7 +192,7 @@
             scene.add(sprite);
             return sprite;
         }
-        var textSprite = drawText('乌鲁木齐哈尔发到付', 16);
+        var textSprite = drawText('乌鲁木齐哈尔发到付');
         // textSprite.scale.set(200, 200, 1);
         textSprite.position.set(32, 0, 0);
         // textSprite.rotateX(-Math.PI/2);

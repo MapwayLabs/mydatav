@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>发光线</title>
+    <title>extrude_texture</title>
     <script src="../../lib/threejs/three.js"></script>
     <script src="../../lib/threejs/js/controls/OrbitControls.js"></script>
     <style>
@@ -66,7 +66,7 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        var length = 12, width = 8;
+        var length = 16, width = 16;
 
         var shape = new THREE.Shape();
         shape.moveTo( 0,0 );
@@ -78,13 +78,12 @@
         var extrudeSettings = {
             steps: 2,
             depth: 16,
-            bevelEnabled: true,
+            bevelEnabled: false,
             bevelThickness: 1,
             bevelSize: 1,
             bevelSegments: 1
         };
       
-        // var texture = new THREE.TextureLoader().load('../../images/地图CN_V01.jpg');
         function generateCanvasTexture() {
             var canvas = document.createElement('canvas');
             canvas.width = 128;
@@ -110,11 +109,20 @@
             canvastexture.wrapT = THREE.RepeatWrapping;
             return canvastexture;
         }
-        var texture = generateCanvasTexture();
+        var texture = new THREE.TextureLoader().load('../../images/china.png');
+        // texture.repeat = new THREE.Vector2(4,4);
+        // texture.wrapS = THREE.ClampToEdgeWrapping;
+        // texture.wrapT = THREE.ClampToEdgeWrapping;
+        // texture.magFilter = THREE.NearestFilter;
+        // texture.minFilter = THREE.LinearFilter;
+        var texture2 = generateCanvasTexture();
         var geometry = new THREE.ExtrudeBufferGeometry( shape, extrudeSettings );
-        var material = new THREE.MeshBasicMaterial( { color: 0x00ffff } );
-        var material2 = new THREE.MeshBasicMaterial( { map: texture } );
+        // var material = new THREE.MeshBasicMaterial( { color: 0x00ffff } );
+        var material = new THREE.MeshBasicMaterial( { map: texture } );
+        // var material2 = new THREE.MeshBasicMaterial( { map: texture2 } );
+        var material2 = new THREE.MeshBasicMaterial( { color: 0x00ffff  } );
         var mesh = new THREE.Mesh( geometry, [material,material2] ) ;
+        // var mesh = new THREE.Mesh( geometry, material );
         scene.add( mesh );
     </script>
 </body>
