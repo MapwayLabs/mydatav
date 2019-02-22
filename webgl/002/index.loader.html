@@ -15,6 +15,12 @@
     <script src="../../lib/threejs/js/loaders/OBJLoader2.js"></script>
     <script src="../../lib/threejs/js/loaders/MTLLoader.js"></script>
     <script src="../../lib/jquery.min.js"></script>
+    <script src="../007/postprocessing/EffectComposer.js"></script>
+    <script src="../007/postprocessing/RenderPass.js"></script>
+    <script src="../007/postprocessing/ShaderPass.js"></script>
+    <script src="../007/shaders/CopyShader.js"></script>
+    <script src="../007/shaders/LuminosityHighPassShader.js"></script>
+    <script src="../007/postprocessing/UnrealBloomPass.js"></script>
     <style>
         html,
         body {
@@ -27,6 +33,13 @@
 
 <body>
     <script>
+        var params = {
+            exposure: 1,
+            bloomStrength: 0.8,
+            bloomThreshold: 0,
+            bloomRadius: 0
+        };
+        var composer;
         // 画布
         var renderer = new THREE.WebGLRenderer({
             antialias: true // 抗锯齿
@@ -54,6 +67,20 @@
         // controls.object.position.set(256, 256, 256);
         // controls.target = new THREE.Vector3(0, 0, 0);
         controls.update();
+
+        // bloom
+        var renderScene = new THREE.RenderPass( scene, camera );
+
+        var bloomPass = new THREE.UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 1.5, 0.4, 0.85 );
+        bloomPass.renderToScreen = true;
+        bloomPass.threshold = params.bloomThreshold;
+        bloomPass.strength = params.bloomStrength;
+        bloomPass.radius = params.bloomRadius;
+
+        composer = new THREE.EffectComposer( renderer );
+        composer.setSize( window.innerWidth, window.innerHeight );
+        composer.addPass( renderScene );
+        composer.addPass( bloomPass );
 
         // 坐标轴
         function drawAxis(len) {
@@ -90,7 +117,7 @@
             var zline = new THREE.Line(zline_geom, zline_material);
             scene.add(zline);
         }
-        drawAxis(256);
+        // drawAxis(256);
 
         // 加载模型 
         function glLoader() {
@@ -135,6 +162,8 @@
                 // function called on successful load
                 var callbackOnLoad = function (object) {
                     scene.add(object);
+                    // scene.add(object.children[6]);
+                    // scene.add(object.children[7]);
                 };
                 // load a resource from provided URL synchronously
                 loader.load('../../data/model/china_V1/china_V1.obj', callbackOnLoad, null, null, null, false);
@@ -149,7 +178,7 @@
         circle.renderOrder = 99;
         circle.depthTest = true;
         circle.position.set(2, 0, 14);
-        scene.add( circle );
+        // scene.add( circle );
 
         function animate() {
             requestAnimationFrame(animate);
@@ -157,6 +186,8 @@
             controls.update();
 
             renderer.render(scene, camera);
+
+            composer.render();
         }
         animate();
 

@@ -606,7 +606,7 @@ class EventEmiter {
 /*!*********************!*\
   !*** ./js/index.js ***!
   \*********************/
-/*! exports provided: ThreeMap, GeoJSONLayer, FlyLineLayer, BarLayer, mapHelper, Util, color */
+/*! exports provided: ThreeMap, GeoJSONLayer, FlyLineLayer, BarLayer, TextLayer, BgLayer, mapHelper, Util, color */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -623,12 +623,22 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _layers_bar_layer__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./layers/bar-layer */ "./js/layers/bar-layer.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "BarLayer", function() { return _layers_bar_layer__WEBPACK_IMPORTED_MODULE_3__["default"]; });
 
-/* harmony import */ var _maphelper__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./maphelper */ "./js/maphelper.js");
-/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "mapHelper", function() { return _maphelper__WEBPACK_IMPORTED_MODULE_4__; });
-/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./util */ "./js/util.js");
-/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "Util", function() { return _util__WEBPACK_IMPORTED_MODULE_5__; });
-/* harmony import */ var _color__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./color */ "./js/color.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "color", function() { return _color__WEBPACK_IMPORTED_MODULE_6__["default"]; });
+/* harmony import */ var _layers_text_layer__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./layers/text-layer */ "./js/layers/text-layer.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "TextLayer", function() { return _layers_text_layer__WEBPACK_IMPORTED_MODULE_4__["default"]; });
+
+/* harmony import */ var _layers_bg_layer__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./layers/bg-layer */ "./js/layers/bg-layer.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "BgLayer", function() { return _layers_bg_layer__WEBPACK_IMPORTED_MODULE_5__["default"]; });
+
+/* harmony import */ var _maphelper__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./maphelper */ "./js/maphelper.js");
+/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "mapHelper", function() { return _maphelper__WEBPACK_IMPORTED_MODULE_6__; });
+/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./util */ "./js/util.js");
+/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "Util", function() { return _util__WEBPACK_IMPORTED_MODULE_7__; });
+/* harmony import */ var _color__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./color */ "./js/color.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "color", function() { return _color__WEBPACK_IMPORTED_MODULE_8__["default"]; });
+
+
+
+
 
 
 
@@ -1129,6 +1139,51 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         };
         this._textLayer = new _text_layer__WEBPACK_IMPORTED_MODULE_3__["default"](textData, options);
         this._map.addLayer(this._textLayer);
+    }
+}
+
+/***/ }),
+
+/***/ "./js/layers/bg-layer.js":
+/*!*******************************!*\
+  !*** ./js/layers/bg-layer.js ***!
+  \*******************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return BgLayer; });
+/* harmony import */ var _layer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./layer */ "./js/layers/layer.js");
+/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../util */ "./js/util.js");
+
+
+
+// 文字标注图层
+class BgLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
+    constructor(data, options) {
+        super(data, options);
+        const defaultOptions = {
+        };
+        this.options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](true, defaultOptions, options);
+    }
+    onAdd(map) {
+        _layer__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.onAdd.call(this, map); 
+        this._draw();
+    }
+    onRemove(map) {
+        _layer__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.onRemove.call(this, map);
+    }
+    _draw() {
+        const texture = new THREE.TextureLoader().load('../../images/china1.jpg');
+        // const texture = new THREE.TextureLoader().load('../../images/worldcolor2.png');
+        const material = new THREE.MeshBasicMaterial({
+            map: texture
+        });
+        const planeGeometry = new THREE.PlaneGeometry(360, 180, 8, 8);
+        const plane = new THREE.Mesh(planeGeometry, material);
+        plane.rotateX(-Math.PI / 2);
+        this._container.add(plane);
     }
 }
 
@@ -2139,7 +2194,8 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             },
             areaMaterial: { // 面材质配置
                 color: 0x00ff00,
-                side: THREE.DoubleSide
+                side: THREE.DoubleSide,
+                opacity: 1
             },
             hightLight: {
                 show: false,
@@ -2572,14 +2628,32 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 bevelEnabled: false   // 是否用斜角
             };
             geometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings);
-            material = new THREE.MeshPhongMaterial(this.options.areaMaterial);
+            const texture = new THREE.TextureLoader().load('../../images/c4.png');
+            // texture.repeat = new THREE.Vector2(4,4);
+            // texture.wrapS = THREE.RepeatWrapping;
+            // texture.wrapT = THREE.RepeatWrapping;
+            // texture.magFilter = THREE.LinearFilter;
+            material = new THREE.MeshBasicMaterial({
+                map: texture
+            });
+            const texture2 = new THREE.TextureLoader().load('../../images/light.png');
+            var material2 = new THREE.MeshBasicMaterial({
+                map: texture2
+            });
         } else {
             // 不拉伸
             geometry = new THREE.ShapeBufferGeometry(shape);
             material = new THREE.MeshBasicMaterial(this.options.areaMaterial);
         }
+
+        // 透明度
+        if (this.options.areaMaterial.opacity != 1) {
+            material.transparent = true;
+            material.opacity = this.options.areaMaterial.opacity;
+        }
         
-        let mesh = new THREE.Mesh(geometry, material);
+        // let mesh = new THREE.Mesh(geometry, material);
+        let mesh = new THREE.Mesh(geometry, [material,material2]);
         this.drawOutLine(points, mesh);
         if (this.options.outline.top.show) {
             this.drawOutLine2(points, mesh, true);
@@ -2981,15 +3055,22 @@ class TextSprite {
         this._height = canvasHeight;
 
         const canvas = document.createElement("canvas");
-        // webgl 规定 canvas 宽高为2的n次幂
+        // webgl 规定 canvas 宽高为2的n次幂，对老式GPU的支持
         canvas.width = canvasWidth;
         canvas.height = canvasHeight;
+
+        const dpr = _util__WEBPACK_IMPORTED_MODULE_0__["getDpr"]();
+        canvas.style.width = canvasWidth + "px";
+        canvas.style.height = canvasHeight + "px";
+        canvas.height = canvasHeight * dpr;
+        canvas.width = canvasWidth * dpr;
 
         const ctx = canvas.getContext("2d");
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         // draw
-        ctx.font = font;
+        const drpFont = `${this.options.fontStyle} ${this.options.fontWeight} ${parseInt(this.options.fontSize) * dpr + 'px'} ${this.options.fontFamily}`;
+        ctx.font = drpFont;
         ctx.fillStyle = this.options.fontColor;
         ctx.textAlign = this.options.textAlign;
         ctx.textBaseline = this.options.textBaseline;
@@ -3273,6 +3354,7 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
             this._initGlobal();
         } else {
             this._init3D();
+            this._initBloom();
         }  
         this._initEvents();  
     }
@@ -3466,6 +3548,27 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
 
         this._container.appendChild(this._el);
     }
+    _initBloom() {
+        const size = this.getContainerSize();
+        const params = {
+            exposure: 1,
+            bloomStrength:1,
+            bloomThreshold: 0,
+            bloomRadius: 1
+        };
+        var renderScene = new THREE.RenderPass( this._scene, this._camera );
+
+        var bloomPass = new THREE.UnrealBloomPass( new THREE.Vector2( size.width, size.height ), 1.5, 0.4, 0.85 );
+        bloomPass.renderToScreen = true;
+        bloomPass.threshold = params.bloomThreshold;
+        bloomPass.strength = params.bloomStrength;
+        bloomPass.radius = params.bloomRadius;
+
+        this._composer = new THREE.EffectComposer( this._renderer );
+        this._composer.setSize( size.width, size.height );
+        this._composer.addPass( renderScene );
+        this._composer.addPass( bloomPass );
+    }
     _init3D() {
         if (THREE == undefined) throw new Error('需先引入 threejs 库！');
         if (THREE.OrbitControls == undefined) throw new Error('需先引入 OrbitControls 组件！');
@@ -3652,6 +3755,8 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
             }
         }
         this._renderer.render(this._scene, this._camera);
+
+        this._composer && this._composer.render();
     }
     _onContainerResize() {
         const size = this.getContainerSize();

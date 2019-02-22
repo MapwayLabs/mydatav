@@ -10,6 +10,12 @@
     <script src="../../lib/threejs/js/controls/OrbitControls.js"></script>
     <script src="./dist/threejsmap.js"></script>
     <script src="../../lib/jquery.min.js"></script>
+    <script src="../007/postprocessing/EffectComposer.js"></script>
+    <script src="../007/postprocessing/RenderPass.js"></script>
+    <script src="../007/postprocessing/ShaderPass.js"></script>
+    <script src="../007/shaders/CopyShader.js"></script>
+    <script src="../007/shaders/LuminosityHighPassShader.js"></script>
+    <script src="../007/postprocessing/UnrealBloomPass.js"></script>
     <style>
         html,
         body {
@@ -37,7 +43,7 @@
             let worldMapOptions = {
                 type: 'plane', // plane or sphere ,平面或球面
                 region: 'world', // china or world, 中国或世界地图
-                crs: 'EPSG:3857', // 地图采用的地理坐标系 EPSG:4326: 经纬度，EPSG:3857: 墨卡托
+                crs: 'EPSG:4326', // 地图采用的地理坐标系 EPSG:4326: 经纬度，EPSG:3857: 墨卡托
                 orbitControlOptions: {
                     minDistance: 10,
                     maxDistance: 1000,
@@ -86,14 +92,52 @@
                     show: false
                 }
             };
-            window.geojsonLayer = new TMap.GeoJSONLayer(data, worldGeoOptions);
-            window.map.addLayer(window.geojsonLayer);
-            window.map.setView(window.geojsonLayer.getBounds());
-            $.getJSON('../../data/china_outline.json', function (data) {
+            // window.geojsonLayer = new TMap.GeoJSONLayer(data, worldGeoOptions);
+            // window.map.addLayer(window.geojsonLayer);
+            // window.map.setView(window.geojsonLayer.getBounds());
+            let bgLayer = new TMap.BgLayer();
+            window.map.addLayer(bgLayer);
+            $.getJSON('../../data/world2.json', function (data) {
+                var geoOptions = {
+                    isAutoResize: false,
+                    isExtrude: false, // 是否拉伸面
+                    depth: 10, // 拉伸厚度
+                    areaText: {
+                        show: false,
+                        offset: 1,
+                        textStyle: {
+                            show: false,
+                            scale: 28
+                        },
+                        nullTextStyle: {
+                            scale: 24
+                        }
+                    },
+                    lineOpacity: 0.3,
+                    lineMaterial: {
+                        color: '#0f0',
+                        linewidth: 1
+                    },
+                    areaMaterial: { // 面材质配置
+                        color: '#E6E8EA',
+                        // opacity: 0.5,
+                        side: THREE.DoubleSide
+                    },
+                    hightLight: {
+                        show: true
+                    },
+                    tooltip: {
+                        show: false
+                    }
+                };
+                window.worldGeojsonLayer = new TMap.GeoJSONLayer(data, geoOptions);
+                window.map.addLayer(window.worldGeojsonLayer);
+            });
+            $.getJSON('../../data/china_province.json', function (data) {
                 let chinaGeoOptions = {
                     isAutoResize: false,
                     isExtrude: true, // 是否拉伸面
-                    depth: 6, // 拉伸厚度
+                    depth: 2, // 拉伸厚度
                     areaText: {
                         show: false,
                         offset: 0.1,
@@ -110,20 +154,21 @@
                         color: '#0f0'
                     },
                     areaMaterial: {
-                        color: '#343752'
+                        color: '#ff0',
+                        opacity: 1
                     },
                     hightLight: {
                         show: false
                     },
                     outline: {
                         top: {
-                            show: true,
+                            show: false,
                             color: '#0f0',
                             width: 2,
                             opacity: 1
                         },
                         bottom: {
-                            show: true,
+                            show: false,
                             color: '#f00',
                             width: 20,
                             opacity: 1

@@ -55,7 +55,8 @@ export default class GeoJSONLayer extends Layer {
             },
             areaMaterial: { // 面材质配置
                 color: 0x00ff00,
-                side: THREE.DoubleSide
+                side: THREE.DoubleSide,
+                opacity: 1
             },
             hightLight: {
                 show: false,
@@ -488,14 +489,32 @@ export default class GeoJSONLayer extends Layer {
                 bevelEnabled: false   // 是否用斜角
             };
             geometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings);
-            material = new THREE.MeshPhongMaterial(this.options.areaMaterial);
+            const texture = new THREE.TextureLoader().load('../../images/c4.png');
+            // texture.repeat = new THREE.Vector2(4,4);
+            // texture.wrapS = THREE.RepeatWrapping;
+            // texture.wrapT = THREE.RepeatWrapping;
+            // texture.magFilter = THREE.LinearFilter;
+            material = new THREE.MeshBasicMaterial({
+                map: texture
+            });
+            const texture2 = new THREE.TextureLoader().load('../../images/light.png');
+            var material2 = new THREE.MeshBasicMaterial({
+                map: texture2
+            });
         } else {
             // 不拉伸
             geometry = new THREE.ShapeBufferGeometry(shape);
             material = new THREE.MeshBasicMaterial(this.options.areaMaterial);
         }
+
+        // 透明度
+        if (this.options.areaMaterial.opacity != 1) {
+            material.transparent = true;
+            material.opacity = this.options.areaMaterial.opacity;
+        }
         
-        let mesh = new THREE.Mesh(geometry, material);
+        // let mesh = new THREE.Mesh(geometry, material);
+        let mesh = new THREE.Mesh(geometry, [material,material2]);
         this.drawOutLine(points, mesh);
         if (this.options.outline.top.show) {
             this.drawOutLine2(points, mesh, true);

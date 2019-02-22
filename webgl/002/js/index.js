@@ -6,6 +6,10 @@ export {default as FlyLineLayer} from './layers/flyline-layer';
 
 export {default as BarLayer} from './layers/bar-layer';
 
+export {default as TextLayer} from './layers/text-layer';
+
+export {default as BgLayer} from './layers/bg-layer';
+
 import * as mapHelper from './maphelper';
 export {mapHelper}
 

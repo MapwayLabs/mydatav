@@ -67,6 +67,7 @@ export default class ThreeMap extends EventEmiter {
             this._initGlobal();
         } else {
             this._init3D();
+            this._initBloom();
         }  
         this._initEvents();  
     }
@@ -260,6 +261,27 @@ export default class ThreeMap extends EventEmiter {
 
         this._container.appendChild(this._el);
     }
+    _initBloom() {
+        const size = this.getContainerSize();
+        const params = {
+            exposure: 1,
+            bloomStrength:1,
+            bloomThreshold: 0,
+            bloomRadius: 1
+        };
+        var renderScene = new THREE.RenderPass( this._scene, this._camera );
+
+        var bloomPass = new THREE.UnrealBloomPass( new THREE.Vector2( size.width, size.height ), 1.5, 0.4, 0.85 );
+        bloomPass.renderToScreen = true;
+        bloomPass.threshold = params.bloomThreshold;
+        bloomPass.strength = params.bloomStrength;
+        bloomPass.radius = params.bloomRadius;
+
+        this._composer = new THREE.EffectComposer( this._renderer );
+        this._composer.setSize( size.width, size.height );
+        this._composer.addPass( renderScene );
+        this._composer.addPass( bloomPass );
+    }
     _init3D() {
         if (THREE == undefined) throw new Error('需先引入 threejs 库！');
         if (THREE.OrbitControls == undefined) throw new Error('需先引入 OrbitControls 组件！');
@@ -446,6 +468,8 @@ export default class ThreeMap extends EventEmiter {
             }
         }
         this._renderer.render(this._scene, this._camera);
+
+        this._composer && this._composer.render();
     }
     _onContainerResize() {
         const size = this.getContainerSize();
