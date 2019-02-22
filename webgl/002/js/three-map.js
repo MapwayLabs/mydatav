@@ -150,7 +150,7 @@ export default class ThreeMap extends EventEmiter {
                 let center = bounds.getCenter();
                 this._orbitControl.object.position.set(center[0], scaleD, -center[1]);
                 this._orbitControl.target = new THREE.Vector3(center[0], 0, -center[1]);
-                this._orbitControl.minDistance = d * 0.5;
+                // this._orbitControl.minDistance = d * 0.5;
                 this._orbitControl.maxDistance = d * 2;
             } else if (this.options.region === 'china') {
                 let d = this.getDistance(bounds.getHeight());
