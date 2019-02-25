@@ -130,10 +130,10 @@
                         show: false
                     }
                 };
-                window.worldGeojsonLayer = new TMap.GeoJSONLayer(data, geoOptions);
-                window.map.addLayer(window.worldGeojsonLayer);
+                // window.worldGeojsonLayer = new TMap.GeoJSONLayer(data, geoOptions);
+                // window.map.addLayer(window.worldGeojsonLayer);
             });
-            $.getJSON('../../data/china_province.json', function (data) {
+            $.getJSON('../../data/china_outline.json', function (data) {
                 let chinaGeoOptions = {
                     isAutoResize: false,
                     isExtrude: true, // 是否拉伸面
