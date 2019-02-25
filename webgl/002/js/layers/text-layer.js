@@ -16,7 +16,8 @@ export default class TextLayer extends Layer {
                 fontColor: '#000',
                 textAlign: 'center',
                 textBaseline: 'middle',
-                maxWidth: 512
+                maxWidth: 512,
+                offsetY: 0 // 为避免文字覆盖柱子，设置文字偏移中心点
             }
         };
         this.options = Util.extend(true, defaultOptions, options);
@@ -59,7 +60,8 @@ export default class TextLayer extends Layer {
             // const scale = this.options.textStyle.scale;
 
             // textSprite.scale.set(scale, scale, 1);
-            textSprite.position.set(projCenter[0], altitude, -projCenter[1]);
+            const offsetY = this.options.textStyle.offsetY;
+            textSprite.position.set(projCenter[0], altitude, -projCenter[1]-offsetY);
             textSprite.rotateX(-Math.PI/2);
 
             // 避免柱子遮挡地名

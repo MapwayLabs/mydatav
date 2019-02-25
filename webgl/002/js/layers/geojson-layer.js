@@ -35,7 +35,8 @@ export default class GeoJSONLayer extends Layer {
                     fontColor: '#000',
                     textAlign: 'center',
                     textBaseline: 'middle',
-                    maxWidth: 512
+                    maxWidth: 512,
+                    offsetY: 0
                 },
                 nullTextStyle: { // 无数据地区的名字样式
                     scale: 1, // 缩放比例
@@ -46,7 +47,8 @@ export default class GeoJSONLayer extends Layer {
                     fontColor: '#000',
                     textAlign: 'center',
                     textBaseline: 'middle',
-                    maxWidth: 512
+                    maxWidth: 512,
+                    offsetY: 0
                 }
             },
             lineOpacity: 1,
