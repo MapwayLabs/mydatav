@@ -71,16 +71,20 @@
             const map = new TMap.ThreeMap('threemap', mapOptions);
             var geoOptions = {
                 isAutoResize: false,
-                isExtrude: false, // 是否拉伸面
-                depth: 10, // 拉伸厚度
+                isExtrude: true, // 是否拉伸面
+                depth: 2, // 拉伸厚度
+                forceBoundsCenter: false,
                 areaText: {
-                    show: false,
+                    show: true,
                     offset: 1,
                     textStyle: {
-                        show: false,
+                        fontSize: '6px',
+                        show: true,
                         scale: 28
                     },
                     nullTextStyle: {
+                        fontSize: '6px',
+                        fontColor: '#000',
                         scale: 24
                     }
                 },

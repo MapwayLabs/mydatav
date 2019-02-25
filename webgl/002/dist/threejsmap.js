@@ -606,7 +606,7 @@ class EventEmiter {
 /*!*********************!*\
   !*** ./js/index.js ***!
   \*********************/
-/*! exports provided: ThreeMap, GeoJSONLayer, FlyLineLayer, BarLayer, mapHelper, Util, color */
+/*! exports provided: ThreeMap, GeoJSONLayer, FlyLineLayer, BarLayer, TextLayer, mapHelper, Util, color */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -623,12 +623,17 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _layers_bar_layer__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./layers/bar-layer */ "./js/layers/bar-layer.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "BarLayer", function() { return _layers_bar_layer__WEBPACK_IMPORTED_MODULE_3__["default"]; });
 
-/* harmony import */ var _maphelper__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./maphelper */ "./js/maphelper.js");
-/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "mapHelper", function() { return _maphelper__WEBPACK_IMPORTED_MODULE_4__; });
-/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./util */ "./js/util.js");
-/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "Util", function() { return _util__WEBPACK_IMPORTED_MODULE_5__; });
-/* harmony import */ var _color__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./color */ "./js/color.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "color", function() { return _color__WEBPACK_IMPORTED_MODULE_6__["default"]; });
+/* harmony import */ var _layers_text_layer__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./layers/text-layer */ "./js/layers/text-layer.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "TextLayer", function() { return _layers_text_layer__WEBPACK_IMPORTED_MODULE_4__["default"]; });
+
+/* harmony import */ var _maphelper__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./maphelper */ "./js/maphelper.js");
+/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "mapHelper", function() { return _maphelper__WEBPACK_IMPORTED_MODULE_5__; });
+/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./util */ "./js/util.js");
+/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "Util", function() { return _util__WEBPACK_IMPORTED_MODULE_6__; });
+/* harmony import */ var _color__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./color */ "./js/color.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "color", function() { return _color__WEBPACK_IMPORTED_MODULE_7__["default"]; });
+
+
 
 
 
@@ -2104,6 +2109,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             }, 
             isExtrude: true, // 是否拉伸面
             depth: 16, // 拉伸厚度
+            forceBoundsCenter: false, // 地区中心点是否计算成外包矩形中心点
             // 地区名字
             areaText: {
                 show: true, // 是否显示【无数据】区域文字，不能控制无数据区域文字
@@ -2358,6 +2364,8 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             let userData = {
                 name: _maphelper__WEBPACK_IMPORTED_MODULE_2__["getNormalizeName"](feature)
             };
+            let featureGroup = new THREE.Group();
+            this._container.add(featureGroup);
             if (geometry == null) continue;
             if (geometry.type == 'Point') {
 
@@ -2374,7 +2382,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                     if (this._map.options.crs === _maphelper__WEBPACK_IMPORTED_MODULE_2__["CRS"].epsg3857) {
                         convert_array = this.convertCoordinates(coordinate_array);
                     }
-                    this.drawPolygon(convert_array, userData);
+                    this.drawPolygon(convert_array, userData, featureGroup);
                 }
 
             } else if (geometry.type == 'MultiPolygon') {
@@ -2385,7 +2393,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                         if (this._map.options.crs === _maphelper__WEBPACK_IMPORTED_MODULE_2__["CRS"].epsg3857) {
                             convert_array = this.convertCoordinates(coordinate_array);
                         }
-                        this.drawPolygon(convert_array, userData);
+                        this.drawPolygon(convert_array, userData, featureGroup);
                     }
                 }
             } else {
@@ -2412,31 +2420,37 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         //创建射线投射器对象
         const raycaster = new THREE.Raycaster(camera.position, ray);
         //返回射线选中的对象
-        const intersects = raycaster.intersectObjects(this._container.children);
+        const intersects = raycaster.intersectObjects(this._container.children, true);
       
         // 避免连续选中
-        if (this._currentSelectObj) {
-            this._currentSelectObj.material.color = this._currentSelectObj.userData.oldColor;
-            this._currentSelectObj = null;
+        if (this._currentSelectGroup) {
+            this._currentSelectGroup.children.forEach(obj => {
+                obj.material.color = obj.userData.oldColor;
+            });
+            this._currentSelectGroup = null;
             this._tooltip && this._tooltip.close();
         }
 
         for (var i = 0; i < intersects.length; i++) {
             let object = intersects[i].object;
             let udata = object.userData;
-            if (udata && udata.type === 'area') {
-                object.userData.oldColor = object.material.color;
-                object.material.color = new THREE.Color(this.options.hightLight.color);
-                this._currentSelectObj = object;
+            if (udata && udata.type === 'area') { 
+                this._currentSelectGroup = object.parent;
+                this._currentSelectGroup.children.forEach(obj => {
+                    obj.userData.oldColor = obj.material.color;
+                    obj.material.color = new THREE.Color(this.options.hightLight.color);
+                });
                 let content = `${udata['name']}`;
                 this._tooltip && this._tooltip.open(sx, sy, content);
                 break;
             }
         }
         if (i === intersects.length) {
-            if (this._currentSelectObj) {
-                this._currentSelectObj.material.color = this._currentSelectObj.userData.oldColor;
-                this._currentSelectObj = null;
+            if (this._currentSelectGroup) {
+                this._currentSelectGroup.children.forEach(obj => {
+                    obj.material.color = obj.userData.oldColor;
+                });
+                this._currentSelectGroup = null;
                 this._tooltip && this._tooltip.close();
             }
         }
@@ -2449,10 +2463,10 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         }
         let textData = [];
         let nullTextData = [];
-        let forceBoundsCenter = true;
-        if (this._map.options.region === 'china' || this._map.options.region === 'world') {
-            forceBoundsCenter = false;
-        }
+        let forceBoundsCenter = this.options.forceBoundsCenter;
+        // if (this._map.options.region === 'china' || this._map.options.region === 'world') {
+        //     forceBoundsCenter = false;
+        // }
         this._features.forEach(f => {
             let yoffset = this.getDepth();
             let tempobj = {};
@@ -2551,7 +2565,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         lineMesh.renderOrder = 99;
         mesh.add(lineMesh);
     }
-    drawPolygon(points, userData) {
+    drawPolygon(points, userData, container) {
         const shape = new THREE.Shape();
         for (let i = 0; i < points.length; i++) {
             let point = points[i];
@@ -2589,7 +2603,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         }
         mesh.rotateX(-Math.PI/2);
         mesh.userData = _util__WEBPACK_IMPORTED_MODULE_1__["extend"]({type: 'area'}, userData);
-        this._container.add(mesh);
+        container.add(mesh);
     }
 }
 
@@ -2981,15 +2995,22 @@ class TextSprite {
         this._height = canvasHeight;
 
         const canvas = document.createElement("canvas");
-        // webgl 规定 canvas 宽高为2的n次幂
+        // webgl 规定 canvas 宽高为2的n次幂，对老式GPU的支持
         canvas.width = canvasWidth;
         canvas.height = canvasHeight;
+
+        const dpr = _util__WEBPACK_IMPORTED_MODULE_0__["getDpr"]();
+        canvas.style.width = canvasWidth + "px";
+        canvas.style.height = canvasHeight + "px";
+        canvas.height = canvasHeight * dpr;
+        canvas.width = canvasWidth * dpr;
 
         const ctx = canvas.getContext("2d");
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         // draw
-        ctx.font = font;
+        const drpFont = `${this.options.fontStyle} ${this.options.fontWeight} ${parseInt(this.options.fontSize) * dpr + 'px'} ${this.options.fontFamily}`;
+        ctx.font = drpFont;
         ctx.fillStyle = this.options.fontColor;
         ctx.textAlign = this.options.textAlign;
         ctx.textBaseline = this.options.textBaseline;
@@ -3356,7 +3377,7 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 let center = bounds.getCenter();
                 this._orbitControl.object.position.set(center[0], scaleD, -center[1]);
                 this._orbitControl.target = new THREE.Vector3(center[0], 0, -center[1]);
-                this._orbitControl.minDistance = d * 0.5;
+                // this._orbitControl.minDistance = d * 0.5;
                 this._orbitControl.maxDistance = d * 2;
             } else if (this.options.region === 'china') {
                 let d = this.getDistance(bounds.getHeight());
