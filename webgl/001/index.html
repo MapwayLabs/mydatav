@@ -126,22 +126,15 @@
         }
         // console.log(textSize("20px", "Arial", "abcdefg"));
 
-        // var canvasWidth = 257;
         var canvas = document.createElement("canvas");
         canvas.className = 'text-canvas';
-        // canvas.width = canvasWidth;
-        // canvas.height = canvasWidth;
         document.body.appendChild(canvas);
         
         var textWidth, textHeight, canvasWidth, canvasHeight;
         function drawText(textStr, fontSize = 18) {
-            // var canvas = document.createElement("canvas");
             // webgl 规定 canvas 宽高为2的n次幂
-            // canvas.width = 128;
-            // canvas.height = 16;
             var ctx = canvas.getContext("2d");
             var size = textSize(fontSize+'px','Arial', textStr);
-            console.log(size);
             textWidth = size.width;
             textHeight = size.height;
             canvasWidth = wrapNum(textWidth);
@@ -158,29 +151,22 @@
                 canvas.height = canvasHeight * window.devicePixelRatio;
 
                 canvas.width = canvasWidth * window.devicePixelRatio;
-
-                // ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-
             };
 
-            // ctx.fillStyle = renderer.domElement.style.backgroundColor;
+            // ctx.canvas.style.backgroundColor = '#0f0';
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.beginPath();
+            ctx.fillStyle = '#0f0';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
             // draw
             ctx.font = fontSize*window.devicePixelRatio + "px  'Microsoft YaHei',宋体";
             ctx.fillStyle = "#f00";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
-           
-            console.log(ctx.measureText(textStr));
-            console.log(ctx.measureText('国')); // 不准，其他语言？？？
-
-            // canvas.style.width = 64 + 'px';
-            // canvas.style.height = 64 + 'px';
-            // canvas.style.width = wrapNum(textWidth) + 'px';
-            // canvas.style.height = wrapNum(textHeight) + 'px';
-            // ctx.fillText(textStr, (canvas.width - textWidth) / 2, (canvas.height-textHeight) / 2 + textHeight);
             ctx.fillText(textStr, canvas.width / 2,  canvas.height / 2);
+
             var texture = new THREE.Texture(canvas);
             texture.needsUpdate = true;
 
@@ -192,14 +178,12 @@
             scene.add(sprite);
             return sprite;
         }
+
         var textSprite = drawText('乌鲁木齐哈尔发到付');
-        // textSprite.scale.set(200, 200, 1);
         textSprite.position.set(32, 0, 0);
-        // textSprite.rotateX(-Math.PI/2);
         setTextScale(textSprite);
 
         function setTextScale(textSprite, poiRect) {
-            // poiRect = { w: canvas.width, h: canvas.height }
             poiRect = {
                 w: canvasWidth,
                 h: canvasHeight
@@ -211,24 +195,9 @@
             let ratio = 2 * top / window.innerHeight;
             let scaleX = poiRect.w * ratio;
             let scaleY = poiRect.h * ratio;
-            // console.log(scaleX);
-            // console.log(scaleY);
 
             textSprite.scale.set(scaleX, scaleY, 1);
         }
-
-        // 文字2
-        // let texture = new THREE.TextTexture({
-        //     fontFamily: '"Microsoft YaHei", Times, serif',
-        //     fontSize: 32,
-        //     fontStyle: 'normal',
-        //     text: '100'
-        // });
-        // let material = new THREE.SpriteMaterial({map: texture, color: 0xffffbb});
-        // let sprite = new THREE.Sprite(material);
-        // sprite.scale.setX(texture.imageAspect).multiplyScalar(10);
-        // sprite.position.set(32, 0, 32);
-        // scene.add(sprite);
 
         function animate() {
             requestAnimationFrame(animate);
@@ -236,7 +205,6 @@
             controls.update();
 
             setTextScale(textSprite);
-            // setTextScale(sprite, {w: texture.image.width, h: texture.image.height})
 
             renderer.render(scene, camera);
         }
