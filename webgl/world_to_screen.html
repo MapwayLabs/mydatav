@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>xyzToScreen</title>
+    <title>world_to_screen</title>
     <script src="../lib/threejs/three.js"></script>
     <script src="../lib/threejs/js/controls/OrbitControls.js"></script>
 </head>
@@ -26,7 +26,8 @@
             camera.position.z = 200;
 
             renderer = new THREE.WebGLRenderer();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio || 1);
+            renderer.setSize(window.innerWidth, window.innerHeight, true);
             document.body.appendChild(renderer.domElement);
 
             control = new THREE.OrbitControls(camera, renderer.domElement);
@@ -79,7 +80,7 @@
         function onCameraChange() {
             objArr.forEach(function (objData) {
 
-                var proj = toScreenPosition(objData.divObj, camera);
+                var proj = toScreenPosition(objData.mesh, camera);
 
                 objData.divElem.style.left = proj.x + 'px';
                 objData.divElem.style.top = proj.y + 'px';
@@ -91,8 +92,8 @@
             var vector = new THREE.Vector3();
 
             // TODO: need to update this when resize window
-            var widthHalf = 0.5 * renderer.context.canvas.width;
-            var heightHalf = 0.5 * renderer.context.canvas.height;
+            var widthHalf = 0.5 * renderer.context.canvas.width/2;
+            var heightHalf = 0.5 * renderer.context.canvas.height/2;
 
             obj.updateMatrixWorld();
             vector.setFromMatrixPosition(obj.matrixWorld);
