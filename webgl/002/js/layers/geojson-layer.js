@@ -368,7 +368,7 @@ export default class GeoJSONLayer extends Layer {
             }
         }
     }
-    updateLabels(barLayer) {
+    updateLabels(barLayer, filterText = []) {
         if (this._features == null || !this._features.length) {return;}
         let barWidth = 0;
         if (barLayer) {
@@ -410,7 +410,10 @@ export default class GeoJSONLayer extends Layer {
             if (f.hasBarData) {
                 textData.push(tempobj);
             } else {
-                nullTextData.push(tempobj);
+                let isFilter = filterText.indexOf(tempobj.text) !== -1;
+                if (!isFilter) {
+                    nullTextData.push(tempobj);
+                }
             }  
         }
         const textOptions = {
