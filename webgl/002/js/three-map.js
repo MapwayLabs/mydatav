@@ -388,7 +388,8 @@ export default class ThreeMap extends EventEmiter {
         this._orbitControl = new THREE.OrbitControls(this._camera, this._renderer.domElement);
         // 距离相机的最小、最大距离，仅用于透视相机
         let d = this.getDistance(this.options.global.R*2);
-        this._orbitControl.minDistance = d; 
+        // this._orbitControl.minDistance = d; 
+        this._orbitControl.minDistance = orbitControlOptions.minDistance;
         this._orbitControl.maxDistance = d*2; 
         // 最小、最大翻转角度 在哪个平面内就相对于哪个平面的坐标轴
         // this._orbitControl.minPolarAngle = Math.PI * orbitControlOptions.minPolarAngle / 180;
@@ -435,6 +436,21 @@ export default class ThreeMap extends EventEmiter {
         this._mousemoveEvtHandler = this._mousemoveEvtHandler.bind(this);
         window.addEventListener('resize', this._onContainerResize, false);
         this._renderer.domElement.addEventListener('mousemove', this._mousemoveEvtHandler, false);
+        
+        // 上下文丢失事件
+        this._webglContextLostHandler = this._webglContextLostHandler.bind(this);     
+        this._renderer.domElement.addEventListener("webglcontextlost", this._webglContextLostHandler , false);
+        
+        // 上下文恢复事件
+        this._webglContextRestoreHandler = this._webglContextRestoreHandler.bind(this);
+        this._renderer.domElement.addEventListener("webglcontextrestored", this._webglContextRestoreHandler, false);
+    }
+    _webglContextLostHandler (e) {
+        e.preventDefault();
+        this.emit('webglcontextlost', e);
+    }
+    _webglContextRestoreHandler (e) {
+        this.emit('webglcontextrestored', e);
     }
     _animate() {
         this._animateId = requestAnimationFrame(this._animate.bind(this));
@@ -468,6 +484,8 @@ export default class ThreeMap extends EventEmiter {
         this.clearLayers();
         window.removeEventListener('resize', this._onContainerResize, false);
         this._renderer.domElement.removeEventListener('mousemove', this._mousemoveEvtHandler, false);
+        this._renderer.domElement.removeEventListener("webglcontextlost", this._webglContextLostHandler, false);
+        this._renderer.domElement.removeEventListener("webglcontextrestored", this._webglContextRestoreHandler, false);        
         window.cancelAnimationFrame(this._animateId);
         if (Util.isInPage(this._container) && Util.isInPage(this._el)) {
             this._container.removeChild(this._el);
