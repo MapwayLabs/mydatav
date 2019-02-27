@@ -34,6 +34,9 @@
     <script>
         const mapOptions = {
             type: 'sphere', // plane or sphere ,平面或球面
+            orbitControlOptions: {
+                minDistance: 300
+            },
             global: {
                 R: 220, // 球形地球半径
                 center: [170, 35], // 初始中心点
@@ -92,8 +95,8 @@
                     // spotIntensity: 1000 // 无效参数
                 }
             };
-            // let fl = new TMap.FlyLineLayer(fdata, flOptions);
-            // map.addLayer(fl);
+            let fl = new TMap.FlyLineLayer(fdata, flOptions);
+            map.addLayer(fl);
         });
         $.getJSON('../../data/bardata.global.json', function (data) {
             let barOptions = {

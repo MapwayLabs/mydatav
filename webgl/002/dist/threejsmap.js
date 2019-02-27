@@ -3836,7 +3836,8 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
         this._orbitControl = new THREE.OrbitControls(this._camera, this._renderer.domElement);
         // 距离相机的最小、最大距离，仅用于透视相机
         let d = this.getDistance(this.options.global.R*2);
-        this._orbitControl.minDistance = d; 
+        // this._orbitControl.minDistance = d; 
+        this._orbitControl.minDistance = orbitControlOptions.minDistance;
         this._orbitControl.maxDistance = d*2; 
         // 最小、最大翻转角度 在哪个平面内就相对于哪个平面的坐标轴
         // this._orbitControl.minPolarAngle = Math.PI * orbitControlOptions.minPolarAngle / 180;
