@@ -31,7 +31,7 @@ export default class TextLayer extends Layer {
         Layer.prototype.onAdd.call(this, map); 
         this._draw();
         if (this.options.isAvoidCollision) {
-            setTimeout(() => {
+            this._timerID = setTimeout(() => {
                 this._collisionDetect();
             }, 0);
             this._map.on('change', this._mapChangeEvtHandler, this);
@@ -39,14 +39,19 @@ export default class TextLayer extends Layer {
     }
     onRemove(map) {
         Layer.prototype.onRemove.call(this, map);
-        this._map.off('change', this._mapChangeEvtHandler, this);
+        if (this.options.isAvoidCollision) {
+            this._map.off('change', this._mapChangeEvtHandler, this);
+        }
+        if (this._timerID) {
+            clearTimeout(this._timerID);
+        }
     }
     update(data) {
         this._container.remove(...this._container.children);
         this._data = data;
         this._draw();
         if (this.options.isAvoidCollision) {
-            setTimeout(() => {
+            this._timerID = setTimeout(() => {
                 this._collisionDetect();
             }, 0);
         }
