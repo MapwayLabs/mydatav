@@ -164,7 +164,7 @@ export default class BarLayer extends Layer {
             let tempobj = {
                 name: x.data[i],
                 xname: x.data[i],
-                ylabelName: y.name,
+                ylabelName: y.nick_name || y.name,
                 index: i,
                 center: center,
                 value: value,
