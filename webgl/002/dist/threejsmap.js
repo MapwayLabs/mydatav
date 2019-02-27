@@ -2881,7 +2881,7 @@ class TextLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 textBaseline: 'middle',
                 maxWidth: 512,
                 offsetY: 0, // 为避免文字覆盖柱子，设置文字偏移中心点
-                opacity: 0.85
+                opacity: 1
             }
         };
         this.options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](true, defaultOptions, options);
@@ -3029,7 +3029,7 @@ class TextSprite {
             fontColor: '#000',
             textAlign: 'center',
             textBaseline: 'middle',
-            opacity: 0.85,
+            opacity: 1,
             maxWidth: 512
         }
         this.options = _util__WEBPACK_IMPORTED_MODULE_0__["extend"](true, defaultOptions, options);
