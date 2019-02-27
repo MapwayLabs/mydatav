@@ -2124,7 +2124,8 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                     fontColor: '#000',
                     textAlign: 'center',
                     textBaseline: 'middle',
-                    maxWidth: 512
+                    maxWidth: 512,
+                    offsetY: 0
                 },
                 nullTextStyle: { // 无数据地区的名字样式
                     scale: 1, // 缩放比例
@@ -2135,7 +2136,8 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                     fontColor: '#000',
                     textAlign: 'center',
                     textBaseline: 'middle',
-                    maxWidth: 512
+                    maxWidth: 512,
+                    offsetY: 0
                 }
             },
             lineOpacity: 1,
@@ -2467,10 +2469,16 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         // if (this._map.options.region === 'china' || this._map.options.region === 'world') {
         //     forceBoundsCenter = false;
         // }
-        this._features.forEach(f => {
+
+        for (let i = 0, len = this._features.length; i < len; i++) {
+            let f = this._features[i];
             let yoffset = this.getDepth();
             let tempobj = {};
             let name = _maphelper__WEBPACK_IMPORTED_MODULE_2__["getNormalizeName"](f);
+            let center = _maphelper__WEBPACK_IMPORTED_MODULE_2__["getNormalizeCenter"](f, forceBoundsCenter);
+            if (center == null || !Array.isArray(center)) {
+                continue; // geometry 为null时得不到center
+            }
             // FIXME: 采用简单粗暴方法避免文字覆盖
             tempobj.textAlign = 'center';
             if (new RegExp(name).test('香港')) {
@@ -2485,7 +2493,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 tempobj.textAlign = 'left'
             }
             tempobj.text = name;
-            tempobj.center = _maphelper__WEBPACK_IMPORTED_MODULE_2__["getNormalizeCenter"](f, forceBoundsCenter);
+            tempobj.center = center;
             tempobj.center[1] += barWidth*2; // TODO: 避免文字覆盖柱子
             tempobj.altitude = yoffset + this.options.areaText.offset;
             if (f.hasBarData) {
@@ -2493,7 +2501,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             } else {
                 nullTextData.push(tempobj);
             }  
-        });
+        }
         const textOptions = {
             textStyle: this.options.areaText.textStyle
         };
@@ -2850,6 +2858,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _layer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./layer */ "./js/layers/layer.js");
 /* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../util */ "./js/util.js");
 /* harmony import */ var _text_sprite__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./text-sprite */ "./js/layers/text-sprite.js");
+/* harmony import */ var _maphelper__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../maphelper */ "./js/maphelper.js");
+
 
 
 
@@ -2859,6 +2869,7 @@ class TextLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
     constructor(data, options) {
         super(data, options);
         const defaultOptions = {
+            isAvoidCollision: true, // 是否避免文字碰撞，默认为 true，即文字会根据缩放级别显示和隐藏，不会相互覆盖；若设置为 false，则文字会全部显示
             textStyle: {
                 scale: 1, // 注意：此属性失效
                 fontStyle: 'normal',
@@ -2868,24 +2879,38 @@ class TextLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 fontColor: '#000',
                 textAlign: 'center',
                 textBaseline: 'middle',
-                maxWidth: 512
+                maxWidth: 512,
+                offsetY: 0, // 为避免文字覆盖柱子，设置文字偏移中心点
+                opacity: 0.85
             }
         };
         this.options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](true, defaultOptions, options);
         this._textSprites = [];
+        this._texts = [];
     }
     onAdd(map) {
         _layer__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.onAdd.call(this, map); 
         this._draw();
+        if (this.options.isAvoidCollision) {
+            setTimeout(() => {
+                this._collisionDetect();
+            }, 0);
+            this._map.on('change', this._mapChangeEvtHandler, this);
+        }
     }
     onRemove(map) {
         _layer__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.onRemove.call(this, map);
+        this._map.off('change', this._mapChangeEvtHandler, this);
     }
     update(data) {
         this._container.remove(...this._container.children);
         this._data = data;
-        this._textSprites = [];
         this._draw();
+        if (this.options.isAvoidCollision) {
+            setTimeout(() => {
+                this._collisionDetect();
+            }, 0);
+        }
     }
     updateScale() {
         if (!this._map) {
@@ -2899,6 +2924,7 @@ class TextLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
     }
     _draw() {
         if (this._data == null || !this._data.length) {return;}
+        this._textSprites = [];
         this._data.forEach(d => {
             const projCenter = this._map.projectLngLat(d.center);
             const altitude = d.altitude;
@@ -2911,15 +2937,68 @@ class TextLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             // const scale = this.options.textStyle.scale;
 
             // textSprite.scale.set(scale, scale, 1);
-            textSprite.position.set(projCenter[0], altitude, -projCenter[1]);
+            const offsetY = this.options.textStyle.offsetY;
+            textSprite.position.set(projCenter[0], altitude, -projCenter[1]-offsetY);
             textSprite.rotateX(-Math.PI/2);
 
             // 避免柱子遮挡地名
             textSprite.renderOrder = 100;
             textSprite.material.depthTest=false; // 是否采用深度测试，必须加
-    
-            this._container.add(textSprite);
+            
             this._textSprites.push(ts);
+            if (!this.options.isAvoidCollision) {
+                this._container.add(textSprite);
+            }
+        });
+    }
+
+    _mapChangeEvtHandler() {
+        this._collisionDetect();
+    }
+
+    // 文字碰撞检测 window.geojsonLayer._nulltextLayer._collisionDetect()
+    // TODO: 视口裁剪，只计算视口内的部分
+    _collisionDetect() {
+        this._texts = [];
+
+        this._textSprites.forEach(textSprite => {
+            // 碰撞检测
+            let obj = {};
+            const sprite = textSprite.getSprite();
+            const screenPoint = Object(_maphelper__WEBPACK_IMPORTED_MODULE_3__["worldToScreen"])(sprite.position.toArray(), this._map, sprite);
+            const size = textSprite.getTextSize();
+            obj.x = screenPoint[0];
+            obj.y = screenPoint[1];
+            obj.w = size.width;
+            obj.h = size.height;
+            obj.show = true;
+            this._texts.push(obj);
+        });
+
+        const len = this._texts.length;
+        for (let i = 0; i < len; i++) {
+            let text1 = this._texts[i];
+            for (let j = i+1; j < len; j++) {
+                let text2 = this._texts[j];
+                if (Object(_maphelper__WEBPACK_IMPORTED_MODULE_3__["isPOICollision"])(text1, text2)) {
+                    text2.show = false;
+                } 
+            }
+        }
+
+        // 隐藏重叠元素
+        this._texts.forEach((text, index) => {
+            if (text.show) {
+                this._textSprites[index].show();
+            } else {
+                this._textSprites[index].hide();
+            }
+        });
+        
+        // draw
+        this._textSprites.forEach(textSprite => {
+            const sprite = textSprite.getSprite();
+            this._container.add(sprite);
         });
     }
 }
@@ -2950,6 +3029,7 @@ class TextSprite {
             fontColor: '#000',
             textAlign: 'center',
             textBaseline: 'middle',
+            opacity: 0.85,
             maxWidth: 512
         }
         this.options = _util__WEBPACK_IMPORTED_MODULE_0__["extend"](true, defaultOptions, options);
@@ -2961,10 +3041,18 @@ class TextSprite {
     getSprite() {
         return this._textSprite;
     }
+    // canvas 样式尺寸
     getSize() {
         return {
             width: this._width,
             height: this._height
+        };
+    }
+    // 实际显示文字的尺寸
+    getTextSize() {
+        return {
+            width: this._textWidth,
+            height: this._textHeight
         };
     }
     // idea from https://www.cnblogs.com/dojo-lzz/p/7143276.html
@@ -2978,6 +3066,15 @@ class TextSprite {
         let scaleY = this._height * ratio;
         this._textSprite.scale.set(scaleX, scaleY, 1);
     }
+
+    hide() {
+        this._textSprite.material.opacity = 0;
+    }
+
+    show() {
+        this._textSprite.material.opacity = this.options.opacity;
+    }
+
     _init() {
         const font = `${this.options.fontStyle} ${this.options.fontWeight} ${this.options.fontSize} ${this.options.fontFamily}`;
         const textSize = _util__WEBPACK_IMPORTED_MODULE_0__["measureText"](this._textStr, font);
@@ -2993,12 +3090,15 @@ class TextSprite {
         const canvasHeight = _util__WEBPACK_IMPORTED_MODULE_0__["wrapNum"](textSize.height);
         this._width = canvasWidth;
         this._height = canvasHeight;
+        this._textWidth = textSize.width;
+        this._textHeight = textSize.height;
 
         const canvas = document.createElement("canvas");
         // webgl 规定 canvas 宽高为2的n次幂，对老式GPU的支持
         canvas.width = canvasWidth;
         canvas.height = canvasHeight;
-
+        
+        // 适配高清屏：将 canvas 画布尺寸扩大 dpr 倍，视口尺寸设为原始值，并且 canvas 内部所有元素大小扩大 dpr 倍
         const dpr = _util__WEBPACK_IMPORTED_MODULE_0__["getDpr"]();
         canvas.style.width = canvasWidth + "px";
         canvas.style.height = canvasHeight + "px";
@@ -3023,6 +3123,7 @@ class TextSprite {
             map: texture,
             transparent:true
         });
+        spriteMaterial.opacity = this.options.opacity;
         this._textSprite = new THREE.Sprite(spriteMaterial);
     }
 }
@@ -3033,7 +3134,7 @@ class TextSprite {
 /*!*************************!*\
   !*** ./js/maphelper.js ***!
   \*************************/
-/*! exports provided: CRS, wgs84ToMecator, mecatorToWgs84, getBounds, getNormalizeCenter, getNormalizeName, scalePoint */
+/*! exports provided: CRS, wgs84ToMecator, mecatorToWgs84, getBounds, getNormalizeCenter, getCentroid, worldToScreen, screenToWorld, isPOICollision, getNormalizeName, scalePoint */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3043,6 +3144,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "mecatorToWgs84", function() { return mecatorToWgs84; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getBounds", function() { return getBounds; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getNormalizeCenter", function() { return getNormalizeCenter; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getCentroid", function() { return getCentroid; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "worldToScreen", function() { return worldToScreen; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "screenToWorld", function() { return screenToWorld; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "isPOICollision", function() { return isPOICollision; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "getNormalizeName", function() { return getNormalizeName; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "scalePoint", function() { return scalePoint; });
 /* harmony import */ var _bounds__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./bounds */ "./js/bounds.js");
@@ -3069,7 +3174,7 @@ function wgs84ToMecator(lnglat) {
     var ts = Math.tan(Math.PI / 4 - y / 2) / Math.pow((1 - con) / (1 + con), e / 2);
     y = -r * Math.log(Math.max(ts, 1E-10));
 
-    return [ lnglat[0] * d * r, y ];
+    return [lnglat[0] * d * r, y];
 }
 
 // 墨卡托转经纬度
@@ -3088,7 +3193,7 @@ function mecatorToWgs84(point) {
         phi += dphi;
     }
 
-    return [ point[0] * d / r, phi * d ];
+    return [point[0] * d / r, phi * d];
 }
 
 // 根据geojson数据获取geo对象在墨卡托投影平面的范围
@@ -3183,16 +3288,133 @@ function getNormalizeCenter(feature, forceBoundsCenter = false) {
         center = center.map(item => Number(item));
     }
     if (forceBoundsCenter || center == null) {
-        let bounds = getBounds(feature);
-        center = bounds.getCenter();
+        // let bounds = getBounds(feature);
+        // center = bounds.getCenter();
+        center = getCentroid(feature);
     }
     return center;
+}
+
+function createCoordinateArray(ring) {
+    //Loop through the coordinates and figure out if the points need interpolation.
+    let temp_array = [];
+
+    for (let point_num = 0; point_num < ring.length; point_num++) {
+        temp_array.push(ring[point_num]);
+    }
+    return temp_array;
+}
+
+// idea from turf.js
+// TODO: 更佳的文字排版方式参考 QGIS 软件实现
+function getCentroid(feature) {
+    let geometry = feature.geometry;
+    let coords = [];
+    if (geometry == null) {
+        return ;
+    }
+    if (geometry.type == 'Point') {
+
+    } else if (geometry.type == 'MultiPoint') {
+
+    } else if (geometry.type == 'LineString') {
+
+    } else if (geometry.type == 'MultiLineString') {
+
+    } else if (geometry.type == 'Polygon') {
+        coords = createCoordinateArray(geometry.coordinates[0]);
+    } else if (geometry.type == 'MultiPolygon') {
+        let maxPolygonNum = 0;
+        for (let polygon_num = 0; polygon_num < geometry.coordinates.length; polygon_num++) {
+            if (geometry.coordinates[polygon_num][0].length > geometry.coordinates[maxPolygonNum][0].length) {
+                maxPolygonNum = polygon_num;
+            }
+        }
+        coords = createCoordinateArray(geometry.coordinates[maxPolygonNum][0]);
+    } else {
+        throw new Error('The geoJSON is not valid.');
+    }
+    // 计算
+    let sumX = 0;
+    let sumY = 0;
+    let len = 0;
+    coords.forEach(point => {
+        sumX += point[0];
+        sumY += point[1];
+        len++;
+    });
+    return [sumX / len, sumY / len];
+}
+
+// 世界坐标转屏幕坐标
+// TODO: 有时会出现不准确现象。解决办法：放到 setTimeout 里面
+function worldToScreen(xyzPoint, map, obj) {
+    const mapSize = map.getContainerSize();
+    const camera = map.getCamera();
+
+    // 方法1
+    // 世界坐标
+    const worldVector = new THREE.Vector3(xyzPoint[0], xyzPoint[1], xyzPoint[2]);
+     // 世界坐标转标准设备坐标
+    const standartVector = worldVector.project(camera);
+    // 标准设备坐标转屏幕坐标
+    const sx = Math.round((0.5 + standartVector.x / 2) * mapSize.width); 
+    const sy = Math.round((0.5 - standartVector.y / 2) * mapSize.height); 
+    return [sx, sy];
+
+    // 或 方法2
+/*     const vector = new THREE.Vector3();
+    obj.updateMatrixWorld();
+    vector.setFromMatrixPosition(obj.matrixWorld);
+    vector.project(camera);
+    const widthHalf = mapSize.width/2;
+    const heightHalf = mapSize.height/2;
+    const sx = (vector.x * widthHalf) + widthHalf;
+    const sy = -(vector.y * heightHalf) + heightHalf;
+    return [sx, sy]; */
+}
+
+// 屏幕坐标转世界坐标
+function screenToWorld(screenPoint, map) {
+    const mapSize = map.getContainerSize();
+    const camera = map.getCamera();
+    //屏幕坐标转标准设备坐标
+    const x = (screenPoint[0] / mapSize.width) * 2 - 1;
+    const y = -(screenPoint[1] / mapSize.height) * 2 + 1;
+    //标准设备坐标
+    const standardVector = new THREE.Vector3(x, y, 0.5);
+    //标准设备坐标转世界坐标
+    const worldVector = standardVector.unproject(camera);
+    return [worldVector.x, worldVector.y, worldVector.z];
+}
+
+// 检测两个矩形是否碰撞
+function isPOICollision(sprite1, sprite2) {
+    let x1 = sprite1.x;
+    let y1 = sprite1.y;
+    let w1 = sprite1.w;
+    let h1 = sprite1.h;
+    let x2 = sprite2.x;
+    let y2 = sprite2.y;
+    let w2 = sprite2.w;
+    let h2 = sprite2.h;
+    if (x1 >= x2 && x1 >= x2 + w2) {
+        return false;
+    } else if (x1 <= x2 && x1 + w1 <= x2) {
+        return false;
+    } else if (y1 >= y2 && y1 >= y2 + h2) {
+        return false;
+    } else if (y1 <= y2 && y1 + h1 <= y2) {
+        return false;
+    } else {
+        return true;
+    }
 }
 
 function getNormalizeName(feature) {
     let props = feature && feature.properties;
     if (props) {
-        if(props.name) {
+        if (props.name) {
             return props.name;
         } else if (props.id) {
             return props.id;
@@ -3207,7 +3429,6 @@ function getNormalizeName(feature) {
 function scalePoint(point, scale) {
     return point.map(p => p * scale);
 }
-
 
 /***/ }),
 
@@ -3531,6 +3752,10 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
         // this._orbitControl.target = new THREE.Vector3(12245143.987260092, 0, -3482189.0854086173)
         this._orbitControl.saveState();
         this._orbitControl.update();
+
+        this._orbitControl.addEventListener('change', e => {
+            this.emit('change', e);
+        });
 
         // 灯光
         const lightOptions = this.options.light;

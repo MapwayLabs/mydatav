@@ -11,6 +11,7 @@ export default class TextSprite {
             fontColor: '#000',
             textAlign: 'center',
             textBaseline: 'middle',
+            opacity: 0.85,
             maxWidth: 512
         }
         this.options = Util.extend(true, defaultOptions, options);
@@ -22,10 +23,18 @@ export default class TextSprite {
     getSprite() {
         return this._textSprite;
     }
+    // canvas 样式尺寸
     getSize() {
         return {
             width: this._width,
             height: this._height
+        };
+    }
+    // 实际显示文字的尺寸
+    getTextSize() {
+        return {
+            width: this._textWidth,
+            height: this._textHeight
         };
     }
     // idea from https://www.cnblogs.com/dojo-lzz/p/7143276.html
@@ -39,6 +48,15 @@ export default class TextSprite {
         let scaleY = this._height * ratio;
         this._textSprite.scale.set(scaleX, scaleY, 1);
     }
+
+    hide() {
+        this._textSprite.material.opacity = 0;
+    }
+
+    show() {
+        this._textSprite.material.opacity = this.options.opacity;
+    }
+
     _init() {
         const font = `${this.options.fontStyle} ${this.options.fontWeight} ${this.options.fontSize} ${this.options.fontFamily}`;
         const textSize = Util.measureText(this._textStr, font);
@@ -54,12 +72,15 @@ export default class TextSprite {
         const canvasHeight = Util.wrapNum(textSize.height);
         this._width = canvasWidth;
         this._height = canvasHeight;
+        this._textWidth = textSize.width;
+        this._textHeight = textSize.height;
 
         const canvas = document.createElement("canvas");
         // webgl 规定 canvas 宽高为2的n次幂，对老式GPU的支持
         canvas.width = canvasWidth;
         canvas.height = canvasHeight;
-
+        
+        // 适配高清屏：将 canvas 画布尺寸扩大 dpr 倍，视口尺寸设为原始值，并且 canvas 内部所有元素大小扩大 dpr 倍
         const dpr = Util.getDpr();
         canvas.style.width = canvasWidth + "px";
         canvas.style.height = canvasHeight + "px";
@@ -84,6 +105,7 @@ export default class TextSprite {
             map: texture,
             transparent:true
         });
+        spriteMaterial.opacity = this.options.opacity;
         this._textSprite = new THREE.Sprite(spriteMaterial);
     }
 }

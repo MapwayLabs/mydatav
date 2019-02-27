@@ -305,6 +305,10 @@ export default class ThreeMap extends EventEmiter {
         this._orbitControl.saveState();
         this._orbitControl.update();
 
+        this._orbitControl.addEventListener('change', e => {
+            this.emit('change', e);
+        });
+
         // 灯光
         const lightOptions = this.options.light;
         const directionalLight = new THREE.DirectionalLight(lightOptions.main.color, lightOptions.main.intensity);

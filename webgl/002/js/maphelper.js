@@ -21,7 +21,7 @@ export function wgs84ToMecator(lnglat) {
     var ts = Math.tan(Math.PI / 4 - y / 2) / Math.pow((1 - con) / (1 + con), e / 2);
     y = -r * Math.log(Math.max(ts, 1E-10));
 
-    return [ lnglat[0] * d * r, y ];
+    return [lnglat[0] * d * r, y];
 }
 
 // 墨卡托转经纬度
@@ -40,7 +40,7 @@ export function mecatorToWgs84(point) {
         phi += dphi;
     }
 
-    return [ point[0] * d / r, phi * d ];
+    return [point[0] * d / r, phi * d];
 }
 
 // 根据geojson数据获取geo对象在墨卡托投影平面的范围
@@ -135,16 +135,133 @@ export function getNormalizeCenter(feature, forceBoundsCenter = false) {
         center = center.map(item => Number(item));
     }
     if (forceBoundsCenter || center == null) {
-        let bounds = getBounds(feature);
-        center = bounds.getCenter();
+        // let bounds = getBounds(feature);
+        // center = bounds.getCenter();
+        center = getCentroid(feature);
     }
     return center;
+}
+
+function createCoordinateArray(ring) {
+    //Loop through the coordinates and figure out if the points need interpolation.
+    let temp_array = [];
+
+    for (let point_num = 0; point_num < ring.length; point_num++) {
+        temp_array.push(ring[point_num]);
+    }
+    return temp_array;
+}
+
+// idea from turf.js
+// TODO: 更佳的文字排版方式参考 QGIS 软件实现
+export function getCentroid(feature) {
+    let geometry = feature.geometry;
+    let coords = [];
+    if (geometry == null) {
+        return ;
+    }
+    if (geometry.type == 'Point') {
+
+    } else if (geometry.type == 'MultiPoint') {
+
+    } else if (geometry.type == 'LineString') {
+
+    } else if (geometry.type == 'MultiLineString') {
+
+    } else if (geometry.type == 'Polygon') {
+        coords = createCoordinateArray(geometry.coordinates[0]);
+    } else if (geometry.type == 'MultiPolygon') {
+        let maxPolygonNum = 0;
+        for (let polygon_num = 0; polygon_num < geometry.coordinates.length; polygon_num++) {
+            if (geometry.coordinates[polygon_num][0].length > geometry.coordinates[maxPolygonNum][0].length) {
+                maxPolygonNum = polygon_num;
+            }
+        }
+        coords = createCoordinateArray(geometry.coordinates[maxPolygonNum][0]);
+    } else {
+        throw new Error('The geoJSON is not valid.');
+    }
+    // 计算
+    let sumX = 0;
+    let sumY = 0;
+    let len = 0;
+    coords.forEach(point => {
+        sumX += point[0];
+        sumY += point[1];
+        len++;
+    });
+    return [sumX / len, sumY / len];
+}
+
+// 世界坐标转屏幕坐标
+// TODO: 有时会出现不准确现象。解决办法：放到 setTimeout 里面
+export function worldToScreen(xyzPoint, map, obj) {
+    const mapSize = map.getContainerSize();
+    const camera = map.getCamera();
+
+    // 方法1
+    // 世界坐标
+    const worldVector = new THREE.Vector3(xyzPoint[0], xyzPoint[1], xyzPoint[2]);
+     // 世界坐标转标准设备坐标
+    const standartVector = worldVector.project(camera);
+    // 标准设备坐标转屏幕坐标
+    const sx = Math.round((0.5 + standartVector.x / 2) * mapSize.width); 
+    const sy = Math.round((0.5 - standartVector.y / 2) * mapSize.height); 
+    return [sx, sy];
+
+    // 或 方法2
+/*     const vector = new THREE.Vector3();
+    obj.updateMatrixWorld();
+    vector.setFromMatrixPosition(obj.matrixWorld);
+    vector.project(camera);
+    const widthHalf = mapSize.width/2;
+    const heightHalf = mapSize.height/2;
+    const sx = (vector.x * widthHalf) + widthHalf;
+    const sy = -(vector.y * heightHalf) + heightHalf;
+    return [sx, sy]; */
+}
+
+// 屏幕坐标转世界坐标
+export function screenToWorld(screenPoint, map) {
+    const mapSize = map.getContainerSize();
+    const camera = map.getCamera();
+    //屏幕坐标转标准设备坐标
+    const x = (screenPoint[0] / mapSize.width) * 2 - 1;
+    const y = -(screenPoint[1] / mapSize.height) * 2 + 1;
+    //标准设备坐标
+    const standardVector = new THREE.Vector3(x, y, 0.5);
+    //标准设备坐标转世界坐标
+    const worldVector = standardVector.unproject(camera);
+    return [worldVector.x, worldVector.y, worldVector.z];
+}
+
+// 检测两个矩形是否碰撞
+export function isPOICollision(sprite1, sprite2) {
+    let x1 = sprite1.x;
+    let y1 = sprite1.y;
+    let w1 = sprite1.w;
+    let h1 = sprite1.h;
+    let x2 = sprite2.x;
+    let y2 = sprite2.y;
+    let w2 = sprite2.w;
+    let h2 = sprite2.h;
+    if (x1 >= x2 && x1 >= x2 + w2) {
+        return false;
+    } else if (x1 <= x2 && x1 + w1 <= x2) {
+        return false;
+    } else if (y1 >= y2 && y1 >= y2 + h2) {
+        return false;
+    } else if (y1 <= y2 && y1 + h1 <= y2) {
+        return false;
+    } else {
+        return true;
+    }
 }
 
 export function getNormalizeName(feature) {
     let props = feature && feature.properties;
     if (props) {
-        if(props.name) {
+        if (props.name) {
             return props.name;
         } else if (props.id) {
             return props.id;

@@ -380,10 +380,16 @@ export default class GeoJSONLayer extends Layer {
         // if (this._map.options.region === 'china' || this._map.options.region === 'world') {
         //     forceBoundsCenter = false;
         // }
-        this._features.forEach(f => {
+
+        for (let i = 0, len = this._features.length; i < len; i++) {
+            let f = this._features[i];
             let yoffset = this.getDepth();
             let tempobj = {};
             let name = mapHelper.getNormalizeName(f);
+            let center = mapHelper.getNormalizeCenter(f, forceBoundsCenter);
+            if (center == null || !Array.isArray(center)) {
+                continue; // geometry 为null时得不到center
+            }
             // FIXME: 采用简单粗暴方法避免文字覆盖
             tempobj.textAlign = 'center';
             if (new RegExp(name).test('香港')) {
@@ -398,7 +404,7 @@ export default class GeoJSONLayer extends Layer {
                 tempobj.textAlign = 'left'
             }
             tempobj.text = name;
-            tempobj.center = mapHelper.getNormalizeCenter(f, forceBoundsCenter);
+            tempobj.center = center;
             tempobj.center[1] += barWidth*2; // TODO: 避免文字覆盖柱子
             tempobj.altitude = yoffset + this.options.areaText.offset;
             if (f.hasBarData) {
@@ -406,7 +412,7 @@ export default class GeoJSONLayer extends Layer {
             } else {
                 nullTextData.push(tempobj);
             }  
-        });
+        }
         const textOptions = {
             textStyle: this.options.areaText.textStyle
         };
