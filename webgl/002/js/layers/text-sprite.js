@@ -11,7 +11,7 @@ export default class TextSprite {
             fontColor: '#000',
             textAlign: 'center',
             textBaseline: 'middle',
-            opacity: 0.85,
+            opacity: 1,
             maxWidth: 512
         }
         this.options = Util.extend(true, defaultOptions, options);

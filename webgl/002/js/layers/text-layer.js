@@ -20,7 +20,7 @@ export default class TextLayer extends Layer {
                 textBaseline: 'middle',
                 maxWidth: 512,
                 offsetY: 0, // 为避免文字覆盖柱子，设置文字偏移中心点
-                opacity: 0.85
+                opacity: 1
             }
         };
         this.options = Util.extend(true, defaultOptions, options);
