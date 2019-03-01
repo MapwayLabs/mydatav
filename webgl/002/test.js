@@ -17,7 +17,7 @@ function addDiv(screenPoint) {
 }
 
 // just a test function 画坐标轴
-drawAxis(scene, len) {
+function drawAxis(scene, len) {
     if (len === undefined) {
         len = 100;
     }
