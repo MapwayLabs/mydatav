@@ -455,7 +455,8 @@ export default class BarLayer extends Layer {
             let barHeight = this.getBarHeight(item);
             let yoffset = this.geojsonLayer.getDepth();
             let tempobj = {};
-            tempobj.text = item.formattedVal;
+            // tempobj.text = item.formattedVal;
+            tempobj.text = item.value;
             tempobj.center = item.center;
             tempobj.altitude = barHeight + yoffset + this.options.barText.offset;
             textData.push(tempobj);

@@ -269,6 +269,8 @@ export function measureText(text, font = 'normal normal 12px sans-serif') {
     }
     textWidthCache[key] = result;
     textWidthCacheCounter ++;
+    // 移除DOM
+    span.parentNode.removeChild(span);
     return result;
 }
 
