@@ -79,7 +79,7 @@
                     offset: 1,
                     textStyle: {
                         fontSize: '6px',
-                        show: true,
+                        show: false,
                         scale: 28
                     },
                     nullTextStyle: {
@@ -157,7 +157,7 @@
                 let fl = new TMap.FlyLineLayer(fdata, flOptions, window.geojsonLayer);
                 map.addLayer(fl);
             });
-            $.getJSON('../../data/bardata.json', function (data) {
+            $.getJSON('../../data/bardata.global.json', function (data) {
                 let barOptions = {
                     isMatchGeoJson: true,
                     isAutoResize: false,
@@ -192,7 +192,7 @@
                     }
                 };
                 let barlayer = new TMap.BarLayer(data, barOptions, window.geojsonLayer);
-                // map.addLayer(barlayer);
+                map.addLayer(barlayer);
             });
         });
     </script>

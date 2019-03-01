@@ -30,30 +30,22 @@ export default class TextLayer extends Layer {
     onAdd(map) {
         Layer.prototype.onAdd.call(this, map); 
         this._draw();
-        if (this.options.isAvoidCollision) {
-            this._timerID = setTimeout(() => {
-                this._collisionDetect();
-            }, 0);
+        if (this.options.isAvoidCollision || this._map.options.type === 'sphere') {
             this._map.on('change', this._mapChangeEvtHandler, this);
         }
     }
     onRemove(map) {
         Layer.prototype.onRemove.call(this, map);
-        if (this.options.isAvoidCollision) {
+        if (this.options.isAvoidCollision || this._map.options.type === 'sphere') {
             this._map.off('change', this._mapChangeEvtHandler, this);
-        }
-        if (this._timerID) {
-            clearTimeout(this._timerID);
         }
     }
     update(data) {
-        this._container.remove(...this._container.children);
         this._data = data;
+        this.clear();
         this._draw();
-        if (this.options.isAvoidCollision) {
-            this._timerID = setTimeout(() => {
-                this._collisionDetect();
-            }, 0);
+        if (this.options.isAvoidCollision || this._map.options.type === 'sphere') {
+            this._map.on('change', this._mapChangeEvtHandler, this);
         }
     }
     updateScale() {
@@ -66,38 +58,108 @@ export default class TextLayer extends Layer {
             sprite.setScale(camera, size);
         });
     }
+    clear() {
+        this._container.remove(...this._container.children);
+    }
+    _getWorldPosition(d) {
+        let centerLatLng = d.center;
+        let altitude = d.altitude || 0;
+        let projCenter = this._map.projectLngLat([...centerLatLng, altitude]);
+        return projCenter;
+    }
+    _getSpritePosition(d) {
+        const projCenter = this._getWorldPosition(d);
+        let position;
+        if (this._map.options.type === 'plane') {
+            const offsetY = this.options.textStyle.offsetY;
+            position = [projCenter[0], projCenter[2], -projCenter[1]-offsetY];
+        } else {
+            position = [projCenter[0], projCenter[1], projCenter[2]];
+        }
+        return position;
+    }
+    getFontStyle() {
+        return `${this.options.textStyle.fontStyle} ${this.options.textStyle.fontWeight} ${this.options.textStyle.fontSize} ${this.options.textStyle.fontFamily}`;
+    }
+    _filterShowData() {
+        if (this._data == null || !this._data.length) {return [];}
+        if (this._map.options.type === 'sphere') {
+            let showData = this._data.filter(d => {
+                let isInRange = this._map.isLngLatInRange(d.center);
+                return isInRange;
+            });
+            if (this.options.isAvoidCollision) {
+                showData = this._filterCollisionData(showData);
+            }
+            return showData;
+        } else {
+            let showData = this._data;
+            if (this.options.isAvoidCollision) {
+                showData = this._filterCollisionData(showData);
+            }
+            return showData;
+        }
+    }
+    _filterCollisionData(data) {
+        this._texts = [];
+        const font = this.getFontStyle();
+        data.forEach(d => {
+            let position = this._getSpritePosition(d);
+            let obj = {};
+            const screenPoint = worldToScreen(position, this._map);
+            const textSize = Util.measureText(d.text, font);
+            obj.x = screenPoint[0];
+            obj.y = screenPoint[1];
+            obj.w = textSize.width;
+            obj.h = textSize.height;
+            obj.show = true;
+            this._texts.push(obj);
+        });
+
+        const len = this._texts.length;
+        for (let i = 0; i < len; i++) {
+            let text1 = this._texts[i];
+            for (let j = i+1; j < len; j++) {
+                let text2 = this._texts[j];
+                if (isPOICollision(text1, text2)) {
+                    text2.show = false;
+                } 
+            }
+        }
+        
+        let showData = [];
+        this._texts.forEach((text, index) => {
+            if (text.show) {
+                showData.push(data[index]);
+            }
+        });
+
+        return showData;
+    }
     _draw() {
-        if (this._data == null || !this._data.length) {return;}
         this._textSprites = [];
-        this._data.forEach(d => {
-            const projCenter = this._map.projectLngLat(d.center);
-            const altitude = d.altitude;
+        const showData = this._filterShowData();
+        showData.forEach(d => {
             // 为了避免文字覆盖，对每个文字设置不同的对齐方式 
             if (d.textAlign != null) {
                 this.options.textStyle.textAlign = d.textAlign;
             }
+            let position = this._getSpritePosition(d);
             const ts = new TextSprite(d.text, this.options.textStyle);
             const textSprite = ts.getSprite();
-            // const scale = this.options.textStyle.scale;
-
-            // textSprite.scale.set(scale, scale, 1);
-            const offsetY = this.options.textStyle.offsetY;
-            textSprite.position.set(projCenter[0], altitude, -projCenter[1]-offsetY);
-            textSprite.rotateX(-Math.PI/2);
-
+            textSprite.position.set(...position);
             // 避免柱子遮挡地名
             textSprite.renderOrder = 100;
             textSprite.material.depthTest=false; // 是否采用深度测试，必须加
             
             this._textSprites.push(ts);
-            if (!this.options.isAvoidCollision) {
-                this._container.add(textSprite);
-            }
+            this._container.add(textSprite);
         });
     }
 
     _mapChangeEvtHandler() {
-        this._collisionDetect();
+        this.clear();
+        this._draw();
     }
 
     // 文字碰撞检测 window.geojsonLayer._nulltextLayer._collisionDetect()

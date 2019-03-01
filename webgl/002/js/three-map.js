@@ -51,9 +51,17 @@ export default class ThreeMap extends EventEmiter {
                 animationSpeed: 1, // 转动快慢
                 earthImgSrc: '../../images/earth.jpg', // 地球图片
                 light: {
-                    skyColor: '#fff',
-                    groundColor: '#333',
-                    intensity: 2
+                    hemisphereLight:{
+                        show: false,
+                        skyColor: '#fff',
+                        groundColor: '#333',
+                        intensity: 2
+                    },
+                    // 环境光源 THREE.AmbientLight
+                    ambient: {
+                        color: '#fff',
+                        intensity: 1
+                    }
                 }
             }
         };
@@ -124,13 +132,165 @@ export default class ThreeMap extends EventEmiter {
             return this.lngLatToGlobal(lnglat[0], lnglat[1], lnglat[2]);
         }
     }
+    // 经纬度坐标转球面坐标
     lngLatToGlobal(lng, lat, alt = 0) {
-        const phi = (90-lat)*(Math.PI/180);
-        const theta = (lng+180)*(Math.PI/180);
+        // 以z轴正半轴作为零度经线起始处
+        const phi = lng*(Math.PI/180);
+        const theta = lat*(Math.PI/180);
         const radius = alt+this.options.global.R;
-        const x = -(radius * Math.sin(phi) * Math.cos(theta));
-        const z = (radius * Math.sin(phi) * Math.sin(theta));
-        const y = (radius * Math.cos(phi));
+        const x = (radius * Math.sin(phi) * Math.cos(theta));
+        const z = (radius * Math.cos(phi) * Math.cos(theta));
+        const y = (radius * Math.sin(theta));
+        return [x, y, z];
+    }
+    // 球面坐标转经纬度坐标
+    globalToLnglat(globalPoint) {
+        const x = globalPoint[0];
+        const y = globalPoint[1];
+        const z = globalPoint[2];
+        const r = this.options.global.R;
+        const theta = Math.asin(y / r);
+        let lng = Math.acos(z / (r * Math.cos(theta))) * 180 / Math.PI;
+        let lat = theta * 180 / Math.PI;
+        if (x < 0) {
+            lng = -lng;
+        }
+        return [lng, lat];
+    }
+    // 获取球面当前中心经纬度坐标
+    // 只适用于 球形地球
+    getCenterLngLat() {
+        const size = this.getContainerSize();
+        // 屏幕坐标
+        const screenPoint = [size.width / 2, size.height / 2];
+        // this.addDiv(screenPoint);
+        // 世界坐标
+        const worldPoint = mapHelper.screenToWorld(screenPoint, this);
+        // this.addPoint(worldPoint);
+        // 球面坐标
+        const globalPoint = this._cacluateCrossPoint(worldPoint);
+        // this.addPoint(globalPoint);
+        // 经纬度坐标
+        const centerLngLat = this.globalToLnglat(globalPoint);
+        // console.log('centerLngLat:'+centerLngLat);
+        return centerLngLat;
+    }
+    // 获取当前球面显示的经纬度范围
+    // 只适用于 球形地球
+    getLngLatRange() {
+        let centerLngLat = this.getCenterLngLat();
+        let centerLng = centerLngLat[0];
+        let centerLat = centerLngLat[1];
+        
+        // 经度范围
+        let leftLng = centerLng - 90;
+        let rightLng = centerLng + 90;
+        let lngRange = {
+            min1: leftLng,
+            max1: rightLng,
+            min2: leftLng,
+            max2: rightLng
+        };
+        if (leftLng < -180) {
+            lngRange.min1 = -180;
+            lngRange.max1 = rightLng;
+            lngRange.min2 = leftLng + 360;
+            lngRange.max2 = 180;
+        }
+        if (rightLng > 180) {
+            lngRange.min1 = leftLng;
+            lngRange.max1 = 180;
+            lngRange.min2 = -180;
+            lngRange.max2 = rightLng - 360;
+        }
+        
+        // 纬度范围
+        let latRange = {
+            min1: -90,
+            max1: 90,
+            min2: -90,
+            max2: 90
+        };
+        if (centerLat > 0) {
+            latRange.min1 = - (90 - centerLat);
+            latRange.max1 = 90;
+            latRange.min2 =  - (90 - centerLat);
+            latRange.max2 = 90;
+        } else {
+            latRange.min1 = -90;
+            latRange.max1 = 90 + centerLat;
+            latRange.min2 = -90;
+            latRange.max2 = 90 + centerLat;   
+        }
+        let range = [lngRange, latRange];
+        return range;
+    }
+    // 判断某个经纬度是否在范围内
+    // 只适用于 球形地球
+    isLngLatInRange(lnglat, range) {
+        let rg = range || this.getLngLatRange();
+        let isInRange = [0, 0];
+        lnglat.forEach((d, index) => {
+            let r = rg[index];
+            if ((d > r.min1 && d < r.max1) || (d > r.min2 && d < r.max2)) {
+                isInRange[index] = 1;
+            }
+        });
+        return isInRange[0] && isInRange[1];
+    }
+    // 计算过球心且与屏幕坐标对应的直线与球面的交点
+    // 只适用于 球形地球
+    _cacluateCrossPoint(worldPoint) {
+        // 通过世界坐标计算与球的交点坐标
+        // 计算方法： 向量点积 和 直线对称式方程： x1/x = y1/y = z1/z
+        const x1 = worldPoint[0];
+        const y1 = worldPoint[1];
+        const z1 = worldPoint[2];
+        const r = this.options.global.R;
+        const m = Math.sqrt(x1 * x1 + y1 * y1 + z1 * z1);
+        const rm = r * m;
+        let x, y, z;
+        
+        if (x1 * y1 * z1 === 0) {
+            if (x1 ===  0 && y1 * z1 !== 0) {
+                let b = z1 / y1;
+                x = 0;
+                y = rm / (y1 + b * z1);
+                z = b * y;
+            } else if (y1 === 0 && x1 * z1 !== 0) {
+                let b = z1 / x1;
+                x = rm / (x1 + b * z1);
+                y = 0;
+                z = b * x;
+            } else if (z1 === 0 && x1 * y1 !== 0) {
+                let b = y1 / x1;
+                x = rm / (x1 + b * y1);
+                y = b * x1;
+                z = 0;
+            } else if (x1 === 0 && y1 === 0 && z1 !== 0) {
+                x = 0;
+                y = 0;
+                z = rm / z1;
+            } else if (x1 === 0 && y1 !== 0 && z1 === 0) {
+                x = 0;
+                y = rm / y1;;
+                z = 0;
+            } else if (x1 !== 0 && y1 === 0 && z1 === 0) {
+                x = rm / x1;
+                y = 0;
+                z = 0;
+            } else {
+                x = 0;
+                y = 0;
+                z = 0;
+            }
+        } else {
+            let b = y1 / x1;
+            let c = z1 / x1;
+            x = rm / (x1 + b * y1 + c * z1);
+            y = b * x;
+            z = c * x;
+        }
         return [x, y, z];
     }
     updateSize() {
@@ -143,6 +303,7 @@ export default class ThreeMap extends EventEmiter {
         // TODO: 自动适配
         if (this.options.type === 'plane') {
             if (this.options.region === 'world') {
+                // this._orbitControl.object === this._camera 返回： true
                 // this._orbitControl.object.position.set(16.42515, 369.562538, 333.99466);
                 // this._orbitControl.target = new THREE.Vector3(10.06448, 51.62625, 6.71498);
                 let d = this.getDistance(bounds.getHeight());
@@ -322,41 +483,7 @@ export default class ThreeMap extends EventEmiter {
         // animate
         this._animate();
     }
-    // just a test function 画坐标轴
-    drawAxis(scene, len) {
-        if (len === undefined) {
-            len = 100;
-        }
-        // x 轴
-        var xline_geom = new THREE.Geometry();
-        xline_geom.vertices.push(new THREE.Vector3(0, 0, 0));
-        xline_geom.vertices.push(new THREE.Vector3(len, 0, 0));
-        var xline_material = new THREE.LineBasicMaterial({
-            color: 0xff0000
-        });
-        var xline = new THREE.Line(xline_geom, xline_material);
-        scene.add(xline);
-
-        // y 轴
-        var yline_geom = new THREE.Geometry();
-        yline_geom.vertices.push(new THREE.Vector3(0, 0, 0));
-        yline_geom.vertices.push(new THREE.Vector3(0, len, 0));
-        var yline_material = new THREE.LineBasicMaterial({
-            color: 0x00ff00
-        });
-        var yline = new THREE.Line(yline_geom, yline_material);
-        scene.add(yline);
-
-        // z 轴
-        var zline_geom = new THREE.Geometry();
-        zline_geom.vertices.push(new THREE.Vector3(0, 0, 0));
-        zline_geom.vertices.push(new THREE.Vector3(0, 0, len));
-        var zline_material = new THREE.LineBasicMaterial({
-            color: 0x0000ff
-        });
-        var zline = new THREE.Line(zline_geom, zline_material);
-        scene.add(zline);
-    }
+    
     _initGlobal() {
         if (THREE == undefined) throw new Error('需先引入 threejs 库！');
         if (THREE.OrbitControls == undefined) throw new Error('需先引入 OrbitControls 组件！');
@@ -397,17 +524,26 @@ export default class ThreeMap extends EventEmiter {
         // 最小、最大旋转角度
         // this._orbitControl.minAzimuthAngle = Math.PI * orbitControlOptions.minAzimuthAngle / 180;
         // this._orbitControl.maxAzimuthAngle = Math.PI * orbitControlOptions.maxAzimuthAngle / 180; 
-     
+
+        this._orbitControl.addEventListener('change', e => {
+            this.emit('change', e);
+        });
+
         this._orbitControl.saveState();
         this._orbitControl.update();
 
         // 灯光
         const lightOptions = this.options.global.light;
-        const hemisphereLight = new THREE.HemisphereLight(lightOptions.skyColor, lightOptions.groundColor, lightOptions.intensity);
-        hemisphereLight.position.x = 0;
-        hemisphereLight.position.y = 0;
-        hemisphereLight.position.z = -this.options.global.R;
-        this._scene.add(hemisphereLight);
+        if (lightOptions.hemisphereLight.show) {
+            const hemisphereLight = new THREE.HemisphereLight(lightOptions.hemisphereLight.skyColor, lightOptions.hemisphereLight.groundColor, lightOptions.hemisphereLight.intensity);
+            hemisphereLight.position.x = 0;
+            hemisphereLight.position.y = 0;
+            hemisphereLight.position.z = -this.options.global.R;
+            this._scene.add(hemisphereLight);
+        }
+        // 环境光
+        const ambientLight = new THREE.AmbientLight(lightOptions.ambient.color, lightOptions.ambient.intensity);
+        this._scene.add(ambientLight);
         
         // 球面
         const globeTextureLoader = new THREE.TextureLoader();
@@ -420,8 +556,20 @@ export default class ThreeMap extends EventEmiter {
             // test code - end
             const globeMesh = new THREE.Mesh(globeGgeometry, globeMaterial);
             this._scene.add(globeMesh);
-            this._scene.rotation.x = THREE.Math.degToRad(this.options.global.center[1]);
-            this._scene.rotation.y = THREE.Math.degToRad(this.options.global.center[0]);
+            // this._scene.rotation.x = THREE.Math.degToRad(this.options.global.center[1]);
+            // this._scene.rotation.y = THREE.Math.degToRad(this.options.global.center[0]);
+            
+            // 转整个场景：会影响其他
+            // this._scene.rotateY(THREE.Math.degToRad(-this.options.global.center[0]-90)); // 经度
+            // this._scene.rotateZ(THREE.Math.degToRad(-this.options.global.center[1]));  // 纬度
+            
+            // 转球自身
+            // globeMesh.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), THREE.Math.degToRad(-this.options.global.center[0]-90));
+            // globeMesh.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), THREE.Math.degToRad(this.options.global.center[1]));
+
+            // 以z轴正半轴作为零度经线的起始点
+            globeMesh.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), THREE.Math.degToRad(-90));
+            
         });
         
         // test code -start

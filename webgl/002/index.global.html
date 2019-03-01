@@ -25,6 +25,7 @@
             top: 0;
             right: 0;
             bottom: 0;
+            background: white;
         }
     </style>
 </head>
@@ -39,19 +40,37 @@
             },
             global: {
                 R: 220, // 球形地球半径
-                center: [170, 35], // 初始中心点
+                center: [117, -35], // 初始中心点
                 animation: false, // 是否转动
                 animationSpeed: 1.5, // 转动快慢
                 earthImgSrc: '../../images/earth.jpg', // 地球图片
                 light: {
-                    skyColor: '#fff',
-                    groundColor: '#333',
-                    intensity: 2
+                    hemisphereLight:{
+                        show: false,
+                        skyColor: '#fff',
+                        groundColor: '#333',
+                        intensity: 2
+                    },
+                    // 环境光源 THREE.AmbientLight
+                    ambient: {
+                        color: '#fff',
+                        intensity: 2
+                    }
                 }
             }
         }
         const map = new TMap.ThreeMap('threemap', mapOptions);
         map.setView();
+        $.getJSON('../../data/text.json', function (data) {
+            let textOptions = {
+                isAvoidCollision: false,
+                textStyle: {
+                    fontSize: '8px'
+                }
+            };
+            let textLayer = new TMap.TextLayer(data, textOptions);
+            map.addLayer(textLayer);
+        });
         $.getJSON('../../data/flyline.json', function (fdata) {
             const flOptions = {
                 heightLimit: 30,
@@ -59,7 +78,7 @@
                     show: true,
                     color: '#5092FF',
                     opacity: 0.3,
-                    width: 5
+                    width: 1
                 },
                 pointStyle: {
                     show: true,

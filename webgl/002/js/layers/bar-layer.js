@@ -427,8 +427,8 @@ export default class BarLayer extends Layer {
             mesh.rotateX(-Math.PI / 2);
         } else { 
             // 变换柱子，让其与球面垂直
-            // 先沿 Y 轴旋转，由于零度经线与z轴正半轴相差90度，故加经纬加90度偏移
-            mesh.rotateY(THREE.Math.degToRad(center[0] + 90));
+            // 先沿 Y 轴旋转，零度经线为z轴正半轴
+            mesh.rotateY(THREE.Math.degToRad(center[0]));
             // 坐标在xz平面投影向量
             let v1 = new THREE.Vector3(projCenter[0], 0, projCenter[2]).normalize();
             // y轴方向向量

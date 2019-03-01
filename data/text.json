@@ -1,8 +1,101 @@
-[
-    {
-        "text": "123",
-        "center": [120, 10],
-        "altitude": 0,
-        "textStyle": {}
-    }
-]
+[{
+    "textAlign": "center",
+    "text": "阿尔及利亚",
+    "center": [2.6709094779660987, 30.573052596610186],
+    "altitude": 0
+}, {
+    "textAlign": "center",
+    "text": "列支敦士登",
+    "center": [9.563180166666667, 47.1415],
+    "altitude": 0
+}, {
+    "textAlign": "center",
+    "text": "埃及",
+    "center": [31.35299923853212, 28.243019013761455],
+    "altitude": 0
+}, {
+    "textAlign": "center",
+    "text": "孟加拉国",
+    "center": [90.35233329885057, 23.72032207662836],
+    "altitude": 0
+}, {
+    "textAlign": "center",
+    "text": "尼日尔",
+    "center": [7.113840385869566, 15.131835597826093],
+    "altitude": 0
+}, {
+    "textAlign": "center",
+    "text": "卡塔尔",
+    "center": [51.2338330625, 25.30991621875],
+    "altitude": 0
+}, {
+    "textAlign": "center",
+    "text": "纳米比亚",
+    "center": [17.464827610328637, -22.087099380281707],
+    "altitude": 0
+}, {
+    "textAlign": "center",
+    "text": "保加利亚",
+    "center": [25.213918689393946, 42.79073515909093],
+    "altitude": 0
+}, {
+    "textAlign": "center",
+    "text": "玻利维亚",
+    "center": [-64.99358796732018, -16.113118843137247],
+    "altitude": 0
+}, {
+    "textAlign": "center",
+    "text": "加纳",
+    "center": [-1.1056589166666668, 7.998717673076919],
+    "altitude": 0
+}, {
+    "textAlign": "center",
+    "text": "巴基斯坦",
+    "center": [69.93448713043475, 30.34593724485123],
+    "altitude": 0
+}, {
+    "textAlign": "center",
+    "text": "约旦",
+    "center": [36.53511064406781, 31.338370372881357],
+    "altitude": 0
+}, {
+    "textAlign": "center",
+    "text": "利比里亚",
+    "center": [-9.13937964864865, 6.602025252252252],
+    "altitude": 0
+}, {
+    "textAlign": "center",
+    "text": "利比亚",
+    "center": [17.115996283582092, 29.302386363184088],
+    "altitude": 0
+}, {
+    "textAlign": "center",
+    "text": "马来西亚",
+    "center": [114.75700963571435, 3.739366864285715],
+    "altitude": 0
+}, {
+    "textAlign": "center",
+    "text": "波多黎各",
+    "center": [-66.51032962500001, 18.184782906250003],
+    "altitude": 0
+}, {
+    "textAlign": "center",
+    "text": "马约特",
+    "center": [45.120243833333326, -12.766119333333334],
+    "altitude": 0
+}, {
+    "textAlign": "center",
+    "text": "朝鲜",
+    "center": [127.43952831736526, 40.22645363473053],
+    "altitude": 0
+}, {
+    "textAlign": "center",
+    "text": "坦桑尼亚",
+    "center": [34.957887679824566, -7.481445969298244],
+    "altitude": 0
+}, {
+    "textAlign": "center",
+    "text": "葡萄牙",
+    "center": [-7.8864496885245865, 39.66060883606554],
+    "altitude": 0
+}]
