@@ -24,6 +24,7 @@ export default class PointLayer extends Layer {
                 show: false,
                 showField: 'name',
                 yoffset: 1,
+                isAvoidCollision: true, // 是否避免文字碰撞
                 textStyle: {
                     fontStyle: 'normal',
                     fontWeight: 'normal',
@@ -112,7 +113,10 @@ export default class PointLayer extends Layer {
                 textData.push(tempobj);
             });
         });
-        this._textLayer = new TextLayer(textData, { textStyle: this.options.pointText.textStyle });
+        this._textLayer = new TextLayer(textData, { 
+            isAvoidCollision: this.options.pointText.isAvoidCollision,
+            textStyle: this.options.pointText.textStyle
+         });
         this._map.addLayer(this._textLayer);
     }
     _mousemoveEvtHandler(event) {

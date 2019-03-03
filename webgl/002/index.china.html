@@ -80,6 +80,7 @@
                 areaText: {
                     show: true,
                     offset: 0.1,
+                    isAvoidCollision: false,
                     textStyle: {
                         scale: 1,
                         fontSize: '14px',
@@ -144,7 +145,7 @@
                     }
                 };
                 window.barlayer = new TMap.BarLayer(bardata, barOptions, window.geojsonLayer);
-                window.map.addLayer(window.barlayer);
+                // window.map.addLayer(window.barlayer);
             });
         });
     </script>

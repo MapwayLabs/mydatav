@@ -25,6 +25,7 @@ export default class GeoJSONLayer extends Layer {
             areaText: {
                 show: true, // 是否显示【无数据】区域文字，不能控制无数据区域文字
                 offset: 1, // 文字离地面高度
+                isAvoidCollision: true, // 是否避免文字碰撞
                 textStyle: { // 有数据地区的名字样式
                     show: true, // 是否显示有数据地区文字
                     scale: 1, // 缩放比例
@@ -418,9 +419,11 @@ export default class GeoJSONLayer extends Layer {
             }  
         }
         const textOptions = {
+            isAvoidCollision: this.options.areaText.isAvoidCollision,
             textStyle: this.options.areaText.textStyle
         };
         const nullTextOptions = {
+            isAvoidCollision: this.options.areaText.isAvoidCollision,
             textStyle: this.options.areaText.nullTextStyle
         };
         if (this.options.areaText.textStyle.show) {

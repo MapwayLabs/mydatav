@@ -44,6 +44,7 @@ export default class BarLayer extends Layer {
             barText: {
                 show: true,
                 offset: 1,
+                isAvoidCollision: true, // 是否避免文字碰撞
                 textStyle: {
                     scale: 1,
                     fontStyle: 'normal',
@@ -462,6 +463,7 @@ export default class BarLayer extends Layer {
             textData.push(tempobj);
         });
         const options = {
+            isAvoidCollision: this.options.barText.isAvoidCollision,
             textStyle: this.options.barText.textStyle
         };
         this._textLayer = new TextLayer(textData, options);
