@@ -94,9 +94,7 @@ export default class GeoJSONLayer extends Layer {
         }
         this._draw();
         // FIXME: 文字的碰撞计算 worldToScreen 需要等底图绘制完成才能计算准确
-        this._timerId = setTimeout(() => {
-            this.updateLabels();
-        }, 0);
+        this.updateLabels();
         if (this.options.hightLight.show) {
             this._map.on('mousemove', this._mousemoveEvtHandler, this);
         }
@@ -111,7 +109,6 @@ export default class GeoJSONLayer extends Layer {
         this._map.off('mousemove', this._mousemoveEvtHandler, this);
         this._tooltip && this._tooltip.remove();
         this._tooltip = null;
-        clearTimeout(this._timerId);
     }
     getBounds() {
         return this._bounds;

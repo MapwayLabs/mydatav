@@ -1124,7 +1124,8 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             let barHeight = this.getBarHeight(item);
             let yoffset = this.geojsonLayer.getDepth();
             let tempobj = {};
-            tempobj.text = item.formattedVal;
+            // tempobj.text = item.formattedVal;
+            tempobj.text = item.value;
             tempobj.center = item.center;
             tempobj.altitude = barHeight + yoffset + this.options.barText.offset;
             textData.push(tempobj);
@@ -2183,9 +2184,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         }
         this._draw();
         // FIXME: 文字的碰撞计算 worldToScreen 需要等底图绘制完成才能计算准确
-        this._timerId = setTimeout(() => {
-            this.updateLabels();
-        }, 0);
+        this.updateLabels();
         if (this.options.hightLight.show) {
             this._map.on('mousemove', this._mousemoveEvtHandler, this);
         }
@@ -2200,7 +2199,6 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         this._map.off('mousemove', this._mousemoveEvtHandler, this);
         this._tooltip && this._tooltip.remove();
         this._tooltip = null;
-        clearTimeout(this._timerId);
     }
     getBounds() {
         return this._bounds;
@@ -3425,7 +3423,7 @@ function getCentroid(feature) {
 function worldToScreen(xyzPoint, map, obj) {
     const mapSize = map.getContainerSize();
     const camera = map.getCamera();
-
+    camera.updateMatrixWorld();
     // 方法1
     // 世界坐标
     const worldVector = new THREE.Vector3(xyzPoint[0], xyzPoint[1], xyzPoint[2]);
@@ -4532,6 +4530,8 @@ function measureText(text, font = 'normal normal 12px sans-serif') {
     }
     textWidthCache[key] = result;
     textWidthCacheCounter ++;
+    // 移除DOM
+    span.parentNode.removeChild(span);
     return result;
 }
 

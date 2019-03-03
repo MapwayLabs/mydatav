@@ -198,7 +198,7 @@ export function getCentroid(feature) {
 export function worldToScreen(xyzPoint, map, obj) {
     const mapSize = map.getContainerSize();
     const camera = map.getCamera();
-
+    camera.updateMatrixWorld();
     // 方法1
     // 世界坐标
     const worldVector = new THREE.Vector3(xyzPoint[0], xyzPoint[1], xyzPoint[2]);
