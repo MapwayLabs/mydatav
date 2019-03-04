@@ -454,7 +454,7 @@ export default class BarLayer extends Layer {
         let textData = [];
         this._barData.data.forEach((item, index) => {
             let barHeight = this.getBarHeight(item);
-            let yoffset = this.geojsonLayer.getDepth();
+            let yoffset = this.geojsonLayer ? this.geojsonLayer.getDepth() : 0;
             let tempobj = {};
             // tempobj.text = item.formattedVal;
             tempobj.text = item.value;
