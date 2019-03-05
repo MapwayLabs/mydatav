@@ -713,6 +713,7 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             barText: {
                 show: true,
                 offset: 1,
+                isAvoidCollision: true, // 是否避免文字碰撞
                 textStyle: {
                     scale: 1,
                     fontStyle: 'normal',
@@ -1122,7 +1123,7 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         let textData = [];
         this._barData.data.forEach((item, index) => {
             let barHeight = this.getBarHeight(item);
-            let yoffset = this.geojsonLayer.getDepth();
+            let yoffset = this.geojsonLayer ? this.geojsonLayer.getDepth() : 0;
             let tempobj = {};
             // tempobj.text = item.formattedVal;
             tempobj.text = item.value;
@@ -1131,6 +1132,7 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             textData.push(tempobj);
         });
         const options = {
+            isAvoidCollision: this.options.barText.isAvoidCollision,
             textStyle: this.options.barText.textStyle
         };
         this._textLayer = new _text_layer__WEBPACK_IMPORTED_MODULE_3__["default"](textData, options);
@@ -2704,6 +2706,7 @@ class PointLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 show: false,
                 showField: 'name',
                 yoffset: 1,
+                isAvoidCollision: true, // 是否避免文字碰撞
                 textStyle: {
                     fontStyle: 'normal',
                     fontWeight: 'normal',
@@ -2792,7 +2795,10 @@ class PointLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 textData.push(tempobj);
             });
         });
-        this._textLayer = new _text_layer__WEBPACK_IMPORTED_MODULE_3__["default"](textData, { textStyle: this.options.pointText.textStyle });
+        this._textLayer = new _text_layer__WEBPACK_IMPORTED_MODULE_3__["default"](textData, { 
+            isAvoidCollision: this.options.pointText.isAvoidCollision,
+            textStyle: this.options.pointText.textStyle
+         });
         this._map.addLayer(this._textLayer);
     }
     _mousemoveEvtHandler(event) {
@@ -3827,21 +3833,23 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
         if (this.options.type === 'plane') {
             if (this.options.region === 'world') {
                 // this._orbitControl.object === this._camera 返回： true
-                // this._orbitControl.object.position.set(16.42515, 369.562538, 333.99466);
-                // this._orbitControl.target = new THREE.Vector3(10.06448, 51.62625, 6.71498);
+                this._orbitControl.object.position.set(33.63825332692946, 177.45434200975768, 163.73205178682628);
+                this._orbitControl.target = new THREE.Vector3( 31.103039042099642, 51.62625, 33.28602646708351);
                 let d = this.getDistance(bounds.getHeight());
                 let scaleD = d * this.options.camera.distanceRatio;
                 let center = bounds.getCenter();
-                this._orbitControl.object.position.set(center[0], scaleD, -center[1]);
-                this._orbitControl.target = new THREE.Vector3(center[0], 0, -center[1]);
+                // this._orbitControl.object.position.set(center[0], scaleD, -center[1]);
+                // this._orbitControl.target = new THREE.Vector3(center[0], 0, -center[1]);
                 // this._orbitControl.minDistance = d * 0.5;
                 this._orbitControl.maxDistance = d * 2;
             } else if (this.options.region === 'china') {
                 let d = this.getDistance(bounds.getHeight());
                 let center = bounds.getCenter();
                 let scaleD = d * 0.2; 
-                this._orbitControl.object.position.set(center[0], center[1], scaleD);
-                this._orbitControl.target = new THREE.Vector3(center[0], 0, -center[1]);
+                // this._orbitControl.object.position.set(center[0], center[1], scaleD);
+                // this._orbitControl.target = new THREE.Vector3(center[0], 0, -center[1]);
+                this._orbitControl.object.position.set(120.84282104185938, 40.63479819221523, 7.188968711287963);
+                this._orbitControl.target = new THREE.Vector3(119.6649797489134, -6.091,-55.22126931703857);
                 this._orbitControl.minDistance = d * 0.25;
                 this._orbitControl.maxDistance = d * 2;
             } else {
