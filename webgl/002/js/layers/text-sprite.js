@@ -59,7 +59,7 @@ export default class TextSprite {
 
     _init() {
         const font = `${this.options.fontStyle} ${this.options.fontWeight} ${this.options.fontSize} ${this.options.fontFamily}`;
-        const textSize = Util.measureText(this._textStr, font);
+        let textSize = Util.measureText(this._textStr, font);
         
         if (this.options.textAlign !== 'center') {
             textSize.width *= 1.5;

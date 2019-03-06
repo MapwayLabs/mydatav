@@ -244,7 +244,11 @@ const TEXT_CACHE_MAX = 5000;
 export function measureText(text, font = 'normal normal 12px sans-serif') {
     const key = text + ':' + font;
     if (textWidthCache[key]) {
-        return textWidthCache[key];
+        // NOTE：不直接返回缓存对象，避免对象被修改
+        return {
+            width: textWidthCache[key].width,
+            height: textWidthCache[key].height
+        } 
     }
     const span = document.createElement("span");
     span.style.visibility = "hidden";

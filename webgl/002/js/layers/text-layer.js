@@ -41,9 +41,10 @@ export default class TextLayer extends Layer {
         }
     }
     update(data) {
-        this._data = data;
+        this._map.off('change', this._mapChangeEvtHandler, this);
         this.clear();
-        this._draw();
+        this._data = data;
+        this._draw();  
         if (this.options.isAvoidCollision || this._map.options.type === 'sphere') {
             this._map.on('change', this._mapChangeEvtHandler, this);
         }
