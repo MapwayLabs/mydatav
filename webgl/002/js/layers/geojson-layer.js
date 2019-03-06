@@ -393,18 +393,18 @@ export default class GeoJSONLayer extends Layer {
                 continue; // geometry 为null时得不到center
             }
             // FIXME: 采用简单粗暴方法避免文字覆盖
-            tempobj.textAlign = 'center';
-            if (new RegExp(name).test('香港')) {
-                tempobj.textAlign = 'left'
-            } else if (new RegExp(name).test('澳门')) {
-                tempobj.textAlign = 'right'
-            } else if (new RegExp(name).test('广东')) {
-                tempobj.textBaseline = 'bottom'
-            } else if (new RegExp(name).test('北京')) {
-                tempobj.textAlign = 'right'
-            } else if (new RegExp(name).test('天津')) {
-                tempobj.textAlign = 'left'
-            }
+            // tempobj.textAlign = 'center';
+            // if (new RegExp(name).test('香港')) {
+            //     tempobj.textAlign = 'left'
+            // } else if (new RegExp(name).test('澳门')) {
+            //     tempobj.textAlign = 'right'
+            // } else if (new RegExp(name).test('广东')) {
+            //     tempobj.textBaseline = 'bottom'
+            // } else if (new RegExp(name).test('北京')) {
+            //     tempobj.textAlign = 'right'
+            // } else if (new RegExp(name).test('天津')) {
+            //     tempobj.textAlign = 'left'
+            // }
             tempobj.text = name;
             tempobj.center = center;
             tempobj.center[1] += barWidth*2; // TODO: 避免文字覆盖柱子

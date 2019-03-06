@@ -142,9 +142,9 @@ export default class TextLayer extends Layer {
         const showData = this._filterShowData();
         showData.forEach(d => {
             // 为了避免文字覆盖，对每个文字设置不同的对齐方式 
-            if (d.textAlign != null) {
-                this.options.textStyle.textAlign = d.textAlign;
-            }
+            // if (d.textAlign != null) {
+            //     this.options.textStyle.textAlign = d.textAlign;
+            // }
             let position = this._getSpritePosition(d);
             const ts = new TextSprite(d.text, this.options.textStyle);
             const textSprite = ts.getSprite();
