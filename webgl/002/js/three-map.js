@@ -379,26 +379,37 @@ export default class ThreeMap extends EventEmiter {
     }
     // TODO: addLegend bdp
     addLegend(legendOptions) {
-        let Legend = Dalaba.Chart.Legend;
-        let legend = null;
+        this.destoryLegend();
+        const Legend = Dalaba.Chart.Legend;
         const size = this.getContainerSize();
-        if (!this._legendCanvas) {
-            this._legendCanvas = document.createElement('canvas');
-            this._legendCanvas.width = this._renderer.domElement.width;
-            this._legendCanvas.height = this._renderer.domElement.height;
-            this._legendCanvas.style.width = size.width + 'px';
-            this._legendCanvas.style.height = size.height + 'px';
-            this._legendCanvas.className = 'three-map-legendcanvas';
-            this._el.appendChild(this._legendCanvas);
-        }
         if (Legend && legendOptions.enabled) {
-            legend = new Legend(
+            if (!this._legendCanvas) {
+                this._legendCanvas = document.createElement('canvas');
+                this._legendCanvas.width = this._renderer.domElement.width;
+                this._legendCanvas.height = this._renderer.domElement.height;
+                this._legendCanvas.style.width = size.width + 'px';
+                this._legendCanvas.style.height = size.height + 'px';
+                this._legendCanvas.className = 'three-map-legendcanvas';
+                this._el.appendChild(this._legendCanvas);
+            }
+            this._legend = new Legend(
                 this._legendCanvas,//this.addLayer(legendOptions.layer),
                 [{name: 9}],
                 legendOptions//selected为false不读取
             );
+            this._legendOptions = legendOptions;
         }
-        return legend;
+        return this._legend;
+    }
+    destoryLegend() {
+        if (this._legend) {
+            this._legend.destroy();
+            this._legend.canvas.parentNode.removeChild(this._legend.canvas);
+            this._legendCanvas.parentNode.removeChild(this._legendCanvas);
+            this._legend = null;
+            this._legendCanvas = null;
+            this._legendOptions = null;
+        }
     }
     _initBounds() {
         if (this.options.type === 'plane') {
@@ -626,12 +637,17 @@ export default class ThreeMap extends EventEmiter {
         this._camera.updateProjectionMatrix();
         // 设置渲染器输出的 canvas 的大小
         this._renderer.setSize(size.width, size.height, true);
+
+        if (this._legend) {
+            this.addLegend(this._legendOptions);
+        }
     }
     _mousemoveEvtHandler(e) {
         this.emit('mousemove', e);
     }
     destroy() {
         this.clearLayers();
+        this.destoryLegend();
         window.removeEventListener('resize', this._onContainerResize, false);
         this._renderer.domElement.removeEventListener('mousemove', this._mousemoveEvtHandler, false);
         this._renderer.domElement.removeEventListener("webglcontextlost", this._webglContextLostHandler, false);

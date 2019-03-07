@@ -66,7 +66,7 @@ export default class GeoJSONLayer extends Layer {
                 color: '#639fc0'
             },
             tooltip: {
-                show: true
+                show: false
             },
             outline: {
                 top: {
