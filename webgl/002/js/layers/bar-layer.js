@@ -204,7 +204,7 @@ export default class BarLayer extends Layer {
                         id: props.id || f.id,
                         name: props.name,
                         xname: x.data[i],
-                        ylabelName: y.name,
+                        ylabelName: y.nick_name || y.name,
                         index: i,
                         center: center,
                         value: Number(y.data[i])
