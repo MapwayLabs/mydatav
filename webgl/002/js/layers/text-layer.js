@@ -20,10 +20,17 @@ export default class TextLayer extends Layer {
                 textBaseline: 'middle',
                 maxWidth: 512,
                 offsetY: 0, // 为避免文字覆盖柱子，设置文字偏移中心点
-                opacity: 1
+                opacity: 1,
+                labelPointStyle: {
+                    show: true, // 是否显示文字旁边的标注点
+                    margin: 4, // 标注点距离文字的距离
+                    radius: 6, // 标注点半径
+                    color: '#0f0' // 标注点颜色，可以是 hexString、rgb、rgba
+                }
             }
         };
         this.options = Util.extend(true, defaultOptions, options);
+        this.type = 'textLayer';
         this._textSprites = [];
         this._texts = [];
     }
@@ -141,13 +148,17 @@ export default class TextLayer extends Layer {
         const showData = this._filterShowData();
         showData.forEach(d => {
             // 为了避免文字覆盖，对每个文字设置不同的对齐方式 
-            if (d.textAlign != null) {
-                this.options.textStyle.textAlign = d.textAlign;
-            }
+            // if (d.textAlign != null) {
+            //     this.options.textStyle.textAlign = d.textAlign;
+            // }
+            // if (d.textBaseline != null) {
+            //     this.options.textStyle.textBaseline = d.textBaseline;
+            // }
             let position = this._getSpritePosition(d);
             const ts = new TextSprite(d.text, this.options.textStyle);
             const textSprite = ts.getSprite();
             textSprite.position.set(...position);
+            
             // 避免柱子遮挡地名
             textSprite.renderOrder = 100;
             textSprite.material.depthTest=false; // 是否采用深度测试，必须加
@@ -156,12 +167,10 @@ export default class TextLayer extends Layer {
             this._container.add(textSprite);
         });
     }
-
     _mapChangeEvtHandler() {
         this.clear();
         this._draw();
     }
-
     // 文字碰撞检测 window.geojsonLayer._nulltextLayer._collisionDetect()
     // TODO: 视口裁剪，只计算视口内的部分
     _collisionDetect() {

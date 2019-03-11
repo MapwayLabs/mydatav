@@ -37,7 +37,13 @@ export default class GeoJSONLayer extends Layer {
                     textAlign: 'center',
                     textBaseline: 'middle',
                     maxWidth: 512,
-                    offsetY: 0
+                    offsetY: 0,
+                    labelPointStyle: {
+                        show: true, // 是否显示文字旁边的标注点
+                        margin: 4, // 标注点距离文字的距离
+                        radius: 6, // 标注点半径
+                        color: '#0f0' // 标注点颜色，可以是 hexString、rgb、rgba
+                    }
                 },
                 nullTextStyle: { // 无数据地区的名字样式
                     scale: 1, // 缩放比例
@@ -49,17 +55,26 @@ export default class GeoJSONLayer extends Layer {
                     textAlign: 'center',
                     textBaseline: 'middle',
                     maxWidth: 512,
-                    offsetY: 0
+                    offsetY: 0,
+                    labelPointStyle: {
+                        show: true, // 是否显示文字旁边的标注点
+                        margin: 4, // 标注点距离文字的距离
+                        radius: 6, // 标注点半径
+                        color: '#0f0' // 标注点颜色，可以是 hexString、rgb、rgba
+                    }
                 }
             },
-            lineOpacity: 1,
-            lineMaterial: {
-                color: 0x999999,
-                linewidth: 1.5
-            },
+            isAreaMutilColor: false, // 面是否采用不同颜色
+            mutiColors: ['#7EBFF0', '#D1F6FC', '#53A4EA', '#107AE0'],
             areaMaterial: { // 面材质配置
                 color: 0x00ff00,
-                side: THREE.DoubleSide
+                side: THREE.DoubleSide,
+                opacity: 1
+            },
+            extrudeMaterial: { // 侧面材质
+                color:  0x00ff00,
+                opacity: 1,
+                textureSrc: null
             },
             hightLight: {
                 show: false,
@@ -68,7 +83,13 @@ export default class GeoJSONLayer extends Layer {
             tooltip: {
                 show: true
             },
-            outline: {
+            outline: {  // 拉伸地图的轮廓
+                normal: {
+                    show: true,
+                    color: 0x999999,
+                    width: 1.5,
+                    opacity: 1
+                },
                 top: {
                     show: false,
                     color: 0x00ff00,
@@ -84,7 +105,7 @@ export default class GeoJSONLayer extends Layer {
             }
         };
         this.options = Util.extend(true, defaultOptions, options);
-
+        this.type = 'geojson';
         this._initFeatures();
     }
     onAdd(map) {
@@ -277,7 +298,9 @@ export default class GeoJSONLayer extends Layer {
             let feature = this._features[i];
             let geometry = feature.geometry;
             let userData = {
-                name: mapHelper.getNormalizeName(feature)
+                name: mapHelper.getNormalizeName(feature),
+                // color: Util.getRandomColor()
+                color: this.options.mutiColors[ i > (this.options.mutiColors.length - 1) ? i % (this.options.mutiColors.length) : i ] 
             };
             let featureGroup = new THREE.Group();
             this._container.add(featureGroup);
@@ -393,18 +416,18 @@ export default class GeoJSONLayer extends Layer {
                 continue; // geometry 为null时得不到center
             }
             // FIXME: 采用简单粗暴方法避免文字覆盖
-            tempobj.textAlign = 'center';
-            if (new RegExp(name).test('香港')) {
-                tempobj.textAlign = 'left'
-            } else if (new RegExp(name).test('澳门')) {
-                tempobj.textAlign = 'right'
-            } else if (new RegExp(name).test('广东')) {
-                tempobj.textBaseline = 'bottom'
-            } else if (new RegExp(name).test('北京')) {
-                tempobj.textAlign = 'right'
-            } else if (new RegExp(name).test('天津')) {
-                tempobj.textAlign = 'left'
-            }
+            // tempobj.textAlign = 'left';
+            // if (new RegExp(name).test('香港')) {
+            //     tempobj.textAlign = 'left'
+            // } else if (new RegExp(name).test('澳门')) {
+            //     tempobj.textAlign = 'right'
+            // } else if (new RegExp(name).test('广东')) {
+            //     tempobj.textBaseline = 'bottom'
+            // } else if (new RegExp(name).test('北京')) {
+            //     tempobj.textAlign = 'right'
+            // } else if (new RegExp(name).test('天津')) {
+            //     tempobj.textAlign = 'left'
+            // }
             tempobj.text = name;
             tempobj.center = center;
             tempobj.center[1] += barWidth*2; // TODO: 避免文字覆盖柱子
@@ -443,24 +466,29 @@ export default class GeoJSONLayer extends Layer {
             }
         }
     }
-    drawOutLine(points, mesh) {
+    drawOutLine(points, mesh, lineOptions) {
         // 画轮廓线
         // 因为面是画在xy平面的，然后通过旋转而来，为了保持一致，轮廓线也绘制在xy平面，这样变换就能与面同步
         let line_geom = new THREE.Geometry();
         for (let i = 0, len=points.length; i < len ; i++) {
             line_geom.vertices.push(new THREE.Vector3(points[i][0], points[i][1], 0));
         }
-        let line_material = new THREE.LineBasicMaterial(this.options.lineMaterial);
+        let options = {
+            color: lineOptions.color,
+            linewidth: lineOptions.width
+        };
+        let line_material = new THREE.LineBasicMaterial(options);
         line_material.transparent = false;
-        line_material.opacity = this.options.lineOpacity;
+        line_material.opacity = lineOptions.opacity;
         let line = new THREE.Line(line_geom, line_material);
-        if (this.options.isExtrude) {
-            line.translateZ(this.options.depth);
+        if (lineOptions.offset) {
+            line.translateZ(lineOptions.offset);
         }
-        line.renderOrder = 98;
+        // line.renderOrder = 80;
+        // line.material.depthTest = false;
         mesh.add(line);
     }
-    drawOutLine2(points, mesh, isZoffset = false) {
+    drawOutLine2(points, mesh, options) {
         const size = this._map.getContainerSize();
 
         points = points.map(pt => new THREE.Vector3(pt[0], pt[1], 0));
@@ -471,11 +499,9 @@ export default class GeoJSONLayer extends Layer {
         line.setGeometry(geometry);
 
         const resolution = new THREE.Vector2(size.width, size.height);
-        const outlineOptions = this.options.outline;
-        let color = isZoffset ? outlineOptions.top.color : outlineOptions.bottom.color;
-        const lineColor = new THREE.Color(color);
-        const opacity = isZoffset ? outlineOptions.top.opacity : outlineOptions.bottom.opacity;
-        const linewidth = isZoffset ? outlineOptions.top.width : outlineOptions.bottom.width;
+        const lineColor = new THREE.Color(options.color);
+        const opacity = options.opacity;
+        const linewidth = options.width;
         const shaderMaterial = new MeshLineMaterial({
             resolution: resolution,
             color: lineColor,
@@ -485,10 +511,11 @@ export default class GeoJSONLayer extends Layer {
         });
 
         const lineMesh = new THREE.Mesh(line.geometry, shaderMaterial);
-        if (this.options.isExtrude && isZoffset) {
-            lineMesh.translateZ(this.options.depth);
+        if (options.offset) {
+            lineMesh.translateZ(options.offset);
         }
-        lineMesh.renderOrder = 99;
+        // lineMesh.renderOrder = 80;
+        // lineMesh.material.depthTest = false;
         mesh.add(lineMesh);
     }
     drawPolygon(points, userData, container) {
@@ -504,7 +531,10 @@ export default class GeoJSONLayer extends Layer {
         shape.closePath();
 
         let geometry, material;
-
+        let areaMaterialOptions = this.options.areaMaterial;
+        if (this.options.isAreaMutilColor) {
+            areaMaterialOptions.color = userData.color;
+        }
         if (this.options.isExtrude) {
             // 拉伸
             let extrudeSettings = {
@@ -512,21 +542,56 @@ export default class GeoJSONLayer extends Layer {
                 bevelEnabled: false   // 是否用斜角
             };
             geometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings);
-            material = new THREE.MeshPhongMaterial(this.options.areaMaterial);
+            let material1 = new THREE.MeshPhongMaterial(areaMaterialOptions);
+            if (areaMaterialOptions.opacity < 1) {
+                material1.transparent = true;
+                material1.opacity = areaMaterialOptions.opacity;
+            }
+            let texture;
+            if (this.options.extrudeMaterial.textureSrc) {
+                texture = new THREE.TextureLoader().load(this.options.extrudeMaterial.textureSrc);
+                texture.center = new THREE.Vector2(0.5, 0.5);
+                texture.rotation = Math.PI;
+            }
+            let material2 = new THREE.MeshPhongMaterial({
+                map: texture ? texture : null,
+                color: texture ? 0xffffff : this.options.extrudeMaterial.color
+            });
+            if (this.options.extrudeMaterial.opacity < 1) {
+                material2.transparent = true;
+                material2.opacity = this.options.extrudeMaterial.opacity;
+            }
+            material = [material1, material2]
         } else {
             // 不拉伸
             geometry = new THREE.ShapeBufferGeometry(shape);
-            material = new THREE.MeshBasicMaterial(this.options.areaMaterial);
+            material = new THREE.MeshBasicMaterial(areaMaterialOptions);
+            if (areaMaterialOptions.opacity < 1) {
+                material.transparent = true;
+                material.opacity = areaMaterialOptions.opacity;
+            }
         }
         
         let mesh = new THREE.Mesh(geometry, material);
-        this.drawOutLine(points, mesh);
+
+        // 画线
+        let options = {
+            offset: this.options.isExtrude ? this.options.depth : 0
+        };
+        if (this.options.outline.normal.show) {
+            options = Util.extend(options, this.options.outline.normal);
+            this.drawOutLine2(points, mesh, options);
+        }
         if (this.options.outline.top.show) {
-            this.drawOutLine2(points, mesh, true);
+            options = Util.extend(options, this.options.outline.top);
+            this.drawOutLine2(points, mesh, options);
         }
         if (this.options.outline.bottom.show) {
-            this.drawOutLine2(points, mesh, false);
+            options = Util.extend(options, this.options.outline.bottom);
+            options.offset = 0;
+            this.drawOutLine2(points, mesh, options);
         }
+
         mesh.rotateX(-Math.PI/2);
         mesh.userData = Util.extend({type: 'area'}, userData);
         container.add(mesh);

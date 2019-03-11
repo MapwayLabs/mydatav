@@ -39,7 +39,8 @@ export default class BarLayer extends Layer {
                 bevelSegments: 100,
                 defaultColor: ['#f00'],
                 grandientColor: null,
-                enumColor: null
+                enumColor: null,
+                opacity: 1
             },
             barText: {
                 show: true,
@@ -62,7 +63,7 @@ export default class BarLayer extends Layer {
             }
         };
         this.options = Util.extend(true, defaultOptions, options);
-
+        this.type = 'barLayer';
         this.geojsonLayer = geojsonLayer;
 
         this._barData = {
@@ -364,8 +365,8 @@ export default class BarLayer extends Layer {
       
         // 避免连续选中
         if (this._currentSelectObj) {
-            this._currentSelectObj.material.transparent = false;
-            this._currentSelectObj.material.opacity = 1;
+            // this._currentSelectObj.material.transparent = false;
+            this._currentSelectObj.material.opacity = this._currentSelectObj.userData.oldOpacity;
             this._currentSelectObj = null;
             this._toolTipHelper && this._toolTipHelper.hideTooltip(); // TODO: bdp
         }
@@ -375,8 +376,9 @@ export default class BarLayer extends Layer {
             let udata = object.userData;
             if (udata && udata.type === 'bar') {
                 let color = object.material.color.getHexString();
-                object.material.transparent = true;
-                object.material.opacity = 0.85;
+                udata.oldOpacity = object.material.opacity;
+                // object.material.transparent = true;
+                object.material.opacity = 1;
                 this._currentSelectObj = object;
                 
                 let content = `
@@ -390,8 +392,8 @@ export default class BarLayer extends Layer {
         }
         if (i === intersects.length) {
             if (this._currentSelectObj) {
-                this._currentSelectObj.material.transparent = false;
-                this._currentSelectObj.material.opacity = 1;
+                // this._currentSelectObj.material.transparent = false;
+                this._currentSelectObj.material.opacity = this._currentSelectObj.userData.oldOpacity;
                 this._currentSelectObj = null;
                 this._toolTipHelper && this._toolTipHelper.hideTooltip(); // TODO: bdp
             }
@@ -419,6 +421,10 @@ export default class BarLayer extends Layer {
         };
         const geometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings);
         const material = new THREE.MeshPhongMaterial({ color: color });
+        if (barStyle.opacity < 1) {
+            material.transparent = true;
+            material.opacity = barStyle.opacity;
+        }
         const mesh = new THREE.Mesh(geometry, material);
         let lnglat = [center[0], center[1], yoffset];
         let projCenter = this._map.projectLngLat(lnglat);
@@ -448,6 +454,8 @@ export default class BarLayer extends Layer {
             // 将柱子放到球面上
             mesh.position.set(projCenter[0], projCenter[1], projCenter[2]);
         }
+        // mesh.renderOrder = 90;
+        // mesh.material.depthTest=false; // 是否采用深度测试，必须加
         return mesh;
     }
     _addTextLayer() {

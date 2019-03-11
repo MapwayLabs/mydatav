@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>3D深色底图</title>
+    <title>3D-Glow深色底图</title>
     <script src="../../lib/threejs/three.js"></script>
     <script src="../../lib/threejs/js/controls/OrbitControls.js"></script>
     <script src="./dist/threejsmap.js"></script>
@@ -42,6 +42,36 @@
             map.animateCallback = function () {
                 stats.update();
             };
+        }
+        
+        function addDataGUI(map) {
+            let gui = new dat.GUI();
+            let bloomPass = map.bloomPass;
+            let renderer = map._renderer;
+            let params = map.options.bloom;
+            gui.add(params, 'exposure', 0.1, 2).onChange(function (value) {
+
+                renderer.toneMappingExposure = Math.pow(value, 4.0);
+
+            });
+
+            gui.add(params, 'bloomThreshold', 0.0, 1.0).step(0.01).onChange(function (value) {
+
+                bloomPass.threshold = Number(value);
+
+            });
+
+            gui.add(params, 'bloomStrength', 0.0, 3.0).onChange(function (value) {
+
+                bloomPass.strength = Number(value);
+
+            });
+
+            gui.add(params, 'bloomRadius', 0.0, 10).step(0.01).onChange(function (value) {
+
+                bloomPass.radius = Number(value);
+
+            });
         }
     </script>
     <script>
@@ -86,14 +116,11 @@
                     }
                 },
                 bloom: {
-                    show: false,
-                    exposure: 0.2,
-                    bloomStrength: 0.35,
-                    bloomThreshold: 0,
-                    bloomRadius: 6.0,
-                    strength: 1.2,
-                    radius: 0.8,
-                    threshold: 0.85
+                    show: true,
+                    exposure: 1, // 曝光度，值越大，发射的光线越强
+                    bloomThreshold: 0, // 亮度阈值，控制哪些亮度值显示模糊效果，值越小，暗的地方辉光越暗
+                    bloomStrength: 0.19, // 泛光效果的强度。值越高，亮的越亮，渗入暗区域的越多
+                    bloomRadius: 9.41 // 模糊半径，值越大，模糊的范围越大
                 }
             }
             window.map = new TMap.ThreeMap('threemap', mapOptions);
@@ -143,9 +170,10 @@
                     color: '#1C1F3B'
                 },
                 extrudeMaterial: {
-                    color: '#0086FF',
+                    color: '#e8d412',  //'#0086FF',
                     opacity: 1,
-                    textureSrc: '../../../../images/dark_edge.png'
+                    textureSrc: '../../../../images/dark_edge.png',
+                    // textureSrc: null
                 },
                 tooltip: {
                     show: false
@@ -188,6 +216,7 @@
             window.geojsonLayer = new TMap.GeoJSONLayer(data, geoOptions);
             window.map.addLayer(window.geojsonLayer);
             window.map.setView(window.geojsonLayer.getBounds());
+            addDataGUI(window.map);
             $.getJSON('../../data/bardata_china.json', function (bardata) {
                 const barOptions = {
                     barStyle: {

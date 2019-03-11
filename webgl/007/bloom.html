@@ -24,15 +24,15 @@
 </head>
 
 <body>
-   <h3> <a href="https://threejs.org/examples/webgl_postprocessing_unreal_bloom.html">ideas from here</a></h3>
+    <h3> <a href="https://threejs.org/examples/webgl_postprocessing_unreal_bloom.html" target="_blank">ideas from here</a></h3>
     <script>
-        var renderer, scene, camera, control, composer;
+        var renderer, scene, camera, control, composer, renderScene;
         var params = {
-				exposure: 1,
-				bloomStrength: 10.5,
-				bloomThreshold: 0,
-				bloomRadius: 0
-		};
+            exposure: 1,
+            bloomStrength: 1.5,
+            bloomThreshold: 0.75,
+            bloomRadius: 1.0
+        };
 
         function init() {
             // 画布
@@ -46,6 +46,7 @@
 
             // 场景
             scene = new THREE.Scene();
+            scene.add(new THREE.AmbientLight(0xff0000, 1.0));
 
             // 相机
             camera = new THREE.PerspectiveCamera(
@@ -57,26 +58,54 @@
 
             // OrbitControls
             control = new THREE.OrbitControls(camera, renderer.domElement);
-            control.object.position.set(256, 256, 256);
+            control.object.position.set(32, 32, 32);
             control.target = new THREE.Vector3(0, 0, 0);
             control.update();
+        }
 
+        function addObjects() {
+            var geometry1 = new THREE.BoxBufferGeometry(5, 5, 5);
+            var geometry2 = new THREE.BoxBufferGeometry(8, 8, 8);
+            var material1 = new THREE.MeshBasicMaterial({
+                // color: 0xff0000
+                color: new THREE.Color('hsl(100, 100%, 75%)') 
+            });
+            // material1.transparent = true;
+            // material1.opacity = 1;
+            var material2 = new THREE.MeshBasicMaterial({
+                // color: 0x00ff00
+                color: new THREE.Color('hsl(120, 100%, 45%)') 
+            });
+            // material2.transparent = true;
+            // material2.opacity = 1;
+            var mesh1 = new THREE.Mesh(geometry1, material1);
+            mesh1.position.set(0, 0, 0);
+            var mesh2 = new THREE.Mesh(geometry2, material2);
+            mesh2.position.set(10, 10, 10);
+            scene.add(mesh1);
+            scene.add(mesh2);
+        }
+
+
+        function addComposer() {
             // bloom
-            var renderScene = new THREE.RenderPass( scene, camera );
+            var renderScene = new THREE.RenderPass(scene, camera);
 
-            var bloomPass = new THREE.UnrealBloomPass( new THREE.Vector2( window.innerWidth, window.innerHeight ), 1.5, 0.4, 0.85 );
+            var bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
             bloomPass.renderToScreen = true;
             bloomPass.threshold = params.bloomThreshold;
             bloomPass.strength = params.bloomStrength;
             bloomPass.radius = params.bloomRadius;
 
-            composer = new THREE.EffectComposer( renderer );
-            composer.setSize( window.innerWidth, window.innerHeight );
-            composer.addPass( renderScene );
-            composer.addPass( bloomPass );
-
+            composer = new THREE.EffectComposer(renderer);
+            composer.setSize(window.innerWidth, window.innerHeight);
+            composer.addPass(renderScene);
+            composer.addPass(bloomPass);
         }
+
         init();
+        addObjects();
+        addComposer();
 
         function animate() {
             requestAnimationFrame(animate);
@@ -85,7 +114,7 @@
 
             renderer.render(scene, camera);
 
-            composer.render();
+            composer && composer.render();
         }
         animate();
 
@@ -94,59 +123,6 @@
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
-        
-        scene.add(new THREE.AmbientLight(0xff0000, 1.0));
-        // var texture = new THREE.TextureLoader().load('../../images/地图CN_V01.jpg');
-        function generateCanvasTexture() {
-            var canvas = document.createElement('canvas');
-            canvas.width = 128;
-            canvas.height = 128;
-            canvas.style.backgroundColor = "#ccc";
-            var ctx = canvas.getContext('2d');
-
-            ctx.beginPath();
-            ctx.fillStyle = '#f00';
-            ctx.fillRect(0, 0, 128, 32);
-            ctx.beginPath();
-            ctx.fillStyle = '#0f0';
-            ctx.fillRect(0, 96, 128, 32);
-
-            var canvastexture = new THREE.CanvasTexture(canvas);
-            // canvastexture.wrapS = THREE.RepeatWrapping;
-            canvastexture.wrapT = THREE.RepeatWrapping;
-            return canvastexture;
-        }
-        var texture = generateCanvasTexture();
-        //Create a closed wavey loop
-        var curve = new THREE.CatmullRomCurve3([
-            new THREE.Vector3(-10, 0, 10),
-            new THREE.Vector3(-5, 5, 5),
-            new THREE.Vector3(0, 0, 0),
-            new THREE.Vector3(5, -5, 5),
-            new THREE.Vector3(10, 0, 10)
-        ]);
-        // var points = curve.getPoints(50);
-        var geometry = new THREE.TubeBufferGeometry( curve, 64, 0.05, 16, false );
-        var geometry1 = new THREE.TubeBufferGeometry( curve, 64, 0.1, 16, false );
-        var material = new THREE.MeshBasicMaterial({
-            color: 0xffffff
-        });
-        var texture2 = new THREE.TextureLoader().load('../../images/light.png');
-        var material2 = new THREE.MeshBasicMaterial({
-            map: texture2
-        });
-        var material3 = new THREE.MeshPhongMaterial({
-            color: 0xff0000,
-            emissive: 0xff0000,
-            emissiveIntensity: 1,
-            shininess: 100,
-            specular: 0xff0000,
-
-        });
-        // var mesh = new THREE.Mesh( geometry, material );
-        // scene.add( mesh );
-        var mesh2 = new THREE.Mesh( geometry1, material2 );
-        scene.add(mesh2);
     </script>
 </body>
 

@@ -11,8 +11,6 @@
     <script src="./dist/threejsmap.js"></script>
     <script src="../../lib/jquery.min.js"></script>
     <script src='https://npmcdn.com/@turf/turf/turf.min.js'></script>
-    <script src="../../lib/threejs/dat.gui.min.js"></script>
-    <script src="../../lib/threejs/stats.min.js"></script>
     <style>
         html,
         body {
@@ -33,17 +31,6 @@
 
 <body>
     <div id="threemap"></div>
-    <script>
-        function addStats(map) {
-            const container = document.createElement('div');
-            document.body.appendChild(container);
-            const stats = new Stats();
-            container.appendChild(stats.dom);
-            map.animateCallback = function () {
-                stats.update();
-            };
-        }
-    </script>
     <script>
         // ./china_province.json  geo-china-beijing.json world2 countriesgeo.json
         $.getJSON('../../data/china_province.json', function (data) {
@@ -86,7 +73,7 @@
                     }
                 },
                 bloom: {
-                    show: false,
+                    show: true,
                     exposure: 0.2,
                     bloomStrength: 0.35,
                     bloomThreshold: 0,
@@ -97,8 +84,6 @@
                 }
             }
             window.map = new TMap.ThreeMap('threemap', mapOptions);
-
-            addStats(window.map);
 
             // geojsonlayer
             const geoOptions = {
