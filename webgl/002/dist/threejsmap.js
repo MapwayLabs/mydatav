@@ -874,7 +874,7 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                         id: props.id || f.id,
                         name: props.name,
                         xname: x.data[i],
-                        ylabelName: y.name,
+                        ylabelName: y.nick_name || y.name,
                         index: i,
                         center: center,
                         value: Number(y.data[i])
@@ -2183,7 +2183,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 color: '#639fc0'
             },
             tooltip: {
-                show: true
+                show: false
             },
             outline: {  // 拉伸地图的轮廓
                 normal: {
@@ -3019,9 +3019,10 @@ class TextLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         }
     }
     update(data) {
-        this._data = data;
+        this._map.off('change', this._mapChangeEvtHandler, this);
         this.clear();
-        this._draw();
+        this._data = data;
+        this._draw();  
         if (this.options.isAvoidCollision || this._map.options.type === 'sphere') {
             this._map.on('change', this._mapChangeEvtHandler, this);
         }
@@ -5187,26 +5188,37 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
     }
     // TODO: addLegend bdp
     addLegend(legendOptions) {
-        let Legend = Dalaba.Chart.Legend;
-        let legend = null;
+        this.destoryLegend();
+        const Legend = Dalaba.Chart.Legend;
         const size = this.getContainerSize();
-        if (!this._legendCanvas) {
-            this._legendCanvas = document.createElement('canvas');
-            this._legendCanvas.width = this._renderer.domElement.width;
-            this._legendCanvas.height = this._renderer.domElement.height;
-            this._legendCanvas.style.width = size.width + 'px';
-            this._legendCanvas.style.height = size.height + 'px';
-            this._legendCanvas.className = 'three-map-legendcanvas';
-            this._el.appendChild(this._legendCanvas);
-        }
         if (Legend && legendOptions.enabled) {
-            legend = new Legend(
+            if (!this._legendCanvas) {
+                this._legendCanvas = document.createElement('canvas');
+                this._legendCanvas.width = this._renderer.domElement.width;
+                this._legendCanvas.height = this._renderer.domElement.height;
+                this._legendCanvas.style.width = size.width + 'px';
+                this._legendCanvas.style.height = size.height + 'px';
+                this._legendCanvas.className = 'three-map-legendcanvas';
+                this._el.appendChild(this._legendCanvas);
+            }
+            this._legend = new Legend(
                 this._legendCanvas,//this.addLayer(legendOptions.layer),
                 [{name: 9}],
                 legendOptions//selected为false不读取
             );
+            this._legendOptions = legendOptions;
         }
-        return legend;
+        return this._legend;
+    }
+    destoryLegend() {
+        if (this._legend) {
+            this._legend.destroy();
+            this._legend.canvas.parentNode.removeChild(this._legend.canvas);
+            this._legendCanvas.parentNode.removeChild(this._legendCanvas);
+            this._legend = null;
+            this._legendCanvas = null;
+            this._legendOptions = null;
+        }
     }
     _initBounds() {
         if (this.options.type === 'plane') {
@@ -5492,6 +5504,10 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
         this._camera.updateProjectionMatrix();
         // 设置渲染器输出的 canvas 的大小
         this._renderer.setSize(size.width, size.height, true);
+
+        if (this._legend) {
+            this.addLegend(this._legendOptions);
+        }
         this._composer && this._composer.setSize( size.width, size.height );
     }
     _mousemoveEvtHandler(e) {
@@ -5499,6 +5515,7 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
     }
     destroy() {
         this.clearLayers();
+        this.destoryLegend();
         window.removeEventListener('resize', this._onContainerResize, false);
         this._renderer.domElement.removeEventListener('mousemove', this._mousemoveEvtHandler, false);
         this._renderer.domElement.removeEventListener("webglcontextlost", this._webglContextLostHandler, false);
