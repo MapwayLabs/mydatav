@@ -708,7 +708,8 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 bevelSegments: 100,
                 defaultColor: ['#f00'],
                 grandientColor: null,
-                enumColor: null
+                enumColor: null,
+                opacity: 1
             },
             barText: {
                 show: true,
@@ -731,7 +732,7 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             }
         };
         this.options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](true, defaultOptions, options);
-
+        this.type = 'barLayer';
         this.geojsonLayer = geojsonLayer;
 
         this._barData = {
@@ -1033,8 +1034,8 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
       
         // 避免连续选中
         if (this._currentSelectObj) {
-            this._currentSelectObj.material.transparent = false;
-            this._currentSelectObj.material.opacity = 1;
+            // this._currentSelectObj.material.transparent = false;
+            this._currentSelectObj.material.opacity = this._currentSelectObj.userData.oldOpacity;
             this._currentSelectObj = null;
             this._toolTipHelper && this._toolTipHelper.hideTooltip(); // TODO: bdp
         }
@@ -1044,8 +1045,9 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             let udata = object.userData;
             if (udata && udata.type === 'bar') {
                 let color = object.material.color.getHexString();
-                object.material.transparent = true;
-                object.material.opacity = 0.85;
+                udata.oldOpacity = object.material.opacity;
+                // object.material.transparent = true;
+                object.material.opacity = 1;
                 this._currentSelectObj = object;
                 
                 let content = `
@@ -1059,8 +1061,8 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         }
         if (i === intersects.length) {
             if (this._currentSelectObj) {
-                this._currentSelectObj.material.transparent = false;
-                this._currentSelectObj.material.opacity = 1;
+                // this._currentSelectObj.material.transparent = false;
+                this._currentSelectObj.material.opacity = this._currentSelectObj.userData.oldOpacity;
                 this._currentSelectObj = null;
                 this._toolTipHelper && this._toolTipHelper.hideTooltip(); // TODO: bdp
             }
@@ -1088,6 +1090,10 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         };
         const geometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings);
         const material = new THREE.MeshPhongMaterial({ color: color });
+        if (barStyle.opacity < 1) {
+            material.transparent = true;
+            material.opacity = barStyle.opacity;
+        }
         const mesh = new THREE.Mesh(geometry, material);
         let lnglat = [center[0], center[1], yoffset];
         let projCenter = this._map.projectLngLat(lnglat);
@@ -1117,6 +1123,8 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             // 将柱子放到球面上
             mesh.position.set(projCenter[0], projCenter[1], projCenter[2]);
         }
+        // mesh.renderOrder = 90;
+        // mesh.material.depthTest=false; // 是否采用深度测试，必须加
         return mesh;
     }
     _addTextLayer() {
@@ -1736,6 +1744,8 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         };
         this.options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](true, defaultOptions, options);
 
+        this.type = 'flyLineLayer';
+
         this.geojsonLayer = geojsonLayer;
 
         this.uniforms = {
@@ -2129,7 +2139,13 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                     textAlign: 'center',
                     textBaseline: 'middle',
                     maxWidth: 512,
-                    offsetY: 0
+                    offsetY: 0,
+                    labelPointStyle: {
+                        show: true, // 是否显示文字旁边的标注点
+                        margin: 4, // 标注点距离文字的距离
+                        radius: 6, // 标注点半径
+                        color: '#0f0' // 标注点颜色，可以是 hexString、rgb、rgba
+                    }
                 },
                 nullTextStyle: { // 无数据地区的名字样式
                     scale: 1, // 缩放比例
@@ -2141,17 +2157,26 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                     textAlign: 'center',
                     textBaseline: 'middle',
                     maxWidth: 512,
-                    offsetY: 0
+                    offsetY: 0,
+                    labelPointStyle: {
+                        show: true, // 是否显示文字旁边的标注点
+                        margin: 4, // 标注点距离文字的距离
+                        radius: 6, // 标注点半径
+                        color: '#0f0' // 标注点颜色，可以是 hexString、rgb、rgba
+                    }
                 }
             },
-            lineOpacity: 1,
-            lineMaterial: {
-                color: 0x999999,
-                linewidth: 1.5
-            },
+            isAreaMutilColor: false, // 面是否采用不同颜色
+            mutiColors: ['#7EBFF0', '#D1F6FC', '#53A4EA', '#107AE0'],
             areaMaterial: { // 面材质配置
                 color: 0x00ff00,
-                side: THREE.DoubleSide
+                side: THREE.DoubleSide,
+                opacity: 1
+            },
+            extrudeMaterial: { // 侧面材质
+                color:  0x00ff00,
+                opacity: 1,
+                textureSrc: null
             },
             hightLight: {
                 show: false,
@@ -2160,7 +2185,13 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             tooltip: {
                 show: true
             },
-            outline: {
+            outline: {  // 拉伸地图的轮廓
+                normal: {
+                    show: true,
+                    color: 0x999999,
+                    width: 1.5,
+                    opacity: 1
+                },
                 top: {
                     show: false,
                     color: 0x00ff00,
@@ -2176,7 +2207,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             }
         };
         this.options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](true, defaultOptions, options);
-
+        this.type = 'geojson';
         this._initFeatures();
     }
     onAdd(map) {
@@ -2369,7 +2400,9 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             let feature = this._features[i];
             let geometry = feature.geometry;
             let userData = {
-                name: _maphelper__WEBPACK_IMPORTED_MODULE_2__["getNormalizeName"](feature)
+                name: _maphelper__WEBPACK_IMPORTED_MODULE_2__["getNormalizeName"](feature),
+                // color: Util.getRandomColor()
+                color: this.options.mutiColors[ i > (this.options.mutiColors.length - 1) ? i % (this.options.mutiColors.length) : i ] 
             };
             let featureGroup = new THREE.Group();
             this._container.add(featureGroup);
@@ -2485,18 +2518,18 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 continue; // geometry 为null时得不到center
             }
             // FIXME: 采用简单粗暴方法避免文字覆盖
-            tempobj.textAlign = 'center';
-            if (new RegExp(name).test('香港')) {
-                tempobj.textAlign = 'left'
-            } else if (new RegExp(name).test('澳门')) {
-                tempobj.textAlign = 'right'
-            } else if (new RegExp(name).test('广东')) {
-                tempobj.textBaseline = 'bottom'
-            } else if (new RegExp(name).test('北京')) {
-                tempobj.textAlign = 'right'
-            } else if (new RegExp(name).test('天津')) {
-                tempobj.textAlign = 'left'
-            }
+            // tempobj.textAlign = 'left';
+            // if (new RegExp(name).test('香港')) {
+            //     tempobj.textAlign = 'left'
+            // } else if (new RegExp(name).test('澳门')) {
+            //     tempobj.textAlign = 'right'
+            // } else if (new RegExp(name).test('广东')) {
+            //     tempobj.textBaseline = 'bottom'
+            // } else if (new RegExp(name).test('北京')) {
+            //     tempobj.textAlign = 'right'
+            // } else if (new RegExp(name).test('天津')) {
+            //     tempobj.textAlign = 'left'
+            // }
             tempobj.text = name;
             tempobj.center = center;
             tempobj.center[1] += barWidth*2; // TODO: 避免文字覆盖柱子
@@ -2535,24 +2568,29 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             }
         }
     }
-    drawOutLine(points, mesh) {
+    drawOutLine(points, mesh, lineOptions) {
         // 画轮廓线
         // 因为面是画在xy平面的，然后通过旋转而来，为了保持一致，轮廓线也绘制在xy平面，这样变换就能与面同步
         let line_geom = new THREE.Geometry();
         for (let i = 0, len=points.length; i < len ; i++) {
             line_geom.vertices.push(new THREE.Vector3(points[i][0], points[i][1], 0));
         }
-        let line_material = new THREE.LineBasicMaterial(this.options.lineMaterial);
+        let options = {
+            color: lineOptions.color,
+            linewidth: lineOptions.width
+        };
+        let line_material = new THREE.LineBasicMaterial(options);
         line_material.transparent = false;
-        line_material.opacity = this.options.lineOpacity;
+        line_material.opacity = lineOptions.opacity;
         let line = new THREE.Line(line_geom, line_material);
-        if (this.options.isExtrude) {
-            line.translateZ(this.options.depth);
+        if (lineOptions.offset) {
+            line.translateZ(lineOptions.offset);
         }
-        line.renderOrder = 98;
+        // line.renderOrder = 80;
+        // line.material.depthTest = false;
         mesh.add(line);
     }
-    drawOutLine2(points, mesh, isZoffset = false) {
+    drawOutLine2(points, mesh, options) {
         const size = this._map.getContainerSize();
 
         points = points.map(pt => new THREE.Vector3(pt[0], pt[1], 0));
@@ -2563,11 +2601,9 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         line.setGeometry(geometry);
 
         const resolution = new THREE.Vector2(size.width, size.height);
-        const outlineOptions = this.options.outline;
-        let color = isZoffset ? outlineOptions.top.color : outlineOptions.bottom.color;
-        const lineColor = new THREE.Color(color);
-        const opacity = isZoffset ? outlineOptions.top.opacity : outlineOptions.bottom.opacity;
-        const linewidth = isZoffset ? outlineOptions.top.width : outlineOptions.bottom.width;
+        const lineColor = new THREE.Color(options.color);
+        const opacity = options.opacity;
+        const linewidth = options.width;
         const shaderMaterial = new _custom_meshline__WEBPACK_IMPORTED_MODULE_5__["MeshLineMaterial"]({
             resolution: resolution,
             color: lineColor,
@@ -2577,10 +2613,11 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         });
 
         const lineMesh = new THREE.Mesh(line.geometry, shaderMaterial);
-        if (this.options.isExtrude && isZoffset) {
-            lineMesh.translateZ(this.options.depth);
+        if (options.offset) {
+            lineMesh.translateZ(options.offset);
         }
-        lineMesh.renderOrder = 99;
+        // lineMesh.renderOrder = 80;
+        // lineMesh.material.depthTest = false;
         mesh.add(lineMesh);
     }
     drawPolygon(points, userData, container) {
@@ -2596,7 +2633,10 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         shape.closePath();
 
         let geometry, material;
-
+        let areaMaterialOptions = this.options.areaMaterial;
+        if (this.options.isAreaMutilColor) {
+            areaMaterialOptions.color = userData.color;
+        }
         if (this.options.isExtrude) {
             // 拉伸
             let extrudeSettings = {
@@ -2604,21 +2644,56 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 bevelEnabled: false   // 是否用斜角
             };
             geometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings);
-            material = new THREE.MeshPhongMaterial(this.options.areaMaterial);
+            let material1 = new THREE.MeshPhongMaterial(areaMaterialOptions);
+            if (areaMaterialOptions.opacity < 1) {
+                material1.transparent = true;
+                material1.opacity = areaMaterialOptions.opacity;
+            }
+            let texture;
+            if (this.options.extrudeMaterial.textureSrc) {
+                texture = new THREE.TextureLoader().load(this.options.extrudeMaterial.textureSrc);
+                texture.center = new THREE.Vector2(0.5, 0.5);
+                texture.rotation = Math.PI;
+            }
+            let material2 = new THREE.MeshPhongMaterial({
+                map: texture ? texture : null,
+                color: texture ? 0xffffff : this.options.extrudeMaterial.color
+            });
+            if (this.options.extrudeMaterial.opacity < 1) {
+                material2.transparent = true;
+                material2.opacity = this.options.extrudeMaterial.opacity;
+            }
+            material = [material1, material2]
         } else {
             // 不拉伸
             geometry = new THREE.ShapeBufferGeometry(shape);
-            material = new THREE.MeshBasicMaterial(this.options.areaMaterial);
+            material = new THREE.MeshBasicMaterial(areaMaterialOptions);
+            if (areaMaterialOptions.opacity < 1) {
+                material.transparent = true;
+                material.opacity = areaMaterialOptions.opacity;
+            }
         }
         
         let mesh = new THREE.Mesh(geometry, material);
-        this.drawOutLine(points, mesh);
+
+        // 画线
+        let options = {
+            offset: this.options.isExtrude ? this.options.depth : 0
+        };
+        if (this.options.outline.normal.show) {
+            options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](options, this.options.outline.normal);
+            this.drawOutLine2(points, mesh, options);
+        }
         if (this.options.outline.top.show) {
-            this.drawOutLine2(points, mesh, true);
+            options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](options, this.options.outline.top);
+            this.drawOutLine2(points, mesh, options);
         }
         if (this.options.outline.bottom.show) {
-            this.drawOutLine2(points, mesh, false);
+            options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](options, this.options.outline.bottom);
+            options.offset = 0;
+            this.drawOutLine2(points, mesh, options);
         }
+
         mesh.rotateX(-Math.PI/2);
         mesh.userData = _util__WEBPACK_IMPORTED_MODULE_1__["extend"]({type: 'area'}, userData);
         container.add(mesh);
@@ -2646,6 +2721,7 @@ class Layer extends _eventemiter__WEBPACK_IMPORTED_MODULE_1__["default"] {
         super();
         var defaultOptions = {};
         this.options = _util__WEBPACK_IMPORTED_MODULE_0__["extend"](true, defaultOptions, options);
+        this.type = null;
         this._data = data;
         this._container = new THREE.Group();
     }
@@ -2690,6 +2766,7 @@ class PointLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         super(data, options);
         const defaultOptions = {
             size: 3,
+            depth: 0,
             style: {
                 texture: '../../images/disc.png', //  url or null
                 color: '#0f0',
@@ -2719,6 +2796,8 @@ class PointLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             }
         };
         this.options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](true, defaultOptions, options); 
+
+        this.type = 'pointLayer';
     }
     onAdd(map) {
         _layer__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.onAdd.call(this, map); 
@@ -2739,6 +2818,20 @@ class PointLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         if (this._textLayer) {
             this._map.removeLayer(this._textLayer);
         }
+    }
+    update(data) {
+        this._data = data;
+        this.clear();
+        this._draw();
+        if (this.options.pointText.show) {
+            this._addTextLayer();
+        }
+    }
+    clear() {
+        if (this._textLayer) {
+            this._map.removeLayer(this._textLayer);
+        }
+        this._container.remove(...this._container.children);
     }
     _draw() {
         this._data.forEach(item => {
@@ -2773,6 +2866,9 @@ class PointLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             pointsMaterial.transparent = true;
 
             const pointsObj = new THREE.Points( pointGeometry, pointsMaterial );
+            if (this.options.depth > 0) {
+                pointsObj.translateY(this.options.depth);
+            }
             if (this._map.options.type === 'plane') {
                 // 球形地图不要加此属性
                 pointsObj.renderOrder=99;
@@ -2895,10 +2991,17 @@ class TextLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 textBaseline: 'middle',
                 maxWidth: 512,
                 offsetY: 0, // 为避免文字覆盖柱子，设置文字偏移中心点
-                opacity: 1
+                opacity: 1,
+                labelPointStyle: {
+                    show: true, // 是否显示文字旁边的标注点
+                    margin: 4, // 标注点距离文字的距离
+                    radius: 6, // 标注点半径
+                    color: '#0f0' // 标注点颜色，可以是 hexString、rgb、rgba
+                }
             }
         };
         this.options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](true, defaultOptions, options);
+        this.type = 'textLayer';
         this._textSprites = [];
         this._texts = [];
     }
@@ -3016,13 +3119,17 @@ class TextLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         const showData = this._filterShowData();
         showData.forEach(d => {
             // 为了避免文字覆盖，对每个文字设置不同的对齐方式 
-            if (d.textAlign != null) {
-                this.options.textStyle.textAlign = d.textAlign;
-            }
+            // if (d.textAlign != null) {
+            //     this.options.textStyle.textAlign = d.textAlign;
+            // }
+            // if (d.textBaseline != null) {
+            //     this.options.textStyle.textBaseline = d.textBaseline;
+            // }
             let position = this._getSpritePosition(d);
             const ts = new _text_sprite__WEBPACK_IMPORTED_MODULE_2__["default"](d.text, this.options.textStyle);
             const textSprite = ts.getSprite();
             textSprite.position.set(...position);
+            
             // 避免柱子遮挡地名
             textSprite.renderOrder = 100;
             textSprite.material.depthTest=false; // 是否采用深度测试，必须加
@@ -3031,12 +3138,10 @@ class TextLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             this._container.add(textSprite);
         });
     }
-
     _mapChangeEvtHandler() {
         this.clear();
         this._draw();
     }
-
     // 文字碰撞检测 window.geojsonLayer._nulltextLayer._collisionDetect()
     // TODO: 视口裁剪，只计算视口内的部分
     _collisionDetect() {
@@ -3111,7 +3216,13 @@ class TextSprite {
             textAlign: 'center',
             textBaseline: 'middle',
             opacity: 1,
-            maxWidth: 512
+            maxWidth: 512,
+            labelPointStyle: {
+                show: false, // 是否显示文字旁边的标注点
+                margin: 4, // 标注点距离文字的距离
+                radius: 6, // 标注点半径
+                color: '#fff' // 标注点颜色，可以是 hexString、rgb、rgba
+            }
         }
         this.options = _util__WEBPACK_IMPORTED_MODULE_0__["extend"](true, defaultOptions, options);
 
@@ -3156,28 +3267,66 @@ class TextSprite {
         this._textSprite.material.opacity = this.options.opacity;
     }
 
+    _getLabelPointCoord(textPoint) {
+        let point = {
+            x: textPoint.x,
+            y: textPoint.y
+        };
+        const labelPointStyle = this.options.labelPointStyle;
+        const sumDis = labelPointStyle.margin + labelPointStyle.radius;
+        if (this.options.textAlign === 'left' || this.options.textAlign === 'start' ) {
+            point.x = textPoint.x - sumDis;
+        } else if (this.options.textAlign === 'right' || this.options.textAlign === 'end') {
+            point.x = textPoint.x + sumDis;
+        }
+        if (this.options.textBaseline === 'top') {
+            point.y = textPoint.y - sumDis;
+        } else if (this.options.textBaseline === 'bottom') {
+            point.y = textPoint.y + sumDis;
+        }
+        return point;
+    }
+
+    _getTextPointCoord(canvas) {
+        const dpr = _util__WEBPACK_IMPORTED_MODULE_0__["getDpr"]();
+        let offsetX = this._textWidth * dpr / 2;
+        let offsetY = this._textHeight * dpr / 2;
+        let point = {
+            x: canvas.width / 2,
+            y: canvas.height / 2
+        };
+        if (this.options.textAlign === 'left' || this.options.textAlign === 'start' ) {
+            point.x -= offsetX;
+        }  else if (this.options.textAlign === 'right' || this.options.textAlign === 'end') {
+            point.x += offsetX;
+        }
+        if (this.options.textBaseline === 'top') {
+            point.y -= offsetY;
+        } else if (this.options.textBaseline === 'bottom') {
+            point.y += offsetY;
+        }
+        return point;
+    }
+
     _init() {
         const font = `${this.options.fontStyle} ${this.options.fontWeight} ${this.options.fontSize} ${this.options.fontFamily}`;
-        const textSize = _util__WEBPACK_IMPORTED_MODULE_0__["measureText"](this._textStr, font);
-        
-        if (this.options.textAlign !== 'center') {
-            textSize.width *= 1.5;
-        }
-        if (this.options.textBaseline !== 'middle') {
-            textSize.height *= 1.5;
-        }
 
-        const canvasWidth = _util__WEBPACK_IMPORTED_MODULE_0__["wrapNum"](textSize.width);
-        const canvasHeight = _util__WEBPACK_IMPORTED_MODULE_0__["wrapNum"](textSize.height);
+        const textSize = _util__WEBPACK_IMPORTED_MODULE_0__["measureText"](this._textStr, font);
+        let { width: textWidth, height: textHeight } = textSize;
+    
+        let sumDis = 0;
+        if (this.options.labelPointStyle.show) {
+            sumDis = this.options.labelPointStyle.margin + this.options.labelPointStyle.radius;
+        }
+         // webgl 规定 canvas 宽高为2的n次幂，对老式GPU的支持
+        const canvasWidth = _util__WEBPACK_IMPORTED_MODULE_0__["wrapNum"](textWidth + sumDis);
+        const canvasHeight = _util__WEBPACK_IMPORTED_MODULE_0__["wrapNum"](textHeight + sumDis);
         this._width = canvasWidth;
         this._height = canvasHeight;
-        this._textWidth = textSize.width;
-        this._textHeight = textSize.height;
+        this._textWidth = textWidth;
+        this._textHeight = textHeight;
 
         const canvas = document.createElement("canvas");
-        // webgl 规定 canvas 宽高为2的n次幂，对老式GPU的支持
-        canvas.width = canvasWidth;
-        canvas.height = canvasHeight;
         
         // 适配高清屏：将 canvas 画布尺寸扩大 dpr 倍，视口尺寸设为原始值，并且 canvas 内部所有元素大小扩大 dpr 倍
         const dpr = _util__WEBPACK_IMPORTED_MODULE_0__["getDpr"]();
@@ -3187,19 +3336,37 @@ class TextSprite {
         canvas.width = canvasWidth * dpr;
 
         const ctx = canvas.getContext("2d");
+
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         // draw
+
+        // 文字
         const drpFont = `${this.options.fontStyle} ${this.options.fontWeight} ${parseInt(this.options.fontSize) * dpr + 'px'} ${this.options.fontFamily}`;
+        const textPoint = this._getTextPointCoord(canvas);
+        ctx.save();
         ctx.font = drpFont;
         ctx.fillStyle = this.options.fontColor;
         ctx.textAlign = this.options.textAlign;
         ctx.textBaseline = this.options.textBaseline;
-        ctx.fillText(this._textStr, canvas.width / 2, canvas.height / 2, this.options.maxWidth);
+        ctx.fillText(this._textStr, textPoint.x, textPoint.y, this.options.maxWidth);
+        ctx.restore();
+        
+        // 标注点
+        if (this.options.labelPointStyle.show) {
+            ctx.save();
+            const radius = this.options.labelPointStyle.radius;
+            const color = this.options.labelPointStyle.color;
+            const point = this._getLabelPointCoord(textPoint);
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(point.x, point.y, radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
 
         const texture = new THREE.Texture(canvas);
         texture.needsUpdate = true;
-
         const spriteMaterial = new THREE.SpriteMaterial({
             map: texture,
             transparent:true
@@ -3513,6 +3680,1101 @@ function scalePoint(point, scale) {
 
 /***/ }),
 
+/***/ "./js/three-extension/bloom/ClearPass.js":
+/*!***********************************************!*\
+  !*** ./js/three-extension/bloom/ClearPass.js ***!
+  \***********************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+/**
+ * @author mrdoob / http://mrdoob.com/
+ */
+
+THREE.ClearPass = function ( clearColor, clearAlpha ) {
+
+	THREE.Pass.call( this );
+
+	this.needsSwap = false;
+
+	this.clearColor = ( clearColor !== undefined ) ? clearColor : 0x000000;
+	this.clearAlpha = ( clearAlpha !== undefined ) ? clearAlpha : 0;
+
+};
+
+THREE.ClearPass.prototype = Object.assign( Object.create( THREE.Pass.prototype ), {
+
+	constructor: THREE.ClearPass,
+
+	render: function ( renderer, writeBuffer, readBuffer, deltaTime, maskActive ) {
+
+		var oldClearColor, oldClearAlpha;
+
+		if ( this.clearColor ) {
+
+			oldClearColor = renderer.getClearColor().getHex();
+			oldClearAlpha = renderer.getClearAlpha();
+
+			renderer.setClearColor( this.clearColor, this.clearAlpha );
+
+		}
+
+		renderer.setRenderTarget( this.renderToScreen ? null : readBuffer );
+		renderer.clear();
+
+		if ( this.clearColor ) {
+
+			renderer.setClearColor( oldClearColor, oldClearAlpha );
+
+		}
+
+	}
+
+} );
+
+
+/***/ }),
+
+/***/ "./js/three-extension/bloom/CopyShader.js":
+/*!************************************************!*\
+  !*** ./js/three-extension/bloom/CopyShader.js ***!
+  \************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+/**
+ * @author alteredq / http://alteredqualia.com/
+ *
+ * Full-screen textured quad shader
+ */
+
+THREE.CopyShader = {
+
+	uniforms: {
+
+		"tDiffuse": { value: null },
+		"opacity":  { value: 1.0 }
+
+	},
+
+	vertexShader: [
+
+		"varying vec2 vUv;",
+
+		"void main() {",
+
+			"vUv = uv;",
+			"gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );",
+
+		"}"
+
+	].join( "\n" ),
+
+	fragmentShader: [
+
+		"uniform float opacity;",
+
+		"uniform sampler2D tDiffuse;",
+
+		"varying vec2 vUv;",
+
+		"void main() {",
+
+			"vec4 texel = texture2D( tDiffuse, vUv );",
+			"gl_FragColor = opacity * texel;",
+
+		"}"
+
+	].join( "\n" )
+
+};
+
+
+/***/ }),
+
+/***/ "./js/three-extension/bloom/EffectComposer.js":
+/*!****************************************************!*\
+  !*** ./js/three-extension/bloom/EffectComposer.js ***!
+  \****************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+/**
+ * @author alteredq / http://alteredqualia.com/
+ */
+
+THREE.EffectComposer = function ( renderer, renderTarget ) {
+
+	this.renderer = renderer;
+
+	if ( renderTarget === undefined ) {
+
+		var parameters = {
+			minFilter: THREE.LinearFilter,
+			magFilter: THREE.LinearFilter,
+			format: THREE.RGBAFormat,
+			stencilBuffer: false
+		};
+
+		var size = renderer.getDrawingBufferSize();
+		renderTarget = new THREE.WebGLRenderTarget( size.width, size.height, parameters );
+		renderTarget.texture.name = 'EffectComposer.rt1';
+
+	}
+
+	this.renderTarget1 = renderTarget;
+	this.renderTarget2 = renderTarget.clone();
+	this.renderTarget2.texture.name = 'EffectComposer.rt2';
+
+	this.writeBuffer = this.renderTarget1;
+	this.readBuffer = this.renderTarget2;
+
+	this.passes = [];
+
+	// dependencies
+
+	if ( THREE.CopyShader === undefined ) {
+
+		console.error( 'THREE.EffectComposer relies on THREE.CopyShader' );
+
+	}
+
+	if ( THREE.ShaderPass === undefined ) {
+
+		console.error( 'THREE.EffectComposer relies on THREE.ShaderPass' );
+
+	}
+
+	this.copyPass = new THREE.ShaderPass( THREE.CopyShader );
+
+	this._previousFrameTime = Date.now();
+
+};
+
+Object.assign( THREE.EffectComposer.prototype, {
+
+	swapBuffers: function () {
+
+		var tmp = this.readBuffer;
+		this.readBuffer = this.writeBuffer;
+		this.writeBuffer = tmp;
+
+	},
+
+	addPass: function ( pass ) {
+
+		this.passes.push( pass );
+
+		var size = this.renderer.getDrawingBufferSize();
+		pass.setSize( size.width, size.height );
+
+	},
+
+	insertPass: function ( pass, index ) {
+
+		this.passes.splice( index, 0, pass );
+
+	},
+
+	render: function ( deltaTime ) {
+
+		// deltaTime value is in seconds
+
+		if ( deltaTime === undefined ) {
+
+			deltaTime = ( Date.now() - this._previousFrameTime ) * 0.001;
+
+		}
+
+		this._previousFrameTime = Date.now();
+
+		var maskActive = false;
+
+		var pass, i, il = this.passes.length;
+
+		for ( i = 0; i < il; i ++ ) {
+
+			pass = this.passes[ i ];
+
+			if ( pass.enabled === false ) continue;
+
+			pass.render( this.renderer, this.writeBuffer, this.readBuffer, deltaTime, maskActive );
+
+			if ( pass.needsSwap ) {
+
+				if ( maskActive ) {
+
+					var context = this.renderer.context;
+
+					context.stencilFunc( context.NOTEQUAL, 1, 0xffffffff );
+
+					this.copyPass.render( this.renderer, this.writeBuffer, this.readBuffer, deltaTime );
+
+					context.stencilFunc( context.EQUAL, 1, 0xffffffff );
+
+				}
+
+				this.swapBuffers();
+
+			}
+
+			if ( THREE.MaskPass !== undefined ) {
+
+				if ( pass instanceof THREE.MaskPass ) {
+
+					maskActive = true;
+
+				} else if ( pass instanceof THREE.ClearMaskPass ) {
+
+					maskActive = false;
+
+				}
+
+			}
+
+		}
+
+	},
+
+	reset: function ( renderTarget ) {
+
+		if ( renderTarget === undefined ) {
+
+			var size = this.renderer.getDrawingBufferSize();
+
+			renderTarget = this.renderTarget1.clone();
+			renderTarget.setSize( size.width, size.height );
+
+		}
+
+		this.renderTarget1.dispose();
+		this.renderTarget2.dispose();
+		this.renderTarget1 = renderTarget;
+		this.renderTarget2 = renderTarget.clone();
+
+		this.writeBuffer = this.renderTarget1;
+		this.readBuffer = this.renderTarget2;
+
+	},
+
+	setSize: function ( width, height ) {
+
+		this.renderTarget1.setSize( width, height );
+		this.renderTarget2.setSize( width, height );
+
+		for ( var i = 0; i < this.passes.length; i ++ ) {
+
+			this.passes[ i ].setSize( width, height );
+
+		}
+
+	}
+
+} );
+
+
+THREE.Pass = function () {
+
+	// if set to true, the pass is processed by the composer
+	this.enabled = true;
+
+	// if set to true, the pass indicates to swap read and write buffer after rendering
+	this.needsSwap = true;
+
+	// if set to true, the pass clears its buffer before rendering
+	this.clear = false;
+
+	// if set to true, the result of the pass is rendered to screen
+	this.renderToScreen = false;
+
+};
+
+Object.assign( THREE.Pass.prototype, {
+
+	setSize: function ( width, height ) {},
+
+	render: function ( renderer, writeBuffer, readBuffer, deltaTime, maskActive ) {
+
+		console.error( 'THREE.Pass: .render() must be implemented in derived pass.' );
+
+	}
+
+} );
+
+
+/***/ }),
+
+/***/ "./js/three-extension/bloom/LuminosityHighPassShader.js":
+/*!**************************************************************!*\
+  !*** ./js/three-extension/bloom/LuminosityHighPassShader.js ***!
+  \**************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+/**
+ * @author bhouston / http://clara.io/
+ *
+ * Luminosity
+ * http://en.wikipedia.org/wiki/Luminosity
+ */
+
+THREE.LuminosityHighPassShader = {
+
+  shaderID: "luminosityHighPass",
+
+	uniforms: {
+
+		"tDiffuse": { type: "t", value: null },
+		"luminosityThreshold": { type: "f", value: 1.0 },
+		"smoothWidth": { type: "f", value: 1.0 },
+		"defaultColor": { type: "c", value: new THREE.Color( 0x000000 ) },
+		"defaultOpacity":  { type: "f", value: 0.0 }
+
+	},
+
+	vertexShader: [
+
+		"varying vec2 vUv;",
+
+		"void main() {",
+
+			"vUv = uv;",
+
+			"gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );",
+
+		"}"
+
+	].join("\n"),
+
+	fragmentShader: [
+
+		"uniform sampler2D tDiffuse;",
+		"uniform vec3 defaultColor;",
+		"uniform float defaultOpacity;",
+		"uniform float luminosityThreshold;",
+		"uniform float smoothWidth;",
+
+		"varying vec2 vUv;",
+
+		"void main() {",
+
+			"vec4 texel = texture2D( tDiffuse, vUv );",
+
+			"vec3 luma = vec3( 0.299, 0.587, 0.114 );",
+
+			"float v = dot( texel.xyz, luma );",
+
+			"vec4 outputColor = vec4( defaultColor.rgb, defaultOpacity );",
+
+			"float alpha = smoothstep( luminosityThreshold, luminosityThreshold + smoothWidth, v );",
+
+			"gl_FragColor = mix( outputColor, texel, alpha );",
+
+		"}"
+
+	].join("\n")
+
+};
+
+
+/***/ }),
+
+/***/ "./js/three-extension/bloom/MaskPass.js":
+/*!**********************************************!*\
+  !*** ./js/three-extension/bloom/MaskPass.js ***!
+  \**********************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+/**
+ * @author alteredq / http://alteredqualia.com/
+ */
+
+THREE.MaskPass = function ( scene, camera ) {
+
+	THREE.Pass.call( this );
+
+	this.scene = scene;
+	this.camera = camera;
+
+	this.clear = true;
+	this.needsSwap = false;
+
+	this.inverse = false;
+
+};
+
+THREE.MaskPass.prototype = Object.assign( Object.create( THREE.Pass.prototype ), {
+
+	constructor: THREE.MaskPass,
+
+	render: function ( renderer, writeBuffer, readBuffer, deltaTime, maskActive ) {
+
+		var context = renderer.context;
+		var state = renderer.state;
+
+		// don't update color or depth
+
+		state.buffers.color.setMask( false );
+		state.buffers.depth.setMask( false );
+
+		// lock buffers
+
+		state.buffers.color.setLocked( true );
+		state.buffers.depth.setLocked( true );
+
+		// set up stencil
+
+		var writeValue, clearValue;
+
+		if ( this.inverse ) {
+
+			writeValue = 0;
+			clearValue = 1;
+
+		} else {
+
+			writeValue = 1;
+			clearValue = 0;
+
+		}
+
+		state.buffers.stencil.setTest( true );
+		state.buffers.stencil.setOp( context.REPLACE, context.REPLACE, context.REPLACE );
+		state.buffers.stencil.setFunc( context.ALWAYS, writeValue, 0xffffffff );
+		state.buffers.stencil.setClear( clearValue );
+
+		// draw into the stencil buffer
+
+		renderer.setRenderTarget( readBuffer );
+		if ( this.clear ) renderer.clear();
+		renderer.render( this.scene, this.camera );
+
+		renderer.setRenderTarget( writeBuffer );
+		if ( this.clear ) renderer.clear();
+		renderer.render( this.scene, this.camera );
+
+		// unlock color and depth buffer for subsequent rendering
+
+		state.buffers.color.setLocked( false );
+		state.buffers.depth.setLocked( false );
+
+		// only render where stencil is set to 1
+
+		state.buffers.stencil.setFunc( context.EQUAL, 1, 0xffffffff ); // draw if == 1
+		state.buffers.stencil.setOp( context.KEEP, context.KEEP, context.KEEP );
+
+	}
+
+} );
+
+
+THREE.ClearMaskPass = function () {
+
+	THREE.Pass.call( this );
+
+	this.needsSwap = false;
+
+};
+
+THREE.ClearMaskPass.prototype = Object.create( THREE.Pass.prototype );
+
+Object.assign( THREE.ClearMaskPass.prototype, {
+
+	render: function ( renderer, writeBuffer, readBuffer, deltaTime, maskActive ) {
+
+		renderer.state.buffers.stencil.setTest( false );
+
+	}
+
+} );
+
+
+/***/ }),
+
+/***/ "./js/three-extension/bloom/RenderPass.js":
+/*!************************************************!*\
+  !*** ./js/three-extension/bloom/RenderPass.js ***!
+  \************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+/**
+ * @author alteredq / http://alteredqualia.com/
+ */
+
+THREE.RenderPass = function ( scene, camera, overrideMaterial, clearColor, clearAlpha ) {
+
+	THREE.Pass.call( this );
+
+	this.scene = scene;
+	this.camera = camera;
+
+	this.overrideMaterial = overrideMaterial;
+
+	this.clearColor = clearColor;
+	this.clearAlpha = ( clearAlpha !== undefined ) ? clearAlpha : 0;
+
+	this.clear = true;
+	this.clearDepth = false;
+	this.needsSwap = false;
+
+};
+
+THREE.RenderPass.prototype = Object.assign( Object.create( THREE.Pass.prototype ), {
+
+	constructor: THREE.RenderPass,
+
+	render: function ( renderer, writeBuffer, readBuffer, deltaTime, maskActive ) {
+
+		var oldAutoClear = renderer.autoClear;
+		renderer.autoClear = false;
+
+		this.scene.overrideMaterial = this.overrideMaterial;
+
+		var oldClearColor, oldClearAlpha;
+
+		if ( this.clearColor ) {
+
+			oldClearColor = renderer.getClearColor().getHex();
+			oldClearAlpha = renderer.getClearAlpha();
+
+			renderer.setClearColor( this.clearColor, this.clearAlpha );
+
+		}
+
+		if ( this.clearDepth ) {
+
+			renderer.clearDepth();
+
+		}
+
+		renderer.render( this.scene, this.camera, this.renderToScreen ? null : readBuffer, this.clear );
+
+		if ( this.clearColor ) {
+
+			renderer.setClearColor( oldClearColor, oldClearAlpha );
+
+		}
+
+		this.scene.overrideMaterial = null;
+		renderer.autoClear = oldAutoClear;
+	}
+
+} );
+
+
+/***/ }),
+
+/***/ "./js/three-extension/bloom/ShaderPass.js":
+/*!************************************************!*\
+  !*** ./js/three-extension/bloom/ShaderPass.js ***!
+  \************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+/**
+ * @author alteredq / http://alteredqualia.com/
+ */
+
+THREE.ShaderPass = function ( shader, textureID ) {
+
+	THREE.Pass.call( this );
+
+	this.textureID = ( textureID !== undefined ) ? textureID : "tDiffuse";
+
+	if ( shader instanceof THREE.ShaderMaterial ) {
+
+		this.uniforms = shader.uniforms;
+
+		this.material = shader;
+
+	} else if ( shader ) {
+
+		this.uniforms = THREE.UniformsUtils.clone( shader.uniforms );
+
+		this.material = new THREE.ShaderMaterial( {
+
+			defines: Object.assign( {}, shader.defines ),
+			uniforms: this.uniforms,
+			vertexShader: shader.vertexShader,
+			fragmentShader: shader.fragmentShader
+
+		} );
+
+	}
+
+	this.camera = new THREE.OrthographicCamera( - 1, 1, 1, - 1, 0, 1 );
+	this.scene = new THREE.Scene();
+
+	this.quad = new THREE.Mesh( new THREE.PlaneBufferGeometry( 2, 2 ), null );
+	this.quad.frustumCulled = false; // Avoid getting clipped
+	this.scene.add( this.quad );
+
+};
+
+THREE.ShaderPass.prototype = Object.assign( Object.create( THREE.Pass.prototype ), {
+
+	constructor: THREE.ShaderPass,
+
+	render: function( renderer, writeBuffer, readBuffer, deltaTime, maskActive ) {
+
+		if ( this.uniforms[ this.textureID ] ) {
+
+			this.uniforms[ this.textureID ].value = readBuffer.texture;
+
+		}
+
+		this.quad.material = this.material;
+
+		if ( this.renderToScreen ) {
+
+			renderer.render( this.scene, this.camera );
+
+		} else {
+
+			renderer.render( this.scene, this.camera, writeBuffer, this.clear );
+
+		}
+
+	}
+
+} );
+
+
+/***/ }),
+
+/***/ "./js/three-extension/bloom/UnrealBloomPass.js":
+/*!*****************************************************!*\
+  !*** ./js/three-extension/bloom/UnrealBloomPass.js ***!
+  \*****************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+/**
+ * @author spidersharma / http://eduperiment.com/
+ *
+ * Inspired from Unreal Engine
+ * https://docs.unrealengine.com/latest/INT/Engine/Rendering/PostProcessEffects/Bloom/
+ */
+THREE.UnrealBloomPass = function ( resolution, strength, radius, threshold ) {
+
+	THREE.Pass.call( this );
+
+	this.strength = ( strength !== undefined ) ? strength : 1;
+	this.radius = radius;
+	this.threshold = threshold;
+	this.resolution = ( resolution !== undefined ) ? new THREE.Vector2( resolution.x, resolution.y ) : new THREE.Vector2( 256, 256 );
+
+	// create color only once here, reuse it later inside the render function
+	this.clearColor = new THREE.Color('#1C1F3B');
+
+	// render targets
+	var pars = { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBAFormat };
+	this.renderTargetsHorizontal = [];
+	this.renderTargetsVertical = [];
+	this.nMips = 5;
+	var resx = Math.round( this.resolution.x / 2 );
+	var resy = Math.round( this.resolution.y / 2 );
+
+	this.renderTargetBright = new THREE.WebGLRenderTarget( resx, resy, pars );
+	this.renderTargetBright.texture.name = "UnrealBloomPass.bright";
+	this.renderTargetBright.texture.generateMipmaps = false;
+
+	for ( var i = 0; i < this.nMips; i ++ ) {
+
+		var renderTargetHorizonal = new THREE.WebGLRenderTarget( resx, resy, pars );
+
+		renderTargetHorizonal.texture.name = "UnrealBloomPass.h" + i;
+		renderTargetHorizonal.texture.generateMipmaps = false;
+
+		this.renderTargetsHorizontal.push( renderTargetHorizonal );
+
+		var renderTargetVertical = new THREE.WebGLRenderTarget( resx, resy, pars );
+
+		renderTargetVertical.texture.name = "UnrealBloomPass.v" + i;
+		renderTargetVertical.texture.generateMipmaps = false;
+
+		this.renderTargetsVertical.push( renderTargetVertical );
+
+		resx = Math.round( resx / 2 );
+
+		resy = Math.round( resy / 2 );
+
+	}
+
+	// luminosity high pass material
+
+	if ( THREE.LuminosityHighPassShader === undefined )
+		console.error( "THREE.UnrealBloomPass relies on THREE.LuminosityHighPassShader" );
+
+	var highPassShader = THREE.LuminosityHighPassShader;
+	this.highPassUniforms = THREE.UniformsUtils.clone( highPassShader.uniforms );
+
+	this.highPassUniforms[ "luminosityThreshold" ].value = threshold;
+	this.highPassUniforms[ "smoothWidth" ].value = 0.01;
+
+	this.materialHighPassFilter = new THREE.ShaderMaterial( {
+		uniforms: this.highPassUniforms,
+		vertexShader: highPassShader.vertexShader,
+		fragmentShader: highPassShader.fragmentShader,
+		defines: {}
+	} );
+
+	// Gaussian Blur Materials
+	this.separableBlurMaterials = [];
+	var kernelSizeArray = [ 3, 5, 7, 9, 11 ];
+	var resx = Math.round( this.resolution.x / 2 );
+	var resy = Math.round( this.resolution.y / 2 );
+
+	for ( var i = 0; i < this.nMips; i ++ ) {
+
+		this.separableBlurMaterials.push( this.getSeperableBlurMaterial( kernelSizeArray[ i ] ) );
+
+		this.separableBlurMaterials[ i ].uniforms[ "texSize" ].value = new THREE.Vector2( resx, resy );
+
+		resx = Math.round( resx / 2 );
+
+		resy = Math.round( resy / 2 );
+
+	}
+
+	// Composite material
+	this.compositeMaterial = this.getCompositeMaterial( this.nMips );
+	this.compositeMaterial.uniforms[ "blurTexture1" ].value = this.renderTargetsVertical[ 0 ].texture;
+	this.compositeMaterial.uniforms[ "blurTexture2" ].value = this.renderTargetsVertical[ 1 ].texture;
+	this.compositeMaterial.uniforms[ "blurTexture3" ].value = this.renderTargetsVertical[ 2 ].texture;
+	this.compositeMaterial.uniforms[ "blurTexture4" ].value = this.renderTargetsVertical[ 3 ].texture;
+	this.compositeMaterial.uniforms[ "blurTexture5" ].value = this.renderTargetsVertical[ 4 ].texture;
+	this.compositeMaterial.uniforms[ "bloomStrength" ].value = strength;
+	this.compositeMaterial.uniforms[ "bloomRadius" ].value = 0.1;
+	this.compositeMaterial.needsUpdate = true;
+
+	var bloomFactors = [ 1.0, 0.8, 0.6, 0.4, 0.2 ];
+	this.compositeMaterial.uniforms[ "bloomFactors" ].value = bloomFactors;
+	this.bloomTintColors = [ new THREE.Vector3( 1, 1, 1 ), new THREE.Vector3( 1, 1, 1 ), new THREE.Vector3( 1, 1, 1 ),
+							 new THREE.Vector3( 1, 1, 1 ), new THREE.Vector3( 1, 1, 1 ) ];
+	this.compositeMaterial.uniforms[ "bloomTintColors" ].value = this.bloomTintColors;
+
+	// copy material
+	if ( THREE.CopyShader === undefined ) {
+
+		console.error( "THREE.BloomPass relies on THREE.CopyShader" );
+
+	}
+
+	var copyShader = THREE.CopyShader;
+
+	this.copyUniforms = THREE.UniformsUtils.clone( copyShader.uniforms );
+	this.copyUniforms[ "opacity" ].value = 1.0;
+
+	this.materialCopy = new THREE.ShaderMaterial( {
+		uniforms: this.copyUniforms,
+		vertexShader: copyShader.vertexShader,
+		fragmentShader: copyShader.fragmentShader,
+		blending: THREE.AdditiveBlending,
+		depthTest: false,
+		depthWrite: false,
+		transparent: true
+	} );
+
+	this.enabled = true;
+	this.needsSwap = false;
+
+	this.oldClearColor = new THREE.Color();
+	this.oldClearAlpha = 1;
+
+	this.camera = new THREE.OrthographicCamera( - 1, 1, 1, - 1, 0, 1 );
+	this.scene = new THREE.Scene();
+
+	this.basic = new THREE.MeshBasicMaterial();
+
+	this.quad = new THREE.Mesh( new THREE.PlaneBufferGeometry( 2, 2 ), null );
+	this.quad.frustumCulled = false; // Avoid getting clipped
+	this.scene.add( this.quad );
+
+};
+
+THREE.UnrealBloomPass.prototype = Object.assign( Object.create( THREE.Pass.prototype ), {
+
+	constructor: THREE.UnrealBloomPass,
+
+	dispose: function () {
+
+		for ( var i = 0; i < this.renderTargetsHorizontal.length; i ++ ) {
+
+			this.renderTargetsHorizontal[ i ].dispose();
+
+		}
+
+		for ( var i = 0; i < this.renderTargetsVertical.length; i ++ ) {
+
+			this.renderTargetsVertical[ i ].dispose();
+
+		}
+
+		this.renderTargetBright.dispose();
+
+	},
+
+	setSize: function ( width, height ) {
+
+		var resx = Math.round( width / 2 );
+		var resy = Math.round( height / 2 );
+
+		this.renderTargetBright.setSize( resx, resy );
+
+		for ( var i = 0; i < this.nMips; i ++ ) {
+
+			this.renderTargetsHorizontal[ i ].setSize( resx, resy );
+			this.renderTargetsVertical[ i ].setSize( resx, resy );
+
+			this.separableBlurMaterials[ i ].uniforms[ "texSize" ].value = new THREE.Vector2( resx, resy );
+
+			resx = Math.round( resx / 2 );
+			resy = Math.round( resy / 2 );
+
+		}
+
+	},
+
+	render: function ( renderer, writeBuffer, readBuffer, deltaTime, maskActive ) {
+
+		this.oldClearColor.copy( renderer.getClearColor() );
+		this.oldClearAlpha = renderer.getClearAlpha();
+		var oldAutoClear = renderer.autoClear;
+		renderer.autoClear = false;
+
+		renderer.setClearColor( this.clearColor, 0 );
+
+		if ( maskActive ) renderer.context.disable( renderer.context.STENCIL_TEST );
+
+		// Render input to screen
+
+		if ( this.renderToScreen ) {
+
+			this.quad.material = this.basic;
+			this.basic.map = readBuffer.texture;
+
+			renderer.render( this.scene, this.camera, undefined, true );
+
+		}
+
+		// 1. Extract Bright Areas
+
+		this.highPassUniforms[ "tDiffuse" ].value = readBuffer.texture;
+		this.highPassUniforms[ "luminosityThreshold" ].value = this.threshold;
+		this.quad.material = this.materialHighPassFilter;
+
+		renderer.render( this.scene, this.camera, this.renderTargetBright, true );
+
+		// 2. Blur All the mips progressively
+
+		var inputRenderTarget = this.renderTargetBright;
+
+		for ( var i = 0; i < this.nMips; i ++ ) {
+
+			this.quad.material = this.separableBlurMaterials[ i ];
+
+			this.separableBlurMaterials[ i ].uniforms[ "colorTexture" ].value = inputRenderTarget.texture;
+			this.separableBlurMaterials[ i ].uniforms[ "direction" ].value = THREE.UnrealBloomPass.BlurDirectionX;
+			renderer.render( this.scene, this.camera, this.renderTargetsHorizontal[ i ], true );
+
+			this.separableBlurMaterials[ i ].uniforms[ "colorTexture" ].value = this.renderTargetsHorizontal[ i ].texture;
+			this.separableBlurMaterials[ i ].uniforms[ "direction" ].value = THREE.UnrealBloomPass.BlurDirectionY;
+			renderer.render( this.scene, this.camera, this.renderTargetsVertical[ i ], true );
+
+			inputRenderTarget = this.renderTargetsVertical[ i ];
+
+		}
+
+		// Composite All the mips
+
+		this.quad.material = this.compositeMaterial;
+		this.compositeMaterial.uniforms[ "bloomStrength" ].value = this.strength;
+		this.compositeMaterial.uniforms[ "bloomRadius" ].value = this.radius;
+		this.compositeMaterial.uniforms[ "bloomTintColors" ].value = this.bloomTintColors;
+
+		renderer.render( this.scene, this.camera, this.renderTargetsHorizontal[ 0 ], true );
+
+		// Blend it additively over the input texture
+
+		this.quad.material = this.materialCopy;
+		this.copyUniforms[ "tDiffuse" ].value = this.renderTargetsHorizontal[ 0 ].texture;
+
+		if ( maskActive ) renderer.context.enable( renderer.context.STENCIL_TEST );
+
+
+		if ( this.renderToScreen ) {
+
+			renderer.render( this.scene, this.camera, undefined, false );
+
+		} else {
+
+			renderer.render( this.scene, this.camera, readBuffer, false );
+
+		}
+
+		// Restore renderer settings
+
+		renderer.setClearColor( this.oldClearColor, this.oldClearAlpha );
+		renderer.autoClear = oldAutoClear;
+
+	},
+
+	getSeperableBlurMaterial: function ( kernelRadius ) {
+
+		return new THREE.ShaderMaterial( {
+
+			defines: {
+				"KERNEL_RADIUS": kernelRadius,
+				"SIGMA": kernelRadius
+			},
+
+			uniforms: {
+				"colorTexture": { value: null },
+				"texSize": { value: new THREE.Vector2( 0.5, 0.5 ) },
+				"direction": { value: new THREE.Vector2( 0.5, 0.5 ) }
+			},
+
+			vertexShader:
+				"varying vec2 vUv;\n\
+				void main() {\n\
+					vUv = uv;\n\
+					gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );\n\
+				}",
+
+			fragmentShader:
+				"#include <common>\
+				varying vec2 vUv;\n\
+				uniform sampler2D colorTexture;\n\
+				uniform vec2 texSize;\
+				uniform vec2 direction;\
+				\
+				float gaussianPdf(in float x, in float sigma) {\
+					return 0.39894 * exp( -0.5 * x * x/( sigma * sigma))/sigma;\
+				}\
+				void main() {\n\
+					vec2 invSize = 1.0 / texSize;\
+					float fSigma = float(SIGMA);\
+					float weightSum = gaussianPdf(0.0, fSigma);\
+					vec3 diffuseSum = texture2D( colorTexture, vUv).rgb * weightSum;\
+					for( int i = 1; i < KERNEL_RADIUS; i ++ ) {\
+						float x = float(i);\
+						float w = gaussianPdf(x, fSigma);\
+						vec2 uvOffset = direction * invSize * x;\
+						vec3 sample1 = texture2D( colorTexture, vUv + uvOffset).rgb;\
+						vec3 sample2 = texture2D( colorTexture, vUv - uvOffset).rgb;\
+						diffuseSum += (sample1 + sample2) * w;\
+						weightSum += 2.0 * w;\
+					}\
+					gl_FragColor = vec4(diffuseSum/weightSum, 1.0);\n\
+				}"
+		} );
+
+	},
+
+	getCompositeMaterial: function ( nMips ) {
+
+		return new THREE.ShaderMaterial( {
+
+			defines: {
+				"NUM_MIPS": nMips
+			},
+
+			uniforms: {
+				"blurTexture1": { value: null },
+				"blurTexture2": { value: null },
+				"blurTexture3": { value: null },
+				"blurTexture4": { value: null },
+				"blurTexture5": { value: null },
+				"dirtTexture": { value: null },
+				"bloomStrength": { value: 1.0 },
+				"bloomFactors": { value: null },
+				"bloomTintColors": { value: null },
+				"bloomRadius": { value: 0.0 }
+			},
+
+			vertexShader:
+				"varying vec2 vUv;\n\
+				void main() {\n\
+					vUv = uv;\n\
+					gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );\n\
+				}",
+
+			fragmentShader:
+				"varying vec2 vUv;\
+				uniform sampler2D blurTexture1;\
+				uniform sampler2D blurTexture2;\
+				uniform sampler2D blurTexture3;\
+				uniform sampler2D blurTexture4;\
+				uniform sampler2D blurTexture5;\
+				uniform sampler2D dirtTexture;\
+				uniform float bloomStrength;\
+				uniform float bloomRadius;\
+				uniform float bloomFactors[NUM_MIPS];\
+				uniform vec3 bloomTintColors[NUM_MIPS];\
+				\
+				float lerpBloomFactor(const in float factor) { \
+					float mirrorFactor = 1.2 - factor;\
+					return mix(factor, mirrorFactor, bloomRadius);\
+				}\
+				\
+				void main() {\
+					gl_FragColor = bloomStrength * ( lerpBloomFactor(bloomFactors[0]) * vec4(bloomTintColors[0], 1.0) * texture2D(blurTexture1, vUv) + \
+													 lerpBloomFactor(bloomFactors[1]) * vec4(bloomTintColors[1], 1.0) * texture2D(blurTexture2, vUv) + \
+													 lerpBloomFactor(bloomFactors[2]) * vec4(bloomTintColors[2], 1.0) * texture2D(blurTexture3, vUv) + \
+													 lerpBloomFactor(bloomFactors[3]) * vec4(bloomTintColors[3], 1.0) * texture2D(blurTexture4, vUv) + \
+													 lerpBloomFactor(bloomFactors[4]) * vec4(bloomTintColors[4], 1.0) * texture2D(blurTexture5, vUv) );\
+				}"
+		} );
+
+	}
+
+} );
+
+THREE.UnrealBloomPass.BlurDirectionX = new THREE.Vector2( 1.0, 0.0 );
+THREE.UnrealBloomPass.BlurDirectionY = new THREE.Vector2( 0.0, 1.0 );
+
+
+/***/ }),
+
+/***/ "./js/three-extension/bloom/index.js":
+/*!*******************************************!*\
+  !*** ./js/three-extension/bloom/index.js ***!
+  \*******************************************/
+/*! no exports provided */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _EffectComposer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./EffectComposer */ "./js/three-extension/bloom/EffectComposer.js");
+/* harmony import */ var _EffectComposer__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_EffectComposer__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _ClearPass__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./ClearPass */ "./js/three-extension/bloom/ClearPass.js");
+/* harmony import */ var _ClearPass__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_ClearPass__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _RenderPass__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./RenderPass */ "./js/three-extension/bloom/RenderPass.js");
+/* harmony import */ var _RenderPass__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_RenderPass__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _ShaderPass__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./ShaderPass */ "./js/three-extension/bloom/ShaderPass.js");
+/* harmony import */ var _ShaderPass__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_ShaderPass__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var _CopyShader__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./CopyShader */ "./js/three-extension/bloom/CopyShader.js");
+/* harmony import */ var _CopyShader__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(_CopyShader__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var _LuminosityHighPassShader__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./LuminosityHighPassShader */ "./js/three-extension/bloom/LuminosityHighPassShader.js");
+/* harmony import */ var _LuminosityHighPassShader__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(_LuminosityHighPassShader__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var _UnrealBloomPass__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./UnrealBloomPass */ "./js/three-extension/bloom/UnrealBloomPass.js");
+/* harmony import */ var _UnrealBloomPass__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(_UnrealBloomPass__WEBPACK_IMPORTED_MODULE_6__);
+/* harmony import */ var _MaskPass__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./MaskPass */ "./js/three-extension/bloom/MaskPass.js");
+/* harmony import */ var _MaskPass__WEBPACK_IMPORTED_MODULE_7___default = /*#__PURE__*/__webpack_require__.n(_MaskPass__WEBPACK_IMPORTED_MODULE_7__);
+
+
+
+
+
+
+
+
+
+/***/ }),
+
 /***/ "./js/three-map.js":
 /*!*************************!*\
   !*** ./js/three-map.js ***!
@@ -3527,6 +4789,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./util */ "./js/util.js");
 /* harmony import */ var _maphelper__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./maphelper */ "./js/maphelper.js");
 /* harmony import */ var _layers_text_layer__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./layers/text-layer */ "./js/layers/text-layer.js");
+/* harmony import */ var _three_extension_bloom_index__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./three-extension/bloom/index */ "./js/three-extension/bloom/index.js");
 
 
 
@@ -3541,6 +4804,7 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
             crs: _maphelper__WEBPACK_IMPORTED_MODULE_2__["CRS"].epsg3857, // 地图采用的地理坐标系 EPSG:4326: 经纬度，EPSG:3857: 墨卡托
             SCALE_RATIO: 100000, // 地球墨卡托平面缩放比例
             containerClassName: 'three-map-container', // 地图容器类名
+            bgColor: null, // 背景色，默认无
             camera: {
                 fov: 45,
                 near: 0.1,
@@ -3592,20 +4856,31 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
                         intensity: 1
                     }
                 }
+            },
+            // 参数说明：https://docs.unrealengine.com/en-us/Engine/Rendering/PostProcessEffects/Bloom
+            bloom: {
+                show: false,
+                exposure: 0.5,
+                bloomStrength:0.5,
+                bloomThreshold: 0,
+                bloomRadius: 1
             }
         };
         this.options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](true, defaultOptions, options);
 
         this._layers = {};
+        // this._bloomScene = null;
+        this._composer = null;
         
         this._initBounds();
         this._initContainer(el);
+        this._initStyle();
         if (this.options.type === 'sphere') {
             this._initGlobal();
         } else {
             this._init3D();
         }  
-        this._initEvents();  
+        this._initEvents();
     }
     getBounds() {
         return this._fullBound;
@@ -3617,7 +4892,11 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
         }
 
         this._layers[id] = layer;
-        this._scene.add(layer.getContainer());
+        if (layer.type === 'geojson' && this.options.bloom.show) {
+            this._initBloom(layer);
+        } else {
+            this._scene.add(layer.getContainer());
+        }
 
         layer.onAdd(this);
 
@@ -3952,9 +5231,49 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
 
         this._container.appendChild(this._el);
     }
+    _initStyle() {
+        if (this.options.bgColor) {
+            this._el.style.backgroundColor = this.options.bgColor;
+        }
+    }
+    _initBloom(layer) {
+        const size = this.getContainerSize();
+        const params = this.options.bloom;
+        
+        // this._bloomScene.add(layer.getContainer());
+        this._scene.add(layer.getContainer());
+
+        const clearPass = new THREE.ClearPass();
+        // const renderScene = new THREE.RenderPass( this._bloomScene, this._camera );
+        const renderScene = new THREE.RenderPass( this._scene, this._camera );
+
+        const outputPass = new THREE.ShaderPass( THREE.CopyShader );
+        outputPass.renderToScreen = true;
+
+        const bloomPass = new THREE.UnrealBloomPass( new THREE.Vector2( size.width, size.height ), 1.5, 0.4, 0.85 );
+        // bloomPass.renderToScreen = true;
+        bloomPass.threshold = params.bloomThreshold;
+        bloomPass.strength = params.bloomStrength;
+        bloomPass.radius = params.bloomRadius;
+        this.bloomPass = bloomPass;
+
+        this._composer = new THREE.EffectComposer( this._renderer);
+        this._composer.setSize( size.width, size.height );
+        this._composer.addPass( clearPass );
+        this._composer.addPass(renderScene);
+        this._composer.addPass( bloomPass );
+        // this._composer.addPass( renderPass );
+        this._composer.addPass(outputPass);
+
+        this._renderer.toneMappingExposure = Math.pow( params.exposure, 4.0 );
+    }
     _init3D() {
-        if (THREE == undefined) throw new Error('需先引入 threejs 库！');
-        if (THREE.OrbitControls == undefined) throw new Error('需先引入 OrbitControls 组件！');
+        if (THREE == undefined) {
+            console.error('THREE 依赖 threejs 库！');
+        } 
+        if (THREE.OrbitControls == undefined) {
+            console.error('THREE.OrbitControls 依赖 OrbitControls.js 文件！');
+        } 
 
         const size = this.getContainerSize();
         const dpr = _util__WEBPACK_IMPORTED_MODULE_1__["getDpr"]();
@@ -3973,6 +5292,9 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
 
         // 设置场景
         this._scene = new THREE.Scene();
+        // if (this.options.bloom.show) {
+        //     this._bloomScene = new THREE.Scene();
+        // }
 
         // 相机
         const cameraOptions = this.options.camera;
@@ -4008,6 +5330,10 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
         const ambientLight = new THREE.AmbientLight(lightOptions.ambient.color, lightOptions.ambient.intensity);
         this._scene.add(directionalLight);
         this._scene.add(ambientLight);
+        // if (this.options.bloom.show) {
+        //     this._bloomScene.add(directionalLight.clone());
+        //     this._bloomScene.add(ambientLight.clone());
+        // }
         this._mainLight = directionalLight;
         this._ambientLight = ambientLight;
 
@@ -4016,8 +5342,12 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
     }
     
     _initGlobal() {
-        if (THREE == undefined) throw new Error('需先引入 threejs 库！');
-        if (THREE.OrbitControls == undefined) throw new Error('需先引入 OrbitControls 组件！');
+        if (THREE == undefined) {
+            console.error('THREE 依赖 threejs 库！');
+        } 
+        if (THREE.OrbitControls == undefined) {
+            console.error('THREE.OrbitControls 依赖 OrbitControls.js 文件！');
+        } 
 
         const size = this.getContainerSize();
         const dpr = _util__WEBPACK_IMPORTED_MODULE_1__["getDpr"]();
@@ -4144,7 +5474,14 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 layer.updateScale();
             }
         }
-        this._renderer.render(this._scene, this._camera);
+        if (this.options.bloom.show && this._composer) {
+            this._composer.render();
+            this._renderer.autoClear = false;
+        } else {
+            this._renderer.render(this._scene, this._camera);
+        }
+
+        if (this.animateCallback) { this.animateCallback.call(this, arguments); }
     }
     _onContainerResize() {
         const size = this.getContainerSize();
@@ -4155,6 +5492,7 @@ class ThreeMap extends _eventemiter__WEBPACK_IMPORTED_MODULE_0__["default"] {
         this._camera.updateProjectionMatrix();
         // 设置渲染器输出的 canvas 的大小
         this._renderer.setSize(size.width, size.height, true);
+        this._composer && this._composer.setSize( size.width, size.height );
     }
     _mousemoveEvtHandler(e) {
         this.emit('mousemove', e);
@@ -4246,7 +5584,7 @@ class ToolTip {
 /*!********************!*\
   !*** ./js/util.js ***!
   \********************/
-/*! exports provided: hasClass, addClass, removeClass, getCmpStyle, isInPage, getDpr, isFunction, isPlainObject, isEmptyObject, extend, stamp, inherit, isNullOrUdf, getRandomColor, isWebGLAvailable, normalizeValue, lightenDarkenColor, measureText, wrapNum */
+/*! exports provided: hasClass, addClass, removeClass, getCmpStyle, isInPage, getDpr, isFunction, isPlainObject, isEmptyObject, extend, stamp, inherit, isNullOrUdf, getRandomColor, isWebGLAvailable, normalizeValue, lightenDarkenColor, measureText, wrapNum, formatNum */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -4270,6 +5608,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "lightenDarkenColor", function() { return lightenDarkenColor; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "measureText", function() { return measureText; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "wrapNum", function() { return wrapNum; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "formatNum", function() { return formatNum; });
 function hasClass(el, className) {
     return el.classList ? el.classList.contains(className) : new RegExp('(^|\\s)' + className + '(\\s|$)').test(el.className);
 }
@@ -4516,6 +5855,7 @@ const TEXT_CACHE_MAX = 5000;
 function measureText(text, font = 'normal normal 12px sans-serif') {
     const key = text + ':' + font;
     if (textWidthCache[key]) {
+        // NOTE：外部不要修改对象
         return textWidthCache[key];
     }
     const span = document.createElement("span");
@@ -4552,6 +5892,13 @@ function wrapNum(num) {
         i *= 2;
     }
     return i;
+}
+
+// @function formatNum(num: Number, digits?: Number): Number
+// Returns the number `num` rounded to `digits` decimals, or to 5 decimals by default.
+function formatNum(num, digits) {
+	var pow = Math.pow(10, digits || 5);
+	return Math.round(num * pow) / pow;
 }
 
 /***/ })

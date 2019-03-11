@@ -244,7 +244,7 @@ const TEXT_CACHE_MAX = 5000;
 export function measureText(text, font = 'normal normal 12px sans-serif') {
     const key = text + ':' + font;
     if (textWidthCache[key]) {
-        // NOTE：注意外部修改对象
+        // NOTE：外部不要修改对象
         return textWidthCache[key];
     }
     const span = document.createElement("span");
@@ -281,4 +281,11 @@ export function wrapNum(num) {
         i *= 2;
     }
     return i;
+}
+
+// @function formatNum(num: Number, digits?: Number): Number
+// Returns the number `num` rounded to `digits` decimals, or to 5 decimals by default.
+export function formatNum(num, digits) {
+	var pow = Math.pow(10, digits || 5);
+	return Math.round(num * pow) / pow;
 }

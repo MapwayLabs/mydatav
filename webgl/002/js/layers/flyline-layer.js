@@ -57,6 +57,8 @@ export default class FlyLineLayer extends Layer {
         };
         this.options = Util.extend(true, defaultOptions, options);
 
+        this.type = 'flyLineLayer';
+
         this.geojsonLayer = geojsonLayer;
 
         this.uniforms = {

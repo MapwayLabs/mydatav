@@ -2,7 +2,7 @@ import EventEmiter from './eventemiter';
 import * as Util from './util';
 import * as mapHelper from './maphelper';
 import TextLayer from './layers/text-layer';
-
+import './three-extension/bloom/index';
 export default class ThreeMap extends EventEmiter {
     constructor(el, options) {
         super();
@@ -12,6 +12,7 @@ export default class ThreeMap extends EventEmiter {
             crs: mapHelper.CRS.epsg3857, // 地图采用的地理坐标系 EPSG:4326: 经纬度，EPSG:3857: 墨卡托
             SCALE_RATIO: 100000, // 地球墨卡托平面缩放比例
             containerClassName: 'three-map-container', // 地图容器类名
+            bgColor: null, // 背景色，默认无
             camera: {
                 fov: 45,
                 near: 0.1,
@@ -63,20 +64,31 @@ export default class ThreeMap extends EventEmiter {
                         intensity: 1
                     }
                 }
+            },
+            // 参数说明：https://docs.unrealengine.com/en-us/Engine/Rendering/PostProcessEffects/Bloom
+            bloom: {
+                show: false,
+                exposure: 0.5,
+                bloomStrength:0.5,
+                bloomThreshold: 0,
+                bloomRadius: 1
             }
         };
         this.options = Util.extend(true, defaultOptions, options);
 
         this._layers = {};
+        // this._bloomScene = null;
+        this._composer = null;
         
         this._initBounds();
         this._initContainer(el);
+        this._initStyle();
         if (this.options.type === 'sphere') {
             this._initGlobal();
         } else {
             this._init3D();
         }  
-        this._initEvents();  
+        this._initEvents();
     }
     getBounds() {
         return this._fullBound;
@@ -88,7 +100,11 @@ export default class ThreeMap extends EventEmiter {
         }
 
         this._layers[id] = layer;
-        this._scene.add(layer.getContainer());
+        if (layer.type === 'geojson' && this.options.bloom.show) {
+            this._initBloom(layer);
+        } else {
+            this._scene.add(layer.getContainer());
+        }
 
         layer.onAdd(this);
 
@@ -434,9 +450,49 @@ export default class ThreeMap extends EventEmiter {
 
         this._container.appendChild(this._el);
     }
+    _initStyle() {
+        if (this.options.bgColor) {
+            this._el.style.backgroundColor = this.options.bgColor;
+        }
+    }
+    _initBloom(layer) {
+        const size = this.getContainerSize();
+        const params = this.options.bloom;
+        
+        // this._bloomScene.add(layer.getContainer());
+        this._scene.add(layer.getContainer());
+
+        const clearPass = new THREE.ClearPass();
+        // const renderScene = new THREE.RenderPass( this._bloomScene, this._camera );
+        const renderScene = new THREE.RenderPass( this._scene, this._camera );
+
+        const outputPass = new THREE.ShaderPass( THREE.CopyShader );
+        outputPass.renderToScreen = true;
+
+        const bloomPass = new THREE.UnrealBloomPass( new THREE.Vector2( size.width, size.height ), 1.5, 0.4, 0.85 );
+        // bloomPass.renderToScreen = true;
+        bloomPass.threshold = params.bloomThreshold;
+        bloomPass.strength = params.bloomStrength;
+        bloomPass.radius = params.bloomRadius;
+        this.bloomPass = bloomPass;
+
+        this._composer = new THREE.EffectComposer( this._renderer);
+        this._composer.setSize( size.width, size.height );
+        this._composer.addPass( clearPass );
+        this._composer.addPass(renderScene);
+        this._composer.addPass( bloomPass );
+        // this._composer.addPass( renderPass );
+        this._composer.addPass(outputPass);
+
+        this._renderer.toneMappingExposure = Math.pow( params.exposure, 4.0 );
+    }
     _init3D() {
-        if (THREE == undefined) throw new Error('需先引入 threejs 库！');
-        if (THREE.OrbitControls == undefined) throw new Error('需先引入 OrbitControls 组件！');
+        if (THREE == undefined) {
+            console.error('THREE 依赖 threejs 库！');
+        } 
+        if (THREE.OrbitControls == undefined) {
+            console.error('THREE.OrbitControls 依赖 OrbitControls.js 文件！');
+        } 
 
         const size = this.getContainerSize();
         const dpr = Util.getDpr();
@@ -455,6 +511,9 @@ export default class ThreeMap extends EventEmiter {
 
         // 设置场景
         this._scene = new THREE.Scene();
+        // if (this.options.bloom.show) {
+        //     this._bloomScene = new THREE.Scene();
+        // }
 
         // 相机
         const cameraOptions = this.options.camera;
@@ -490,6 +549,10 @@ export default class ThreeMap extends EventEmiter {
         const ambientLight = new THREE.AmbientLight(lightOptions.ambient.color, lightOptions.ambient.intensity);
         this._scene.add(directionalLight);
         this._scene.add(ambientLight);
+        // if (this.options.bloom.show) {
+        //     this._bloomScene.add(directionalLight.clone());
+        //     this._bloomScene.add(ambientLight.clone());
+        // }
         this._mainLight = directionalLight;
         this._ambientLight = ambientLight;
 
@@ -498,8 +561,12 @@ export default class ThreeMap extends EventEmiter {
     }
     
     _initGlobal() {
-        if (THREE == undefined) throw new Error('需先引入 threejs 库！');
-        if (THREE.OrbitControls == undefined) throw new Error('需先引入 OrbitControls 组件！');
+        if (THREE == undefined) {
+            console.error('THREE 依赖 threejs 库！');
+        } 
+        if (THREE.OrbitControls == undefined) {
+            console.error('THREE.OrbitControls 依赖 OrbitControls.js 文件！');
+        } 
 
         const size = this.getContainerSize();
         const dpr = Util.getDpr();
@@ -626,7 +693,14 @@ export default class ThreeMap extends EventEmiter {
                 layer.updateScale();
             }
         }
-        this._renderer.render(this._scene, this._camera);
+        if (this.options.bloom.show && this._composer) {
+            this._composer.render();
+            this._renderer.autoClear = false;
+        } else {
+            this._renderer.render(this._scene, this._camera);
+        }
+
+        if (this.animateCallback) { this.animateCallback.call(this, arguments); }
     }
     _onContainerResize() {
         const size = this.getContainerSize();
@@ -641,6 +715,7 @@ export default class ThreeMap extends EventEmiter {
         if (this._legend) {
             this.addLegend(this._legendOptions);
         }
+        this._composer && this._composer.setSize( size.width, size.height );
     }
     _mousemoveEvtHandler(e) {
         this.emit('mousemove', e);

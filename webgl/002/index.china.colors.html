@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>3D深色底图</title>
+    <title>3D多色深色底图</title>
     <script src="../../lib/threejs/three.js"></script>
     <script src="../../lib/threejs/js/controls/OrbitControls.js"></script>
     <script src="./dist/threejsmap.js"></script>
@@ -90,14 +90,14 @@
                     exposure: 0.2,
                     bloomStrength: 0.35,
                     bloomThreshold: 0,
-                    bloomRadius: 6.0,
-                    strength: 1.2,
+                    bloomRadius: 1.0,
+                    strength: 1.5,
                     radius: 0.8,
                     threshold: 0.85
                 }
             }
             window.map = new TMap.ThreeMap('threemap', mapOptions);
-
+            
             addStats(window.map);
 
             // geojsonlayer
@@ -139,6 +139,8 @@
                         }
                     }
                 },
+                isAreaMutilColor: true,
+                mutiColors: ['#022956', '#022956', '#2B95E5', '#107AE0'],
                 areaMaterial: { // 面材质配置
                     color: '#1C1F3B'
                 },
@@ -153,7 +155,7 @@
                 outline: {
                     normal: {
                         show: true,
-                        color: '#0086ff',
+                        color: '#96B9FF',
                         width: 6,
                         opacity: 1
                     },

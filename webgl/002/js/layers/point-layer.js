@@ -8,6 +8,7 @@ export default class PointLayer extends Layer {
         super(data, options);
         const defaultOptions = {
             size: 3,
+            depth: 0,
             style: {
                 texture: '../../images/disc.png', //  url or null
                 color: '#0f0',
@@ -37,6 +38,8 @@ export default class PointLayer extends Layer {
             }
         };
         this.options = Util.extend(true, defaultOptions, options); 
+
+        this.type = 'pointLayer';
     }
     onAdd(map) {
         Layer.prototype.onAdd.call(this, map); 
@@ -57,6 +60,20 @@ export default class PointLayer extends Layer {
         if (this._textLayer) {
             this._map.removeLayer(this._textLayer);
         }
+    }
+    update(data) {
+        this._data = data;
+        this.clear();
+        this._draw();
+        if (this.options.pointText.show) {
+            this._addTextLayer();
+        }
+    }
+    clear() {
+        if (this._textLayer) {
+            this._map.removeLayer(this._textLayer);
+        }
+        this._container.remove(...this._container.children);
     }
     _draw() {
         this._data.forEach(item => {
@@ -91,6 +108,9 @@ export default class PointLayer extends Layer {
             pointsMaterial.transparent = true;
 
             const pointsObj = new THREE.Points( pointGeometry, pointsMaterial );
+            if (this.options.depth > 0) {
+                pointsObj.translateY(this.options.depth);
+            }
             if (this._map.options.type === 'plane') {
                 // 球形地图不要加此属性
                 pointsObj.renderOrder=99;

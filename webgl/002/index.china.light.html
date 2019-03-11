@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>3D深色底图</title>
+    <title>3D浅色底图</title>
     <script src="../../lib/threejs/three.js"></script>
     <script src="../../lib/threejs/js/controls/OrbitControls.js"></script>
     <script src="./dist/threejsmap.js"></script>
@@ -53,7 +53,7 @@
                 crs: 'EPSG:3857', // 地图采用的地理坐标系 EPSG:4326: 经纬度，EPSG:3857: 墨卡托
                 SCALE_RATIO: 100000, // 地球墨卡托平面缩放比例
                 containerClassName: 'three-map-container', // 地图容器类名
-                bgColor: '#1C1F3B',
+                bgColor: '#fff',
                 camera: {
                     fov: 45,
                     near: 0.1,
@@ -87,13 +87,10 @@
                 },
                 bloom: {
                     show: false,
-                    exposure: 0.2,
-                    bloomStrength: 0.35,
+                    exposure: 0.5,
+                    bloomStrength: 0.2,
                     bloomThreshold: 0,
-                    bloomRadius: 6.0,
-                    strength: 1.2,
-                    radius: 0.8,
-                    threshold: 0.85
+                    bloomRadius: 1
                 }
             }
             window.map = new TMap.ThreeMap('threemap', mapOptions);
@@ -113,14 +110,14 @@
                         fontSize: '12px',
                         fontWeight: 'normal',
                         fontFamily: 'Microsoft YaHei',
-                        fontColor: '#fff',
+                        fontColor: '#383838',
                         textAlign: 'left',
                         textBaseline: 'middle',
                         labelPointStyle: {
                             show: true, // 是否显示文字旁边的标注点
                             margin: 4, // 标注点距离文字的距离
                             radius: 6, // 标注点半径
-                            color: '#0f0' // 标注点颜色，可以是 hexString、rgb、rgba
+                            color: '#383838' // 标注点颜色，可以是 hexString、rgb、rgba
                         }
                     },
                     nullTextStyle: {
@@ -128,24 +125,25 @@
                         fontSize: '12px',
                         fontWeight: 'normal',
                         fontFamily: 'Microsoft YaHei',
-                        fontColor: '#fff',
+                        fontColor: '#383838',
                         textAlign: 'left',
                         textBaseline: 'middle',
                         labelPointStyle: {
                             show: true, // 是否显示文字旁边的标注点
                             margin: 4, // 标注点距离文字的距离
                             radius: 6, // 标注点半径
-                            color: '#0f0' // 标注点颜色，可以是 hexString、rgb、rgba
+                            color: '#383838' // 标注点颜色，可以是 hexString、rgb、rgba
                         }
                     }
                 },
                 areaMaterial: { // 面材质配置
-                    color: '#1C1F3B'
+                    color: '#ebf8ff',
+                    opacity: 1
                 },
                 extrudeMaterial: {
-                    color: '#0086FF',
+                    color: '#00a2ff',
                     opacity: 1,
-                    textureSrc: '../../../../images/dark_edge.png'
+                    textureSrc: '../../../../images/light_edge.png'
                 },
                 tooltip: {
                     show: false
@@ -155,7 +153,7 @@
                         show: true,
                         color: '#0086ff',
                         width: 6,
-                        opacity: 1
+                        opacity: 0.8
                     },
                     top: {
                         show: false,
@@ -173,17 +171,7 @@
                 hightLight: {
                     show: true,
                     color: '#639fc0'
-                },
-                glow: {
-                    color: '#f00',
-
-                    // s: 10.0,
-                    // b: 0,
-                    // p: 5.0,
-
-                    c: 1.0,
-                    p: 1.4
-                },
+                }
             };
             window.geojsonLayer = new TMap.GeoJSONLayer(data, geoOptions);
             window.map.addLayer(window.geojsonLayer);
@@ -212,7 +200,7 @@
                             fontSize: '12px',
                             fontWeight: 'normal',
                             fontFamily: 'Microsoft YaHei',
-                            fontColor: '#fff',
+                            fontColor: '#000',
                             textAlign: 'center',
                             textBaseline: 'middle',
                             labelPointStyle: {

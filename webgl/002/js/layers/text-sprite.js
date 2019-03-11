@@ -11,7 +11,7 @@ export default class TextSprite {
             fontColor: '#000',
             textAlign: 'center',
             textBaseline: 'middle',
-            opacity:1,
+            opacity: 1,
             maxWidth: 512,
             labelPointStyle: {
                 show: false, // 是否显示文字旁边的标注点
@@ -163,7 +163,6 @@ export default class TextSprite {
 
         const texture = new THREE.Texture(canvas);
         texture.needsUpdate = true;
-
         const spriteMaterial = new THREE.SpriteMaterial({
             map: texture,
             transparent:true
