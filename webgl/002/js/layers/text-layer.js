@@ -22,7 +22,7 @@ export default class TextLayer extends Layer {
                 offsetY: 0, // 为避免文字覆盖柱子，设置文字偏移中心点
                 opacity: 1,
                 labelPointStyle: {
-                    show: true, // 是否显示文字旁边的标注点
+                    show: false, // 是否显示文字旁边的标注点
                     margin: 4, // 标注点距离文字的距离
                     radius: 6, // 标注点半径
                     color: '#0f0' // 标注点颜色，可以是 hexString、rgb、rgba
