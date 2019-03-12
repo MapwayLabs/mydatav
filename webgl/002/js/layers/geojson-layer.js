@@ -71,7 +71,7 @@ export default class GeoJSONLayer extends Layer {
                 side: THREE.DoubleSide,
                 opacity: 1
             },
-            extrudeMaterial: { // 侧面材质
+            extrudeMaterial: { // 侧面材质,如果为 null，则与面材质相同
                 color:  0x00ff00,
                 opacity: 1,
                 textureSrc: null
@@ -518,7 +518,7 @@ export default class GeoJSONLayer extends Layer {
         // lineMesh.material.depthTest = false;
         mesh.add(lineMesh);
     }
-    drawPolygon(points, userData, container) {
+    createGeometry(points) {
         const shape = new THREE.Shape();
         for (let i = 0; i < points.length; i++) {
             let point = points[i];
@@ -528,43 +528,64 @@ export default class GeoJSONLayer extends Layer {
                 shape.lineTo(point[0], point[1]);
             }
         }
-        shape.closePath();
+        shape.closePath();  
+        
+        let geometry;
+        if (this.options.isExtrude) {
+            let extrudeSettings = {
+                depth: this.options.depth, 
+                bevelEnabled: false   // 是否用斜角
+            };
+            geometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings);
+        } else {
+            geometry = new THREE.ShapeBufferGeometry(shape);
+        }
+        return geometry;
+    }
+    drawPolygon(points, userData, container) {
 
         let geometry, material;
         let areaMaterialOptions = this.options.areaMaterial;
         if (this.options.isAreaMutilColor) {
             areaMaterialOptions.color = userData.color;
         }
+
+        geometry = this.createGeometry(points);
+
         if (this.options.isExtrude) {
             // 拉伸
-            let extrudeSettings = {
-                depth: this.options.depth, 
-                bevelEnabled: false   // 是否用斜角
-            };
-            geometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings);
+            // let extrudeSettings = {
+            //     depth: this.options.depth, 
+            //     bevelEnabled: false   // 是否用斜角
+            // };
+            // geometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings);
             let material1 = new THREE.MeshPhongMaterial(areaMaterialOptions);
             if (areaMaterialOptions.opacity < 1) {
                 material1.transparent = true;
                 material1.opacity = areaMaterialOptions.opacity;
             }
-            let texture;
-            if (this.options.extrudeMaterial.textureSrc) {
-                texture = new THREE.TextureLoader().load(this.options.extrudeMaterial.textureSrc);
-                texture.center = new THREE.Vector2(0.5, 0.5);
-                texture.rotation = Math.PI;
+            if (this.options.extrudeMaterial) {
+                let texture;
+                if (this.options.extrudeMaterial.textureSrc) {
+                    texture = new THREE.TextureLoader().load(this.options.extrudeMaterial.textureSrc);
+                    texture.center = new THREE.Vector2(0.5, 0.5);
+                    texture.rotation = Math.PI;
+                }
+                let material2 = new THREE.MeshPhongMaterial({
+                    map: texture ? texture : null,
+                    color: texture ? 0xffffff : this.options.extrudeMaterial.color
+                });
+                if (this.options.extrudeMaterial.opacity < 1) {
+                    material2.transparent = true;
+                    material2.opacity = this.options.extrudeMaterial.opacity;
+                }
+                material = [material1, material2];
+            } else {
+                material = material1;
             }
-            let material2 = new THREE.MeshPhongMaterial({
-                map: texture ? texture : null,
-                color: texture ? 0xffffff : this.options.extrudeMaterial.color
-            });
-            if (this.options.extrudeMaterial.opacity < 1) {
-                material2.transparent = true;
-                material2.opacity = this.options.extrudeMaterial.opacity;
-            }
-            material = [material1, material2]
         } else {
             // 不拉伸
-            geometry = new THREE.ShapeBufferGeometry(shape);
+            // geometry = new THREE.ShapeBufferGeometry(shape);
             material = new THREE.MeshBasicMaterial(areaMaterialOptions);
             if (areaMaterialOptions.opacity < 1) {
                 material.transparent = true;
