@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="./curve.js"></script>
+    <script src="./Intensity.js"></script>
+    <script src="../../lib/tween.js-master/src/Tween.js"></script>
+    <script src="../../lib/d3/d3.min.js"></script>
+    <title>curve_animation</title>
+</head>
+
+<body>
+    <script>
+        var canvas, ctx;
+
+        function initCanvas(width, height) {
+            canvas = document.createElement('canvas');
+            canvas.width = width || 300;
+            canvas.height = height || 150;
+            document.body.appendChild(canvas);
+            canvas.style.backgroundColor = "#ccc";
+            ctx = canvas.getContext('2d');
+        }
+        initCanvas(512, 512);
+
+        var interpolate = new Intensity({
+            gradient: { 
+                0: "#acb6e5",
+                1.0: "#86fde8"
+            },
+            min: 0,
+            max: 1
+        });
+
+        function drawPoint(x, y, color = '#000', opacity = 1) {
+            let px = x;
+            let py = y;
+            let r = 1;
+            if (y == undefined) {
+                px = x[0];
+                py = x[1];
+            }
+            ctx.save();
+            ctx.beginPath();
+            ctx.fillStyle = color;
+            ctx.globalAlpha = opacity;
+            ctx.arc(px, py, r, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+        
+        function measureDis(points) {
+            let sum = 0;
+            if (points.length < 2) {
+                return sum;
+            }
+            for (let i = 0, len = points.length; i < len; i++) {
+                if (i !== len-1) {
+                    let pt1 = points[i];
+                    let pt2 = points[i+1];
+                    let dis = Math.sqrt((pt2[0]-pt1[0])*(pt2[0]-pt1[0]) + (pt2[1]-pt1[1])*(pt2[1]-pt1[1]));
+                    sum += dis;
+                }
+            }
+            return sum;
+        }
+
+        const points = [new Point(50, 50), new Point(25, 145),  new Point(50, 50), new Point(245, 100), new Point(145, 75), new Point(300,
+            100), new Point(400,
+            200), new Point(350,
+            250), new Point(450,
+            350), new Point(50,
+            50)];
+        // const points = [new Point(50, 100), new Point(100, 150), new Point(200, 100)];
+        // points.forEach(pt => {
+        //     drawPoint(pt.lng, pt.lat, '#f00', .15);
+        // });
+        // drawPoint(250, 250, '#f00', 1);
+
+        const count = 1000;
+        const curvePoints = curve.getPoints(points, {
+            count: count
+        });
+        
+        // curvePoints.forEach(pt => {
+        //     drawPoint(pt[0], pt[1], '#0f0');
+        // });
+
+        function animate() {
+            requestAnimationFrame(animate);
+            TWEEN.update();
+        }
+        animate();
+        
+        var lineCount = points.length - 1;
+        var step = 1 / lineCount;
+        var sumD = measureDis(curvePoints);
+        var sumP = curvePoints.length;
+        var gradient = ctx.createLinearGradient(0, 0, 500, 0);
+        gradient.addColorStop(0, 'red');
+        gradient.addColorStop(0.5, 'green');
+        gradient.addColorStop(1, 'blue');
+
+        function drawLine(points, gradient) {
+            ctx.beginPath();
+            points.forEach((pt, index) => {
+                index ? ctx.lineTo(pt[0], pt[1]) : ctx.moveTo(pt[0], pt[1]);
+            });
+            ctx.strokeStyle = gradient;
+            ctx.lineWidth = 3;
+            ctx.stroke();
+        }
+        function tweenCallback(obj) {
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            let points = curvePoints.slice(0, Math.ceil(obj.index));
+            
+            // ctx.beginPath();
+            // points.forEach((pt, index) => {
+            //     index ? ctx.lineTo(pt[0], pt[1]) : ctx.moveTo(pt[0], pt[1]);
+            // });
+            // ctx.strokeStyle = gradient;
+            // // ctx.fillStyle = gradient;
+            // ctx.lineWidth = 3;
+            // ctx.stroke();
+
+
+            // points.forEach((pt, index) => {
+            //     let color = interpolate.getColor(index / sumP);
+            //     drawPoint(pt[0], pt[1], color);
+            // });
+
+
+            let lines = Math.floor(points.length / count);
+            let other = points.length % count;
+            let newPoints = [];
+            if (lines > 0) {
+                for(let i = 1; i < lines + 1; i++) {
+                    let linePoints = curvePoints.slice((i-1)*count, (i-1)*count+count);
+                    let sColor = interpolate.getColor( ((i-1)*count)/sumP);
+                    let eColor = interpolate.getColor( ((i-1)*count+count)/sumP);
+                    let dis = measureDis(linePoints);
+                    let gradient = ctx.createLinearGradient(0, 0, dis, 0);
+                    gradient.addColorStop(0, sColor);
+                    gradient.addColorStop(1, eColor);
+                    drawLine(linePoints, gradient);
+                }
+            }
+            if (other > 0) {
+                let otherPoints = curvePoints.slice(lines*count,  lines*count + other);
+                let sColor = interpolate.getColor( (lines*count)/sumP);
+                let eColor = interpolate.getColor( (lines*count+other)/sumP );
+                let dis = measureDis(otherPoints);
+                let gradient = ctx.createLinearGradient(0, 0, dis, 0);
+                gradient.addColorStop(0, sColor);
+                gradient.addColorStop(1, eColor);
+                drawLine(otherPoints, gradient);
+            }
+
+            // let lines = Math.floor(points.length / count);
+            // let other = points.length % count;
+            // let newPoints = [];
+            // if (lines > 0) {
+            //     for(let i = 1; i < lines + 1; i++) {
+            //         let linePoints = curvePoints.slice((i-1)*count, (i-1)*count+count);
+            //         let lineOpacity = i * step;
+            //         linePoints.forEach(pt => {
+            //             // drawPoint(pt[0], pt[1], `rgba(0, 255, 255, ${lineOpacity})`);
+            //             newPoints.push([pt[0], pt[1], lineOpacity]);
+            //         });
+            //     }
+            // }
+            // if (other > 0) {
+            //     let otherPoints = curvePoints.slice(lines*count,  points.length);
+            //     let otherOpacity = (lines+1) * step;
+            //     otherPoints.forEach(pt => {
+            //         // drawPoint(pt[0], pt[1], `rgba(0, 255, 255, ${otherOpacity})`);
+            //         newPoints.push([pt[0], pt[1], otherOpacity]);
+            //     });
+            // }
+            // newPoints.forEach(pt => {
+            //     drawPoint(pt[0], pt[1], '#f00', pt[2]);
+            // });
+        }
+        var obj1 = {
+            index: 0
+        };
+        var obj2 = {
+            index: curvePoints.length - 1
+            // index: 500
+        };
+        var tween = new TWEEN.Tween(obj1)
+            .to(obj2, 15000)
+            .onUpdate(tweenCallback)
+            .start();
+    </script>
+</body>
+
+</html>

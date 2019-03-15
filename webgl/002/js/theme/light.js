@@ -1,5 +1,5 @@
 export const mapOptions = {
-    bgColor: '#fff',
+    bgColor: null,
     light: {
         main: {
             color: '#E6E8EA',
