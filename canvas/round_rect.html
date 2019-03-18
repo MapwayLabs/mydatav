@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>round_rect</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <script>    
+        var canvas, ctx;
+        function initCanvas(width, height) {
+            canvas = document.createElement('canvas');
+            canvas.width = width || 300;
+            canvas.height = height || 150;
+            document.body.appendChild(canvas);
+            canvas.style.backgroundColor = "#ccc";
+            ctx = canvas.getContext('2d');
+        }
+        initCanvas(128, 128);
+        
+        // zrender: src/graphic/helper/roundRect.js
+        // TODO: r超出宽高时，按比例重新计算r
+        function drawRoundRect(x, y, width, height, r = [1, 1, 1, 1]) {
+            let [r1, r2, r3, r4] = r;
+            ctx.beginPath();
+            ctx.moveTo(x+r1, y);
+            ctx.lineTo(x+width-r2, y);
+            ctx.arc(x+width-r2, y+r2, r2, -Math.PI/2, 0);
+            ctx.lineTo(x+width, y+height-r3);
+            ctx.arc(x+width-r3, y+height-r3, r3, 0, Math.PI/2);
+            ctx.lineTo(x+r4, y+height);
+            ctx.arc(x+r4, y+height-r4, r4, Math.PI/2, Math.PI);
+            ctx.lineTo(x, y+r1);
+            ctx.arc(x+r1, y+r1, r1, Math.PI, Math.PI*3/2);
+            ctx.closePath();
+            ctx.stroke();
+        }
+        drawRoundRect(5, 5, 100, 100, r=[10, 10, 10, 10]);
+    </script>
+</body>
+
+</html>

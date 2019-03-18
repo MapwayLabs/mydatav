@@ -205,7 +205,7 @@ export default class BarLayer extends Layer {
                         id: props.id || f.id,
                         name: props.name,
                         xname: x.data[i],
-                        ylabelName: y.name,
+                        ylabelName: y.nick_name || y.name,
                         index: i,
                         center: center,
                         value: Number(y.data[i])
@@ -462,7 +462,7 @@ export default class BarLayer extends Layer {
         let textData = [];
         this._barData.data.forEach((item, index) => {
             let barHeight = this.getBarHeight(item);
-            let yoffset = this.geojsonLayer.getDepth();
+            let yoffset = this.geojsonLayer ? this.geojsonLayer.getDepth() : 0;
             let tempobj = {};
             // tempobj.text = item.formattedVal;
             tempobj.text = item.value;

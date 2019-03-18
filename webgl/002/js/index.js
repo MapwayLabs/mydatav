@@ -15,3 +15,6 @@ import * as Util from './util';
 export {Util};
 
 export { default as color } from './color';
+
+import * as theme  from './theme/index';
+export {theme};
