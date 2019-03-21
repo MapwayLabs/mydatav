@@ -28,8 +28,9 @@
 
         var interpolate = new Intensity({
             gradient: { 
-                0: "#acb6e5",
-                1.0: "#86fde8"
+                0: "#f00",
+                0.5: "#0f0",
+                1.0: "#00f"
             },
             min: 0,
             max: 1
@@ -80,7 +81,7 @@
         // });
         // drawPoint(250, 250, '#f00', 1);
 
-        const count = 1000;
+        const count = 2000;
         const curvePoints = curve.getPoints(points, {
             count: count
         });
@@ -99,6 +100,7 @@
         var step = 1 / lineCount;
         var sumD = measureDis(curvePoints);
         var sumP = curvePoints.length;
+       // 这里的渐变坐标是全局的，需要注意的是，而不是相对于填充元素计算的。
         var gradient = ctx.createLinearGradient(0, 0, 500, 0);
         gradient.addColorStop(0, 'red');
         gradient.addColorStop(0.5, 'green');
@@ -110,10 +112,11 @@
                 index ? ctx.lineTo(pt[0], pt[1]) : ctx.moveTo(pt[0], pt[1]);
             });
             ctx.strokeStyle = gradient;
-            ctx.lineWidth = 3;
+            ctx.lineWidth = 5;
             ctx.stroke();
         }
         function tweenCallback(obj) {
+            console.log(Math.ceil(obj.index));
             ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
             let points = curvePoints.slice(0, Math.ceil(obj.index));
             
