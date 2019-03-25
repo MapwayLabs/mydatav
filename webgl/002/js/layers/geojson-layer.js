@@ -478,8 +478,10 @@ export default class GeoJSONLayer extends Layer {
             linewidth: lineOptions.width
         };
         let line_material = new THREE.LineBasicMaterial(options);
-        line_material.transparent = false;
-        line_material.opacity = lineOptions.opacity;
+        if (lineOptions.opacity > 0) {
+            line_material.transparent = true;
+            line_material.opacity = lineOptions.opacity;
+        }
         let line = new THREE.Line(line_geom, line_material);
         if (lineOptions.offset) {
             line.translateZ(lineOptions.offset);
@@ -601,7 +603,11 @@ export default class GeoJSONLayer extends Layer {
         };
         if (this.options.outline.normal.show) {
             options = Util.extend(options, this.options.outline.normal);
-            this.drawOutLine2(points, mesh, options);
+            if (options.width <= 1) {
+                this.drawOutLine(points, mesh, options);
+            } else {
+                this.drawOutLine2(points, mesh, options);
+            }
         }
         if (this.options.outline.top.show) {
             options = Util.extend(options, this.options.outline.top);

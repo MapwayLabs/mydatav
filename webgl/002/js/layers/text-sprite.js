@@ -64,43 +64,48 @@ export default class TextSprite {
     }
 
     _getLabelPointCoord(textPoint) {
+        const dpr = Util.getDpr();
         let point = {
             x: textPoint.x,
             y: textPoint.y
         };
         const labelPointStyle = this.options.labelPointStyle;
-        const sumDis = labelPointStyle.margin + labelPointStyle.radius;
+        const r = Math.min(labelPointStyle.radius, this._textWidth/2);
+        const maxMargin = this._textWidth - r * 2;
+        const margin = Math.min(labelPointStyle.margin, maxMargin);
+        // const sumDis = labelPointStyle.margin + labelPointStyle.radius * 2;
+        
         if (this.options.textAlign === 'left' || this.options.textAlign === 'start' ) {
-            point.x = textPoint.x - sumDis;
+            point.x = point.x - margin * dpr;
         } else if (this.options.textAlign === 'right' || this.options.textAlign === 'end') {
-            point.x = textPoint.x + sumDis;
+            point.x = point.x + margin * dpr;
         }
-        if (this.options.textBaseline === 'top') {
-            point.y = textPoint.y - sumDis;
-        } else if (this.options.textBaseline === 'bottom') {
-            point.y = textPoint.y + sumDis;
-        }
+        // if (this.options.textBaseline === 'top') {
+        //     point.y = textPoint.y - sumDis;
+        // } else if (this.options.textBaseline === 'bottom') {
+        //     point.y = textPoint.y + sumDis;
+        // }
         return point;
     }
 
     _getTextPointCoord(canvas) {
-        const dpr = Util.getDpr();
-        let offsetX = this._textWidth * dpr / 2;
-        let offsetY = this._textHeight * dpr / 2;
+        // const dpr = Util.getDpr();
+        // let offsetX = this._textWidth * dpr / 2;
+        // let offsetY = this._textHeight * dpr / 2;
         let point = {
             x: canvas.width / 2,
             y: canvas.height / 2
         };
-        if (this.options.textAlign === 'left' || this.options.textAlign === 'start' ) {
-            point.x -= offsetX;
-        }  else if (this.options.textAlign === 'right' || this.options.textAlign === 'end') {
-            point.x += offsetX;
-        }
-        if (this.options.textBaseline === 'top') {
-            point.y -= offsetY;
-        } else if (this.options.textBaseline === 'bottom') {
-            point.y += offsetY;
-        }
+        // if (this.options.textAlign === 'left' || this.options.textAlign === 'start' ) {
+        //     point.x -= offsetX;
+        // }  else if (this.options.textAlign === 'right' || this.options.textAlign === 'end') {
+        //     point.x += offsetX;
+        // }
+        // if (this.options.textBaseline === 'top') {
+        //     point.y -= offsetY;
+        // } else if (this.options.textBaseline === 'bottom') {
+        //     point.y += offsetY;
+        // }
         return point;
     }
 
@@ -110,13 +115,20 @@ export default class TextSprite {
         const textSize = Util.measureText(this._textStr, font);
         let { width: textWidth, height: textHeight } = textSize;
     
-        let sumDis = 0;
+        let xIncreaseDis = 0;
+        let yIncreaseDis = 0;
         if (this.options.labelPointStyle.show) {
-            sumDis = this.options.labelPointStyle.margin + this.options.labelPointStyle.radius;
+            xIncreaseDis = this.options.labelPointStyle.margin + this.options.labelPointStyle.radius;
+        }
+        if (this.options.textAlign !== 'center') {
+            xIncreaseDis += textWidth;
+        }
+        if (this.options.textBaseline !== 'middle') {
+            yIncreaseDis += textHeight;
         }
          // webgl 规定 canvas 宽高为2的n次幂，对老式GPU的支持
-        const canvasWidth = Util.wrapNum(textWidth + sumDis);
-        const canvasHeight = Util.wrapNum(textHeight + sumDis);
+        const canvasWidth = Util.wrapNum(textWidth + xIncreaseDis);
+        const canvasHeight = Util.wrapNum(textHeight + yIncreaseDis);
         this._width = canvasWidth;
         this._height = canvasHeight;
         this._textWidth = textWidth;
@@ -137,6 +149,14 @@ export default class TextSprite {
 
         // draw
 
+        // test-start
+        // ctx.save();
+        // ctx.beginPath();
+        // ctx.fillStyle="rgba(255,0,0,0.5)";
+        // ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // ctx.restore();
+        // test-end
+
         // 文字
         const drpFont = `${this.options.fontStyle} ${this.options.fontWeight} ${parseInt(this.options.fontSize) * dpr + 'px'} ${this.options.fontFamily}`;
         const textPoint = this._getTextPointCoord(canvas);
@@ -156,7 +176,8 @@ export default class TextSprite {
             const point = this._getLabelPointCoord(textPoint);
             ctx.fillStyle = color;
             ctx.beginPath();
-            ctx.arc(point.x, point.y, radius, 0, Math.PI * 2);
+            const r = Math.min(radius, this._textWidth/2);
+            ctx.arc(point.x, point.y, r*dpr, 0, Math.PI * 2);
             ctx.fill();
             ctx.restore();
         }

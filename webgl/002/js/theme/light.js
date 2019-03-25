@@ -19,7 +19,7 @@ export const geojsonLayerOptions = {
     areaText: {
         offset: 0.1,
         textStyle: {
-            fontSize: '12px',
+            fontSize: '10px',
             fontWeight: 'normal',
             fontFamily: 'Microsoft YaHei',
             fontColor: '#383838',
@@ -28,12 +28,12 @@ export const geojsonLayerOptions = {
             labelPointStyle: {
                 show: true, // 是否显示文字旁边的标注点
                 margin: 4, // 标注点距离文字的距离
-                radius: 6, // 标注点半径
-                color: '#383838' // 标注点颜色，可以是 hexString、rgb、rgba
+                radius: 3, // 标注点半径
+                color: '#0f0' // 标注点颜色，可以是 hexString、rgb、rgba
             }
         },
         nullTextStyle: {
-            fontSize: '12px',
+            fontSize: '10px',
             fontWeight: 'normal',
             fontFamily: 'Microsoft YaHei',
             fontColor: '#383838',
@@ -42,8 +42,8 @@ export const geojsonLayerOptions = {
             labelPointStyle: {
                 show: true, // 是否显示文字旁边的标注点
                 margin: 4, // 标注点距离文字的距离
-                radius: 6, // 标注点半径
-                color: '#383838' // 标注点颜色，可以是 hexString、rgb、rgba
+                radius: 3, // 标注点半径
+                color: '#0f0' // 标注点颜色，可以是 hexString、rgb、rgba
             }
         }
     },
@@ -61,7 +61,7 @@ export const geojsonLayerOptions = {
         normal: {
             show: true,
             color: '#0086ff',
-            width: 6,
+            width: 3,
             opacity: 0.8
         }
     }
