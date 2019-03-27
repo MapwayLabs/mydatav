@@ -38,6 +38,7 @@
             orbitControlOptions: {
                 minDistance: 300
             },
+            bgColor: '#000',
             global: {
                 R: 220, // 球形地球半径
                 center: [117, -35], // 初始中心点
@@ -74,10 +75,12 @@
         $.getJSON('../../data/flyline.json', function (fdata) {
             const flOptions = {
                 heightLimit: 30,
+                lngMaxRange: 40,
                 lineStyle: {
                     show: true,
                     color: '#5092FF',
-                    opacity: 0.3,
+                    opacity: 1,
+                    
                     width: 1
                 },
                 pointStyle: {
