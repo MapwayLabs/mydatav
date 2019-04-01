@@ -9,6 +9,7 @@
     <script src="./Intensity.js"></script>
     <script src="../../lib/tween.js-master/src/Tween.js"></script>
     <script src="../../lib/d3/d3.min.js"></script>
+    <script src="./curvePoints.js"></script>
     <title>curve_animation</title>
 </head>
 
@@ -26,15 +27,21 @@
         }
         initCanvas(512, 512);
 
-        var interpolate = new Intensity({
-            gradient: { 
-                0: "#f00",
-                0.5: "#0f0",
-                1.0: "#00f"
-            },
-            min: 0,
-            max: 1
-        });
+        function getGradientCoorRange (points) {
+            let left = points[0][0], right = points[0][0];
+            for (let i = 0, len = points.length; i < len; i++) {
+                if (points[i][0] < left) {
+                    left = points[i][0];
+                } else if (points[i][0] > right) {
+                    right = points[i][0];
+                }
+            }
+            if (points[points.length-1][0] > points[0][0]) {
+                return {left: left, right: right};
+            } else {
+                return {left: right, right: left};
+            }
+        }
 
         function drawPoint(x, y, color = '#000', opacity = 1) {
             let px = x;
@@ -69,135 +76,117 @@
             return sum;
         }
 
-        const points = [new Point(50, 50), new Point(25, 145),  new Point(50, 50), new Point(245, 100), new Point(145, 75), new Point(300,
-            100), new Point(400,
-            200), new Point(350,
-            250), new Point(450,
-            350), new Point(50,
-            50)];
-        // const points = [new Point(50, 100), new Point(100, 150), new Point(200, 100)];
+        // 画渐变线
+        function drawGradientLine (ctx, points, gradient, drawOptions) {
+            if (points.length < 2) {
+                console.log('line point < 2');
+                return;
+            }
+            ctx.save();
+            ctx.beginPath();
+            points.forEach((pt, index) => {
+                // ctx[index ? 'lineTo' : 'moveTo'](pt[0], pt[1]);
+                if (index === 0) {
+                    ctx.moveTo(pt[0], pt[1]);
+                } else {
+                    ctx.lineTo(pt[0], pt[1]);
+                }
+                // console.log(pt.toString());
+            });
+            ctx.strokeStyle = gradient;
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            ctx.restore();
+        }
+         
+        const count = 200;
+        const points = [new Point(50, 50), new Point(25, 145),  new Point(50, 50)];
+
+        // const points = [new Point(50, 50), new Point(25, 145),  new Point(50, 50), new Point(245, 100), new Point(145, 75), new Point(300,
+        //     100), new Point(400,
+        //     200), new Point(350,
+        //     250), new Point(450,
+        //     350), new Point(50,
+        //     50),new Point(50, 50), new Point(25, 145),  new Point(50, 50), new Point(245, 100), new Point(145, 75), new Point(300,
+        //     100), new Point(400,
+        //     200), new Point(350,
+        //     250), new Point(450,
+        //     350), new Point(50,
+        //     50)];
+
+        // const points = [new Point(50, 150), new Point(450, 150),  new Point(250, 150), new Point(255, 25), new Point(250, 150), new Point(200,
+        //     250), new Point(250,
+        //     150), new Point(300,
+        //     250), new Point(250,
+        //     150),new Point(50, 150)];
         // points.forEach(pt => {
         //     drawPoint(pt.lng, pt.lat, '#f00', .15);
         // });
-        // drawPoint(250, 250, '#f00', 1);
 
-        const count = 2000;
-        const curvePoints = curve.getPoints(points, {
+        var curvePoints = curve.getPoints(points, {
             count: count
-        });
-        
+        }); 
+        console.log("打点数：" + curvePoints.length);
         // curvePoints.forEach(pt => {
         //     drawPoint(pt[0], pt[1], '#0f0');
         // });
+
+        var interpolate = new Intensity({
+            gradient: { 
+                0: "#f00",
+                0.5: "#0f0",
+                1.0: "#00f"
+            },
+            min: 0,
+            max: 1
+        });
+        
+        function tweenCallback(obj) {
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            let endIndex = Math.ceil(obj.index);
+            if (endIndex < 0 || endIndex >= curvePoints.length) {return;}
+
+            let points = curvePoints.slice(0, endIndex);
+
+            let sumPoints = curvePoints.length;
+            let linesCount = Math.floor(points.length / count);
+            let hasOtherPoint = !!(points.length % count);
+            if (linesCount > 0) {
+                for (let i = 0; i < linesCount; i++) {
+                    let linePoints = curvePoints.slice(i * count, i * count + count + 1);
+                    console.log(i * count);
+                    console.log( i * count + count + 1);
+                    let sColor = interpolate.getColor((i * count) / sumPoints);
+                    let eColor = interpolate.getColor((i * count + count) / sumPoints);
+                    let range = getGradientCoorRange(linePoints);
+                    let gradient = ctx.createLinearGradient(range.left, 0, range.right, 0);
+                    gradient.addColorStop(0, sColor);
+                    gradient.addColorStop(1, eColor);
+                    drawGradientLine(ctx, linePoints, gradient);
+                }
+            }
+            if (hasOtherPoint) {
+                let otherPoints = curvePoints.slice(linesCount * count, endIndex + 1);
+                let sColor = interpolate.getColor((linesCount * count) / sumPoints);
+                let eColor = interpolate.getColor(endIndex / sumPoints);
+                let range = getGradientCoorRange(otherPoints);
+                let gradient = ctx.createLinearGradient(range.left, 0, range.right, 0);
+                gradient.addColorStop(0, sColor);
+                gradient.addColorStop(1, eColor);
+                drawGradientLine(ctx, otherPoints, gradient);
+            } 
+        }
+
+        var tween = new TWEEN.Tween({index: 0})
+            .to({index: curvePoints.length - 1}, 15000)
+            .onUpdate(tweenCallback)
+            .start();
 
         function animate() {
             requestAnimationFrame(animate);
             TWEEN.update();
         }
         animate();
-        
-        var lineCount = points.length - 1;
-        var step = 1 / lineCount;
-        var sumD = measureDis(curvePoints);
-        var sumP = curvePoints.length;
-       // 这里的渐变坐标是全局的，需要注意的是，而不是相对于填充元素计算的。
-        var gradient = ctx.createLinearGradient(0, 0, 500, 0);
-        gradient.addColorStop(0, 'red');
-        gradient.addColorStop(0.5, 'green');
-        gradient.addColorStop(1, 'blue');
-
-        function drawLine(points, gradient) {
-            ctx.beginPath();
-            points.forEach((pt, index) => {
-                index ? ctx.lineTo(pt[0], pt[1]) : ctx.moveTo(pt[0], pt[1]);
-            });
-            ctx.strokeStyle = gradient;
-            ctx.lineWidth = 5;
-            ctx.stroke();
-        }
-        function tweenCallback(obj) {
-            console.log(Math.ceil(obj.index));
-            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-            let points = curvePoints.slice(0, Math.ceil(obj.index));
-            
-            // ctx.beginPath();
-            // points.forEach((pt, index) => {
-            //     index ? ctx.lineTo(pt[0], pt[1]) : ctx.moveTo(pt[0], pt[1]);
-            // });
-            // ctx.strokeStyle = gradient;
-            // // ctx.fillStyle = gradient;
-            // ctx.lineWidth = 3;
-            // ctx.stroke();
-
-
-            // points.forEach((pt, index) => {
-            //     let color = interpolate.getColor(index / sumP);
-            //     drawPoint(pt[0], pt[1], color);
-            // });
-
-
-            let lines = Math.floor(points.length / count);
-            let other = points.length % count;
-            let newPoints = [];
-            if (lines > 0) {
-                for(let i = 1; i < lines + 1; i++) {
-                    let linePoints = curvePoints.slice((i-1)*count, (i-1)*count+count);
-                    let sColor = interpolate.getColor( ((i-1)*count)/sumP);
-                    let eColor = interpolate.getColor( ((i-1)*count+count)/sumP);
-                    let dis = measureDis(linePoints);
-                    let gradient = ctx.createLinearGradient(0, 0, dis, 0);
-                    gradient.addColorStop(0, sColor);
-                    gradient.addColorStop(1, eColor);
-                    drawLine(linePoints, gradient);
-                }
-            }
-            if (other > 0) {
-                let otherPoints = curvePoints.slice(lines*count,  lines*count + other);
-                let sColor = interpolate.getColor( (lines*count)/sumP);
-                let eColor = interpolate.getColor( (lines*count+other)/sumP );
-                let dis = measureDis(otherPoints);
-                let gradient = ctx.createLinearGradient(0, 0, dis, 0);
-                gradient.addColorStop(0, sColor);
-                gradient.addColorStop(1, eColor);
-                drawLine(otherPoints, gradient);
-            }
-
-            // let lines = Math.floor(points.length / count);
-            // let other = points.length % count;
-            // let newPoints = [];
-            // if (lines > 0) {
-            //     for(let i = 1; i < lines + 1; i++) {
-            //         let linePoints = curvePoints.slice((i-1)*count, (i-1)*count+count);
-            //         let lineOpacity = i * step;
-            //         linePoints.forEach(pt => {
-            //             // drawPoint(pt[0], pt[1], `rgba(0, 255, 255, ${lineOpacity})`);
-            //             newPoints.push([pt[0], pt[1], lineOpacity]);
-            //         });
-            //     }
-            // }
-            // if (other > 0) {
-            //     let otherPoints = curvePoints.slice(lines*count,  points.length);
-            //     let otherOpacity = (lines+1) * step;
-            //     otherPoints.forEach(pt => {
-            //         // drawPoint(pt[0], pt[1], `rgba(0, 255, 255, ${otherOpacity})`);
-            //         newPoints.push([pt[0], pt[1], otherOpacity]);
-            //     });
-            // }
-            // newPoints.forEach(pt => {
-            //     drawPoint(pt[0], pt[1], '#f00', pt[2]);
-            // });
-        }
-        var obj1 = {
-            index: 0
-        };
-        var obj2 = {
-            index: curvePoints.length - 1
-            // index: 500
-        };
-        var tween = new TWEEN.Tween(obj1)
-            .to(obj2, 15000)
-            .onUpdate(tweenCallback)
-            .start();
     </script>
 </body>
 

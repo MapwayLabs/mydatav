@@ -7,8 +7,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <script src="./curve.js"></script>
     <script src="../../lib/tween.js-master/src/Tween.js"></script>
-    <script src="./bezierjs-2.4.0/bezier.js"></script>
-    <title>bezier_curve</title>
+    <title>linedash_animation</title>
 </head>
 
 <body>
@@ -38,23 +37,45 @@
             ctx.fill();
         }
 
-        function drawCurve(startPoint, endPoint) {
-            drawPoint(startPoint);
-            drawPoint(endPoint);
+        function drawCurve(startPoint, endPoint, dash = []) {
+            // drawPoint(startPoint);
+            // drawPoint(endPoint);
             let middleX = (startPoint[0] + endPoint[0]) / 2;
+         
             let middleY = (startPoint[1] + endPoint[1]) / 2;
-            drawPoint(middleX, middleY);
+            // drawPoint(middleX, middleY);
             ctx.lineWidth = 3;
             ctx.strokeStyle = "#3bbbee";
             ctx.beginPath();
+            ctx.setLineDash(dash);
             ctx.moveTo(startPoint[0], startPoint[1]);
             // ctx.bezierCurveTo();
-            ctx.quadraticCurveTo(middleX, middleY+20, endPoint[0], endPoint[1]);
+            // ctx.quadraticCurveTo(middleX, middleY+20, endPoint[0], endPoint[1]);
+            ctx.lineTo(endPoint[0], endPoint[1]);
+            ctx.lineTo(190, 10);
+            ctx.lineTo(280, 100);
+            ctx.lineTo(190, 10);
             ctx.stroke();
-            ctx.closePath();
+            // ctx.closePath();
         }
-        drawCurve([10, 10], [100, 100]);
-        drawCurve([100, 100], [10, 10]);
+        // drawCurve([10, 10], [100, 100]);
+        
+        let len = Math.sqrt(2) * 90 * 4;
+        function tweenCallback(obj) {
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            let dash = [0+obj.len, len-obj.len];
+            drawCurve([10, 10], [100, 100], dash);
+        }
+        var tween = new TWEEN.Tween({len: 0})
+            .to({len: len}, 5000)
+            .onUpdate(tweenCallback)
+            .start();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            TWEEN.update();
+        }
+        animate();
     </script>
 </body>
 
