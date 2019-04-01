@@ -7,6 +7,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <script src="./curve.js"></script>
     <script src="../../lib/tween.js-master/src/Tween.js"></script>
+    <script src="./bezierjs-2.4.0/bezier.js"></script>
     <title>linedash_animation</title>
 </head>
 
@@ -48,19 +49,22 @@
             ctx.strokeStyle = "#3bbbee";
             ctx.beginPath();
             ctx.setLineDash(dash);
-            ctx.moveTo(startPoint[0], startPoint[1]);
+            // ctx.moveTo(startPoint[0], startPoint[1]);
             // ctx.bezierCurveTo();
-            // ctx.quadraticCurveTo(middleX, middleY+20, endPoint[0], endPoint[1]);
-            ctx.lineTo(endPoint[0], endPoint[1]);
-            ctx.lineTo(190, 10);
-            ctx.lineTo(280, 100);
-            ctx.lineTo(190, 10);
+            ctx.moveTo(10, 10);
+            ctx.quadraticCurveTo(100, 300, 400, 400);
+            // ctx.lineTo(endPoint[0], endPoint[1]);
+            // ctx.lineTo(190, 10);
+            // ctx.lineTo(280, 100);
+            // ctx.lineTo(190, 10);
             ctx.stroke();
             // ctx.closePath();
         }
         // drawCurve([10, 10], [100, 100]);
         
-        let len = Math.sqrt(2) * 90 * 4;
+        // let len = Math.sqrt(2) * 90 * 4;
+        let bezier = new Bezier(10, 10, 100, 300, 400, 400);
+        let len = bezier.length();
         function tweenCallback(obj) {
             ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
             let dash = [0+obj.len, len-obj.len];
