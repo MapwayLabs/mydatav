@@ -26,7 +26,26 @@
             canvas.style.backgroundColor = "#ccc";
             ctx = canvas.getContext('2d');
         }
-        initCanvas(128, 128);
+        initCanvas(512, 512);
+
+        function spline(start, end, deg = 45) {
+            var p0 = { x: start.x, y: start.y },
+                p1 = {},
+                p2 = { x: end.x, y: end.y };
+            let cosx = Math.cos(Math.PI / 180 * deg);
+            let sinx = Math.sin(Math.PI / 180 * deg);
+            let ab = {
+                x: (p2.x - p0.x) / 2,
+                y: (p2.y - p0.y) / 2
+            };
+            p1.x = p0.x + cosx * ab.x + sinx * ab.y;
+            p1.y = p0.y + (-sinx) * ab.x + cosx * ab.y;
+            return {
+                p0: p0,
+                p1: p1,
+                p2: p2
+            };
+        }
 
         function drawLightLine() {
             // method1
@@ -40,19 +59,42 @@
             // ctx.fillRect(10, 10, 200, 10);
 
             // method2  
+            const points = [{x: 10, y: 10}, {x: 125, y: 200}, {x: 250, y: 250}, {x: 480, y: 300},{x: 250, y: 250}, {x: 125, y: 200},{x: 10, y: 10}];
+            for (let i = 0; i < points.length-1; i++) {
+                const bezier = spline(points[i], points[i+1]);
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(bezier.p0.x, bezier.p0.y);
+                ctx.quadraticCurveTo(bezier.p1.x, bezier.p1.y, bezier.p2.x, bezier.p2.y);
+                ctx.lineWidth = 6;
+                ctx.strokeStyle = "#0ff";
+                ctx.stroke();
+                ctx.restore();
+                
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(bezier.p0.x, bezier.p0.y);
+                ctx.quadraticCurveTo(bezier.p1.x, bezier.p1.y, bezier.p2.x, bezier.p2.y);
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = "#0f0";
+                ctx.stroke();
+                ctx.restore();
+            }
+
             // ctx.shadowOffsetX = 0;
             // ctx.shadowOffsetY = 0;
             // ctx.shadowBlur = 25;
             // ctx.shadowColor = '#f00';
             // ctx.fillStyle = '#f00';
             // ctx.fillRect(10, 10, 200, 3);
-
-            ctx.beginPath();
-            ctx.fillStyle = '#f00';
-            ctx.fillRect(0, 0, 128, 32);
-            ctx.beginPath();
-            ctx.fillStyle = '#0f0';
-            ctx.fillRect(0, 96, 128, 32);
+            
+            // method3
+            // ctx.beginPath();
+            // ctx.fillStyle = '#f00';
+            // ctx.fillRect(0, 0, 128, 32);
+            // ctx.beginPath();
+            // ctx.fillStyle = '#0f0';
+            // ctx.fillRect(0, 96, 128, 32);
         }
         drawLightLine();
     </script>
