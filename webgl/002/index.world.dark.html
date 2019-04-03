@@ -44,6 +44,7 @@
         $.getJSON('../../data/world2.json', function (data) {
             // map.setView();
             let mapOptions = {
+                bgColor: '#343752',
                 type: 'plane', // plane or sphere ,平面或球面
                 region: 'world', // china or world, 中国或世界地图
                 crs: 'EPSG:3857', // 地图采用的地理坐标系 EPSG:4326: 经纬度，EPSG:3857: 墨卡托
@@ -71,32 +72,64 @@
             const map = new TMap.ThreeMap('threemap', mapOptions);
             var geoOptions = {
                 isAutoResize: false,
-                isExtrude: true, // 是否拉伸面
+                isExtrude: false, // 是否拉伸面
                 depth: 2, // 拉伸厚度
                 forceBoundsCenter: false,
                 areaText: {
-                    show: true,
-                    offset: 1,
+                    show: false,
+                    offset: 0.1,
                     textStyle: {
-                        fontSize: '6px',
                         show: false,
-                        scale: 28
+                        fontSize: '6px',
+                        fontWeight: 'normal',
+                        fontFamily: 'Microsoft YaHei',
+                        fontColor: '#383838',
+                        textAlign: 'left',
+                        textBaseline: 'middle',
+                        labelPointStyle: {
+                            show: false, // 是否显示文字旁边的标注点
+                            margin: 4, // 标注点距离文字的距离
+                            radius: 3, // 标注点半径
+                            color: '#0f0' // 标注点颜色，可以是 hexString、rgb、rgba
+                        }
                     },
                     nullTextStyle: {
                         fontSize: '6px',
-                        fontColor: '#000',
-                        scale: 24
+                        fontWeight: 'normal',
+                        fontFamily: 'Microsoft YaHei',
+                        fontColor: '#383838',
+                        textAlign: 'left',
+                        textBaseline: 'middle',
+                        labelPointStyle: {
+                            show: false, // 是否显示文字旁边的标注点
+                            margin: 4, // 标注点距离文字的距离
+                            radius: 3, // 标注点半径
+                            color: '#0f0' // 标注点颜色，可以是 hexString、rgb、rgba
+                        }
+                    },
+                },
+                isAreaMutilColor: true,
+                mutiColors: ['#022956', '#022956', '#2B95E5', '#107AE0'],
+                areaMaterial: { // 面材质配置
+                    color: '#1C1F3B'
+                },
+                extrudeMaterial: {
+                    color: '#0086FF',
+                    opacity: 1,
+                    textureSrc: '/static/images/light_edge.png'
+                },
+                outline: {
+                    normal: {
+                        show: true,
+                        color: '#0086ff',
+                        width: 3,
+                        opacity: 1
                     }
                 },
                 lineOpacity: 0.3,
                 lineMaterial: {
                     color: '#000',
                     linewidth: 1
-                },
-                areaMaterial: { // 面材质配置
-                    color: '#E6E8EA',
-                    // opacity: 0.5,
-                    side: THREE.DoubleSide
                 },
                 hightLight: {
                     show: true
@@ -140,7 +173,7 @@
                                 textAlign: 'center',
                                 textBaseline: 'middle'
                             }
-                        } 
+                        }
                     },
                     effect: {
                         show: true,
@@ -157,7 +190,7 @@
                 let fl = new TMap.FlyLineLayer(fdata, flOptions, window.geojsonLayer);
                 map.addLayer(fl);
             });
-            $.getJSON('../../data/bardata.global.json', function (data) {
+            $.getJSON('../../data/bardata.json', function (data) {
                 let barOptions = {
                     isMatchGeoJson: true,
                     isAutoResize: false,

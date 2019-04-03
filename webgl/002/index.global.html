@@ -120,7 +120,7 @@
             let fl = new TMap.FlyLineLayer(fdata, flOptions);
             map.addLayer(fl);
         });
-        $.getJSON('../../data/bardata.global.json', function (data) {
+        $.getJSON('../../data/bardata.json', function (data) {
             let barOptions = {
                 isMatchGeoJson: false,
                 isAutoResize: false,
@@ -154,8 +154,8 @@
                     show: true
                 }
             };
-            let barlayer = new TMap.BarLayer(data, barOptions);
-            map.addLayer(barlayer);
+            // let barlayer = new TMap.BarLayer(data, barOptions);
+            // map.addLayer(barlayer);
         });
     </script>
 </body>

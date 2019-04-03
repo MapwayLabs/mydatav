@@ -606,7 +606,7 @@ class EventEmiter {
 /*!*********************!*\
   !*** ./js/index.js ***!
   \*********************/
-/*! exports provided: ThreeMap, GeoJSONLayer, FlyLineLayer, BarLayer, TextLayer, mapHelper, Util, color */
+/*! exports provided: ThreeMap, GeoJSONLayer, FlyLineLayer, BarLayer, TextLayer, mapHelper, Util, color, theme */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -632,6 +632,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "Util", function() { return _util__WEBPACK_IMPORTED_MODULE_6__; });
 /* harmony import */ var _color__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./color */ "./js/color.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "color", function() { return _color__WEBPACK_IMPORTED_MODULE_7__["default"]; });
+
+/* harmony import */ var _theme_index__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./theme/index */ "./js/theme/index.js");
+/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "theme", function() { return _theme_index__WEBPACK_IMPORTED_MODULE_8__; });
+
+
 
 
 
@@ -860,6 +865,7 @@ class BarLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             let xlength = x.data.length;
             let i = 0;
             for (; i < xlength; i++) {
+                if (f.geometry == null) break;
                 let ismatch = this.isMatch(x.data[i], f);
                 // 如果匹配到底图
                 if (ismatch) {
@@ -2173,7 +2179,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 side: THREE.DoubleSide,
                 opacity: 1
             },
-            extrudeMaterial: { // 侧面材质
+            extrudeMaterial: { // 侧面材质,如果为 null，则与面材质相同
                 color:  0x00ff00,
                 opacity: 1,
                 textureSrc: null
@@ -2580,8 +2586,10 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             linewidth: lineOptions.width
         };
         let line_material = new THREE.LineBasicMaterial(options);
-        line_material.transparent = false;
-        line_material.opacity = lineOptions.opacity;
+        if (lineOptions.opacity > 0) {
+            line_material.transparent = true;
+            line_material.opacity = lineOptions.opacity;
+        }
         let line = new THREE.Line(line_geom, line_material);
         if (lineOptions.offset) {
             line.translateZ(lineOptions.offset);
@@ -2620,7 +2628,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         // lineMesh.material.depthTest = false;
         mesh.add(lineMesh);
     }
-    drawPolygon(points, userData, container) {
+    createGeometry(points) {
         const shape = new THREE.Shape();
         for (let i = 0; i < points.length; i++) {
             let point = points[i];
@@ -2630,43 +2638,64 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 shape.lineTo(point[0], point[1]);
             }
         }
-        shape.closePath();
+        shape.closePath();  
+        
+        let geometry;
+        if (this.options.isExtrude) {
+            let extrudeSettings = {
+                depth: this.options.depth, 
+                bevelEnabled: false   // 是否用斜角
+            };
+            geometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings);
+        } else {
+            geometry = new THREE.ShapeBufferGeometry(shape);
+        }
+        return geometry;
+    }
+    drawPolygon(points, userData, container) {
 
         let geometry, material;
         let areaMaterialOptions = this.options.areaMaterial;
         if (this.options.isAreaMutilColor) {
             areaMaterialOptions.color = userData.color;
         }
+
+        geometry = this.createGeometry(points);
+
         if (this.options.isExtrude) {
             // 拉伸
-            let extrudeSettings = {
-                depth: this.options.depth, 
-                bevelEnabled: false   // 是否用斜角
-            };
-            geometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings);
+            // let extrudeSettings = {
+            //     depth: this.options.depth, 
+            //     bevelEnabled: false   // 是否用斜角
+            // };
+            // geometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings);
             let material1 = new THREE.MeshPhongMaterial(areaMaterialOptions);
             if (areaMaterialOptions.opacity < 1) {
                 material1.transparent = true;
                 material1.opacity = areaMaterialOptions.opacity;
             }
-            let texture;
-            if (this.options.extrudeMaterial.textureSrc) {
-                texture = new THREE.TextureLoader().load(this.options.extrudeMaterial.textureSrc);
-                texture.center = new THREE.Vector2(0.5, 0.5);
-                texture.rotation = Math.PI;
+            if (this.options.extrudeMaterial) {
+                let texture;
+                if (this.options.extrudeMaterial.textureSrc) {
+                    texture = new THREE.TextureLoader().load(this.options.extrudeMaterial.textureSrc);
+                    texture.center = new THREE.Vector2(0.5, 0.5);
+                    texture.rotation = Math.PI;
+                }
+                let material2 = new THREE.MeshPhongMaterial({
+                    map: texture ? texture : null,
+                    color: texture ? 0xffffff : this.options.extrudeMaterial.color
+                });
+                if (this.options.extrudeMaterial.opacity < 1) {
+                    material2.transparent = true;
+                    material2.opacity = this.options.extrudeMaterial.opacity;
+                }
+                material = [material1, material2];
+            } else {
+                material = material1;
             }
-            let material2 = new THREE.MeshPhongMaterial({
-                map: texture ? texture : null,
-                color: texture ? 0xffffff : this.options.extrudeMaterial.color
-            });
-            if (this.options.extrudeMaterial.opacity < 1) {
-                material2.transparent = true;
-                material2.opacity = this.options.extrudeMaterial.opacity;
-            }
-            material = [material1, material2]
         } else {
             // 不拉伸
-            geometry = new THREE.ShapeBufferGeometry(shape);
+            // geometry = new THREE.ShapeBufferGeometry(shape);
             material = new THREE.MeshBasicMaterial(areaMaterialOptions);
             if (areaMaterialOptions.opacity < 1) {
                 material.transparent = true;
@@ -2682,7 +2711,11 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         };
         if (this.options.outline.normal.show) {
             options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](options, this.options.outline.normal);
-            this.drawOutLine2(points, mesh, options);
+            if (options.width <= 1) {
+                this.drawOutLine(points, mesh, options);
+            } else {
+                this.drawOutLine2(points, mesh, options);
+            }
         }
         if (this.options.outline.top.show) {
             options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](options, this.options.outline.top);
@@ -2993,7 +3026,7 @@ class TextLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                 offsetY: 0, // 为避免文字覆盖柱子，设置文字偏移中心点
                 opacity: 1,
                 labelPointStyle: {
-                    show: true, // 是否显示文字旁边的标注点
+                    show: false, // 是否显示文字旁边的标注点
                     margin: 4, // 标注点距离文字的距离
                     radius: 6, // 标注点半径
                     color: '#0f0' // 标注点颜色，可以是 hexString、rgb、rgba
@@ -3269,43 +3302,48 @@ class TextSprite {
     }
 
     _getLabelPointCoord(textPoint) {
+        const dpr = _util__WEBPACK_IMPORTED_MODULE_0__["getDpr"]();
         let point = {
             x: textPoint.x,
             y: textPoint.y
         };
         const labelPointStyle = this.options.labelPointStyle;
-        const sumDis = labelPointStyle.margin + labelPointStyle.radius;
+        const r = Math.min(labelPointStyle.radius, this._textWidth/2);
+        const maxMargin = this._textWidth - r * 2;
+        const margin = Math.min(labelPointStyle.margin, maxMargin);
+        // const sumDis = labelPointStyle.margin + labelPointStyle.radius * 2;
+        
         if (this.options.textAlign === 'left' || this.options.textAlign === 'start' ) {
-            point.x = textPoint.x - sumDis;
+            point.x = point.x - margin * dpr;
         } else if (this.options.textAlign === 'right' || this.options.textAlign === 'end') {
-            point.x = textPoint.x + sumDis;
+            point.x = point.x + margin * dpr;
         }
-        if (this.options.textBaseline === 'top') {
-            point.y = textPoint.y - sumDis;
-        } else if (this.options.textBaseline === 'bottom') {
-            point.y = textPoint.y + sumDis;
-        }
+        // if (this.options.textBaseline === 'top') {
+        //     point.y = textPoint.y - sumDis;
+        // } else if (this.options.textBaseline === 'bottom') {
+        //     point.y = textPoint.y + sumDis;
+        // }
         return point;
     }
 
     _getTextPointCoord(canvas) {
-        const dpr = _util__WEBPACK_IMPORTED_MODULE_0__["getDpr"]();
-        let offsetX = this._textWidth * dpr / 2;
-        let offsetY = this._textHeight * dpr / 2;
+        // const dpr = Util.getDpr();
+        // let offsetX = this._textWidth * dpr / 2;
+        // let offsetY = this._textHeight * dpr / 2;
         let point = {
             x: canvas.width / 2,
             y: canvas.height / 2
         };
-        if (this.options.textAlign === 'left' || this.options.textAlign === 'start' ) {
-            point.x -= offsetX;
-        }  else if (this.options.textAlign === 'right' || this.options.textAlign === 'end') {
-            point.x += offsetX;
-        }
-        if (this.options.textBaseline === 'top') {
-            point.y -= offsetY;
-        } else if (this.options.textBaseline === 'bottom') {
-            point.y += offsetY;
-        }
+        // if (this.options.textAlign === 'left' || this.options.textAlign === 'start' ) {
+        //     point.x -= offsetX;
+        // }  else if (this.options.textAlign === 'right' || this.options.textAlign === 'end') {
+        //     point.x += offsetX;
+        // }
+        // if (this.options.textBaseline === 'top') {
+        //     point.y -= offsetY;
+        // } else if (this.options.textBaseline === 'bottom') {
+        //     point.y += offsetY;
+        // }
         return point;
     }
 
@@ -3315,13 +3353,20 @@ class TextSprite {
         const textSize = _util__WEBPACK_IMPORTED_MODULE_0__["measureText"](this._textStr, font);
         let { width: textWidth, height: textHeight } = textSize;
     
-        let sumDis = 0;
+        let xIncreaseDis = 0;
+        let yIncreaseDis = 0;
         if (this.options.labelPointStyle.show) {
-            sumDis = this.options.labelPointStyle.margin + this.options.labelPointStyle.radius;
+            xIncreaseDis = this.options.labelPointStyle.margin + this.options.labelPointStyle.radius;
+        }
+        if (this.options.textAlign !== 'center') {
+            xIncreaseDis += textWidth;
+        }
+        if (this.options.textBaseline !== 'middle') {
+            yIncreaseDis += textHeight;
         }
          // webgl 规定 canvas 宽高为2的n次幂，对老式GPU的支持
-        const canvasWidth = _util__WEBPACK_IMPORTED_MODULE_0__["wrapNum"](textWidth + sumDis);
-        const canvasHeight = _util__WEBPACK_IMPORTED_MODULE_0__["wrapNum"](textHeight + sumDis);
+        const canvasWidth = _util__WEBPACK_IMPORTED_MODULE_0__["wrapNum"](textWidth + xIncreaseDis);
+        const canvasHeight = _util__WEBPACK_IMPORTED_MODULE_0__["wrapNum"](textHeight + yIncreaseDis);
         this._width = canvasWidth;
         this._height = canvasHeight;
         this._textWidth = textWidth;
@@ -3342,6 +3387,14 @@ class TextSprite {
 
         // draw
 
+        // test-start
+        // ctx.save();
+        // ctx.beginPath();
+        // ctx.fillStyle="rgba(255,0,0,0.5)";
+        // ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // ctx.restore();
+        // test-end
+
         // 文字
         const drpFont = `${this.options.fontStyle} ${this.options.fontWeight} ${parseInt(this.options.fontSize) * dpr + 'px'} ${this.options.fontFamily}`;
         const textPoint = this._getTextPointCoord(canvas);
@@ -3361,7 +3414,8 @@ class TextSprite {
             const point = this._getLabelPointCoord(textPoint);
             ctx.fillStyle = color;
             ctx.beginPath();
-            ctx.arc(point.x, point.y, radius, 0, Math.PI * 2);
+            const r = Math.min(radius, this._textWidth/2);
+            ctx.arc(point.x, point.y, r*dpr, 0, Math.PI * 2);
             ctx.fill();
             ctx.restore();
         }
@@ -3678,6 +3732,358 @@ function getNormalizeName(feature) {
 function scalePoint(point, scale) {
     return point.map(p => p * scale);
 }
+
+/***/ }),
+
+/***/ "./js/theme/dark.js":
+/*!**************************!*\
+  !*** ./js/theme/dark.js ***!
+  \**************************/
+/*! exports provided: mapOptions, geojsonLayerOptions */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "mapOptions", function() { return mapOptions; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "geojsonLayerOptions", function() { return geojsonLayerOptions; });
+const mapOptions = {
+    bgColor: null,
+    light: {
+        main: {
+            color: '#E6E8EA',
+            intensity: 0.8
+        },
+        ambient: {
+            color: '#E6E8EA',
+            intensity: 0.6
+        }
+    },
+    bloom: {
+        show: false
+    }
+};
+
+const geojsonLayerOptions = {
+    areaText: {
+        offset: 0.1,
+        textStyle: {
+            fontSize: '10px',
+            fontWeight: 'normal',
+            fontFamily: 'Microsoft YaHei',
+            fontColor: '#fff',
+            textAlign: 'left',
+            textBaseline: 'middle',
+            labelPointStyle: {
+                show: true, // 是否显示文字旁边的标注点
+                margin: 4, // 标注点距离文字的距离
+                radius: 3, // 标注点半径
+                color: '#0f0' // 标注点颜色，可以是 hexString、rgb、rgba
+            }
+        },
+        nullTextStyle: {
+            fontSize: '10px',
+            fontWeight: 'normal',
+            fontFamily: 'Microsoft YaHei',
+            fontColor: '#fff',
+            textAlign: 'left',
+            textBaseline: 'middle',
+            labelPointStyle: {
+                show: true, // 是否显示文字旁边的标注点
+                margin: 4, // 标注点距离文字的距离
+                radius: 3, // 标注点半径
+                color: '#0f0' // 标注点颜色，可以是 hexString、rgb、rgba
+            }
+        }
+    },
+    isAreaMutilColor: true,
+    mutiColors: ['#022956', '#022956', '#2B95E5', '#107AE0'],
+    areaMaterial: { // 面材质配置
+        color: '#1C1F3B'
+    },
+    extrudeMaterial: {
+        color: '#0086FF',
+        opacity: 1,
+        textureSrc: '/static/images/dark_edge.png'
+    },
+    outline: {
+        normal: {
+            show: true,
+            color: '#0086ff',
+            width: 3,
+            opacity: 1
+        }
+    }
+};
+
+/***/ }),
+
+/***/ "./js/theme/defaultDark.js":
+/*!*********************************!*\
+  !*** ./js/theme/defaultDark.js ***!
+  \*********************************/
+/*! exports provided: mapOptions, geojsonLayerOptions */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "mapOptions", function() { return mapOptions; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "geojsonLayerOptions", function() { return geojsonLayerOptions; });
+const mapOptions = {
+    bgColor: null,
+    light: {
+        main: {
+            color: '#E6E8EA',
+            intensity: 0.8
+        },
+        ambient: {
+            color: '#E6E8EA',
+            intensity: 0.6
+        }
+    },
+    bloom: {
+        show: false
+    }
+};
+
+const geojsonLayerOptions = {
+    areaText: {
+        offset: 0.1,
+        textStyle: {
+            fontSize: '10px',
+            fontWeight: 'normal',
+            fontFamily: 'Microsoft YaHei',
+            fontColor: '#fff',
+            textAlign: 'left',
+            textBaseline: 'middle',
+            labelPointStyle: {
+                show: true, // 是否显示文字旁边的标注点
+                margin: 4, // 标注点距离文字的距离
+                radius: 3, // 标注点半径
+                color: '#0f0' // 标注点颜色，可以是 hexString、rgb、rgba
+            }
+        },
+        nullTextStyle: {
+            fontSize: '10px',
+            fontWeight: 'normal',
+            fontFamily: 'Microsoft YaHei',
+            fontColor: '#fff',
+            textAlign: 'left',
+            textBaseline: 'middle',
+            labelPointStyle: {
+                show: true, // 是否显示文字旁边的标注点
+                margin: 4, // 标注点距离文字的距离
+                radius: 3, // 标注点半径
+                color: '#0f0' // 标注点颜色，可以是 hexString、rgb、rgba
+            }
+        }
+    },
+    areaMaterial: { // 面材质配置
+        color: '#142b77'
+    },
+    extrudeMaterial: {
+        color: '#0086FF',
+        opacity: 1,
+        textureSrc: '/static/images/dark_edge.png'
+    },
+    outline: {
+        normal: {
+            show: true,
+            color: '#3ca0f7',
+            width: 3,
+            opacity: 1
+        }
+    }
+};
+
+
+/***/ }),
+
+/***/ "./js/theme/defaultLight.js":
+/*!**********************************!*\
+  !*** ./js/theme/defaultLight.js ***!
+  \**********************************/
+/*! exports provided: mapOptions, geojsonLayerOptions */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "mapOptions", function() { return mapOptions; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "geojsonLayerOptions", function() { return geojsonLayerOptions; });
+const mapOptions = {
+    bgColor: null,
+    light: {
+        main: {
+            color: '#E6E8EA',
+            intensity: 0.8
+        },
+        ambient: {
+            color: '#E6E8EA',
+            intensity: 0.6
+        }
+    },
+    bloom: {
+        show: false
+    }
+};
+
+const geojsonLayerOptions = {
+    areaText: {
+        offset: 0.1,
+        textStyle: {
+            fontSize: '10px',
+            fontWeight: 'normal',
+            fontFamily: 'Microsoft YaHei',
+            fontColor: '#383838',
+            textAlign: 'left',
+            textBaseline: 'middle',
+            labelPointStyle: {
+                show: true, // 是否显示文字旁边的标注点
+                margin: 4, // 标注点距离文字的距离
+                radius: 3, // 标注点半径
+                color: '#0f0' // 标注点颜色，可以是 hexString、rgb、rgba
+            }
+        },
+        nullTextStyle: {
+            fontSize: '10px',
+            fontWeight: 'normal',
+            fontFamily: 'Microsoft YaHei',
+            fontColor: '#383838',
+            textAlign: 'left',
+            textBaseline: 'middle',
+            labelPointStyle: {
+                show: true, // 是否显示文字旁边的标注点
+                margin: 4, // 标注点距离文字的距离
+                radius: 3, // 标注点半径
+                color: '#0f0' // 标注点颜色，可以是 hexString、rgb、rgba
+            }
+        }
+    },
+    areaMaterial: { // 面材质配置
+        color: '#ebf8ff'
+    },
+    extrudeMaterial: {
+        color: '#00a2ff',
+        opacity: 1,
+        textureSrc: '/static/images/light_edge.png'
+    },
+    outline: {
+        normal: {
+            show: true,
+            color: '#0086ff',
+            width: 3,
+            opacity: 0.8
+        }
+    }
+};
+
+
+/***/ }),
+
+/***/ "./js/theme/index.js":
+/*!***************************!*\
+  !*** ./js/theme/index.js ***!
+  \***************************/
+/*! exports provided: defaultDark, defaultLight, dark, light */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _defaultDark__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./defaultDark */ "./js/theme/defaultDark.js");
+/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "defaultDark", function() { return _defaultDark__WEBPACK_IMPORTED_MODULE_0__; });
+/* harmony import */ var _defaultLight__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./defaultLight */ "./js/theme/defaultLight.js");
+/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "defaultLight", function() { return _defaultLight__WEBPACK_IMPORTED_MODULE_1__; });
+/* harmony import */ var _dark__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./dark */ "./js/theme/dark.js");
+/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "dark", function() { return _dark__WEBPACK_IMPORTED_MODULE_2__; });
+/* harmony import */ var _light__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./light */ "./js/theme/light.js");
+/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "light", function() { return _light__WEBPACK_IMPORTED_MODULE_3__; });
+
+
+
+
+
+
+/***/ }),
+
+/***/ "./js/theme/light.js":
+/*!***************************!*\
+  !*** ./js/theme/light.js ***!
+  \***************************/
+/*! exports provided: mapOptions, geojsonLayerOptions */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "mapOptions", function() { return mapOptions; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "geojsonLayerOptions", function() { return geojsonLayerOptions; });
+const mapOptions = {
+    bgColor: null,
+    light: {
+        main: {
+            color: '#E6E8EA',
+            intensity: 0.8
+        },
+        ambient: {
+            color: '#E6E8EA',
+            intensity: 0.6
+        }
+    },
+    bloom: {
+        show: false
+    }
+};
+
+const geojsonLayerOptions = {
+    areaText: {
+        offset: 0.1,
+        textStyle: {
+            fontSize: '10px',
+            fontWeight: 'normal',
+            fontFamily: 'Microsoft YaHei',
+            fontColor: '#383838',
+            textAlign: 'left',
+            textBaseline: 'middle',
+            labelPointStyle: {
+                show: true, // 是否显示文字旁边的标注点
+                margin: 4, // 标注点距离文字的距离
+                radius: 3, // 标注点半径
+                color: '#0f0' // 标注点颜色，可以是 hexString、rgb、rgba
+            }
+        },
+        nullTextStyle: {
+            fontSize: '10px',
+            fontWeight: 'normal',
+            fontFamily: 'Microsoft YaHei',
+            fontColor: '#383838',
+            textAlign: 'left',
+            textBaseline: 'middle',
+            labelPointStyle: {
+                show: true, // 是否显示文字旁边的标注点
+                margin: 4, // 标注点距离文字的距离
+                radius: 3, // 标注点半径
+                color: '#0f0' // 标注点颜色，可以是 hexString、rgb、rgba
+            }
+        }
+    },
+    isAreaMutilColor: true,
+    mutiColors: ['#7EBFF0', '#D1F6FC', '#53A4EA', '#107AE0'],
+    areaMaterial: { // 面材质配置
+        color: '#ebf8ff'
+    },
+    extrudeMaterial: {
+        color: '#00a2ff',
+        opacity: 1,
+        textureSrc: '/static/images/light_edge.png'
+    },
+    outline: {
+        normal: {
+            show: true,
+            color: '#0086ff',
+            width: 3,
+            opacity: 0.8
+        }
+    }
+};
+
 
 /***/ }),
 

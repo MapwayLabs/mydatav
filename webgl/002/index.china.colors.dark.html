@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>3D深色底图</title>
+    <title>3D多色深色底图</title>
     <script src="../../lib/threejs/three.js"></script>
     <script src="../../lib/threejs/js/controls/OrbitControls.js"></script>
     <script src="./dist/threejsmap.js"></script>
@@ -90,8 +90,8 @@
                     exposure: 0.2,
                     bloomStrength: 0.35,
                     bloomThreshold: 0,
-                    bloomRadius: 6.0,
-                    strength: 1.2,
+                    bloomRadius: 1.0,
+                    strength: 1.5,
                     radius: 0.8,
                     threshold: 0.85
                 }
@@ -139,6 +139,8 @@
                         }
                     }
                 },
+                isAreaMutilColor: true,
+                mutiColors: ['#022956', '#022956', '#2B95E5', '#107AE0'],
                 areaMaterial: { // 面材质配置
                     color: '#1C1F3B'
                 },
@@ -153,7 +155,7 @@
                 outline: {
                     normal: {
                         show: true,
-                        color: '#0086ff',
+                        color: '#96B9FF',
                         width: 6,
                         opacity: 1
                     },
@@ -226,6 +228,54 @@
                 };
                 window.barlayer = new TMap.BarLayer(bardata, barOptions, window.geojsonLayer);
                 window.map.addLayer(window.barlayer);
+            });
+            $.getJSON('../../data/flyline.china.json', function (fdata) {
+                const flOptions = {
+                    heightLimit: 10,
+                    lngMaxRange: 90,
+                    lineStyle: {
+                        show: true,
+                        color: '#5092FF',
+                        opacity: 1,
+
+                        width: 1
+                    },
+                    pointStyle: {
+                        show: false,
+                        size: 10,
+                        color: '#0f0',
+                        opacity: 1,
+                        tooltip: true,
+                        hightLight: true,
+                        hightLightColor: '#f00',
+                        pointText: {
+                            show: false,
+                            yoffset: 0,
+                            textStyle: {
+                                fontStyle: 'normal',
+                                fontWeight: 'normal',
+                                fontSize: '10px',
+                                fontFamily: 'Microsoft YaHei',
+                                fontColor: '#f00',
+                                textAlign: 'center',
+                                textBaseline: 'middle'
+                            }
+                        }
+                    },
+                    effect: {
+                        show: true,
+                        segmentNumber: 1,
+                        period: 1, // 尾迹特效的周期
+                        constantSpeed: 10, // 尾迹特效是否是固定速度，设置后忽略period值
+                        trailWidth: 8, // 尾迹宽度
+                        trailLength: 0.05, // 尾迹长度，范围 0-1，为线条长度百分比
+                        trailColor: '#29D8FF', // 尾迹颜色，默认跟线颜色相同
+                        trailOpacity: 1, // 尾迹不透明度，默认跟线相同
+                        // spotIntensity: 1000 // 无效参数
+                    }
+                };
+                let fl = new TMap.FlyLineLayer(fdata, flOptions);
+                map.addLayer(fl);
             });
         });
     </script>

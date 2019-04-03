@@ -191,6 +191,7 @@ export default class BarLayer extends Layer {
             let xlength = x.data.length;
             let i = 0;
             for (; i < xlength; i++) {
+                if (f.geometry == null) break;
                 let ismatch = this.isMatch(x.data[i], f);
                 // 如果匹配到底图
                 if (ismatch) {
