@@ -224,40 +224,46 @@ L.Control.TimePlay = L.Control.extend({
         })();
     },
     drawMap: function(obj) {
-        if (!obj || !this._data.data || !this._data.data.length) return;
         const ctx = this._ctx;
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        if (!obj || !this._data.data || !this._data.data.length) return;
         const percent = obj.time;
         const index = obj.index;
         const pgeo = this._data.pgeo;
         const splines = this._data.splines;
 
-        const currentLen = pgeo[index][2] * percent;
+        // const currentLen = pgeo[index][2] * percent;
         const currentSum = pgeo[index][3];
 
         for (let i = 1; i <= index; i++) {
-            const bzLen = pgeo[i][2];
+            // const bzLen = pgeo[i][2];
             const preAccumalteLen = pgeo[i-1][3];
             const accumalteLen = pgeo[i][3];
             const spline = splines[i-1];
             if (i === index) {
-                {
-                    const bezier = new Bezier(spline.p0.x, spline.p0.y, spline.p1.x, spline.p1.y, spline.p2.x, spline.p2.y);
-                    const point = bezier.get(percent);
-                    if (point) {
-                        const latlng = this._map.layerPointToLatLng(point);
-                        this.updateMarker(latlng, this._data.data[0].name);
-                    }
+                const bezier = new Bezier(spline.p0.x, spline.p0.y, spline.p1.x, spline.p1.y, spline.p2.x, spline.p2.y);
+                const point = bezier.get(percent);
+                const split = bezier.split(percent);
+                // bugfix: 修复长度计算误差导致的点线不同步问题
+                const newspline = {
+                    p0: split.left.points[0],
+                    p1: split.left.points[1],
+                    p2: split.left.points[2]
+                };
+                if (point) {
+                    const latlng = this._map.layerPointToLatLng(point);
+                    this.updateMarker(latlng, this._data.data[0].name);
                 }
-                const lineDash = [currentLen, bzLen-currentLen];
+                // const lineDash = [currentLen, bzLen-currentLen];
                 // bottom
-                this.drawBezierGradientCurve(ctx, spline, null, lineDash, this.options.drawOptions.bottomLine);
+                this.drawBezierGradientCurve(ctx, newspline, null, [], this.options.drawOptions.bottomLine);
                 // top
                 const startColor = this.gradient.getColor(preAccumalteLen / currentSum); 
                 const endColor = this.gradient.getColor(1); 
-                const gradient = ctx.createLinearGradient(spline.p0.x, spline.p0.y, spline.p2.x, spline.p2.y);
+                const gradient = ctx.createLinearGradient(newspline.p0.x, newspline.p0.y, newspline.p2.x, newspline.p2.y);
                 gradient.addColorStop(0, startColor);
                 gradient.addColorStop(1, endColor);
-                this.drawBezierGradientCurve(ctx, spline, gradient, lineDash, this.options.drawOptions.topLine);
+                this.drawBezierGradientCurve(ctx, newspline, gradient, [], this.options.drawOptions.topLine);
             } else {
                 // bottom
                 this.drawBezierGradientCurve(ctx, spline, null, [], this.options.drawOptions.bottomLine);
