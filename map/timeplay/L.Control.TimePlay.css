@@ -1,0 +1,11 @@
+.my-leaflet-control-timeplay {
+    background: white;
+}
+.my-leaflet-control-timeplay .my-leaflet-control-timeplay-playbtn {
+    width: 32px;
+    height: 32px;
+    background: url(./play.svg) center center no-repeat;
+}
+.my-leaflet-control-timeplay .my-leaflet-control-timeplay-playbtn.playing {
+    background: url(./pause.svg) center center no-repeat;
+}
