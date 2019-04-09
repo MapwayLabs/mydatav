@@ -11,34 +11,20 @@
 
 <body>
     <script>
-        function Canvas(container, width, height) {
-            var devicePixelRatio = window.devicePixelRatio || 1;
-
-            this.width = width || 300;
-            this.height = height || 150;
-
-            this.canvas = document.createElement('canvas');
-            this.canvas.width = this.width * devicePixelRatio;
-            this.canvas.height = this.height * devicePixelRatio;
-            this.canvas.style.width = this.width * devicePixelRatio;
-            this.canvas.style.height = this.height * devicePixelRatio;
-
-            container = container || document.body;
-            container.appendChild(this.canvas);
+        var canvas, ctx;
+        function initCanvas(width, height) {
+            canvas = document.createElement('canvas');
+            canvas.width = width || 300;
+            canvas.height = height || 150;
+            document.body.appendChild(canvas);
+            canvas.style.backgroundColor = "#ccc";
+            ctx = canvas.getContext('2d');
+            // const pixelRatio = window.devicePixelRatio;
+            // ctx.scale(pixelRatio, pixelRatio);
         }
-        Canvas.prototype = {
-            constructor: Canvas,
-            getContainer: function () {
-                return this.canvas;
-            },
-            getContext: function () {
-                return this.canvas.getContext('2d');
-            }
-        }
+        initCanvas(500, 500);
 
-        var canvas = new Canvas(document.body, 500, 500);
-        var context = canvas.getContext('2d');
-        context.canvas.style.backgroundColor = "#999";
+        ctx.canvas.style.backgroundColor = "#999";
 
         function animate() {
             requestAnimationFrame(animate);
@@ -81,7 +67,7 @@
             },
             time: 4000
         };
-        drawTail(context, options);
+        drawTail(ctx, options);
     </script>
 </body>
 

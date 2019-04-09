@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="../lib/tween.js-master/src/Tween.js"></script>
+    <script src="../lib/bezier.js"></script>
+    <title>bezier_animation</title>
+</head>
+
+<body>
+    <script>
+        var canvas, ctx;
+        function initCanvas(width, height) {
+            canvas = document.createElement('canvas');
+            canvas.width = width || 300;
+            canvas.height = height || 150;
+            document.body.appendChild(canvas);
+            canvas.style.backgroundColor = "#ccc";
+            ctx = canvas.getContext('2d');
+        }
+        initCanvas(512, 512);
+
+        const pt0 = [10, 10];
+        const pt1 = [100, 300];
+        const pt2 = [400, 400];
+        const bezier = new Bezier(pt0[0], pt0[1], pt1[0], pt1[1], pt2[0], pt2[1]);
+        const len = bezier.length();
+        function tweenCallback(obj) {
+            const dash = [obj.len, len-obj.len];
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            ctx.beginPath();
+            ctx.moveTo(pt0[0], pt0[1]);
+            ctx.quadraticCurveTo(pt1[0], pt1[1], pt2[0], pt2[1]);
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = "#3bbbee";
+            ctx.setLineDash(dash);
+            ctx.stroke();
+        }
+        var tween = new TWEEN.Tween({len: 0})
+            .to({len: len}, 5000)
+            .onUpdate(tweenCallback)
+            .repeat(Infinity)
+            .start();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            TWEEN.update();
+        }
+        animate();
+    </script>
+</body>
+
+</html>
