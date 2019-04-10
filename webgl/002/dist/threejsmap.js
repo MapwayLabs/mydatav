@@ -606,7 +606,7 @@ class EventEmiter {
 /*!*********************!*\
   !*** ./js/index.js ***!
   \*********************/
-/*! exports provided: ThreeMap, GeoJSONLayer, FlyLineLayer, BarLayer, TextLayer, mapHelper, Util, color, theme */
+/*! exports provided: ThreeMap, GeoJSONLayer, GeoJSONLayer2, FlyLineLayer, BarLayer, TextLayer, mapHelper, Util, color, theme */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -617,24 +617,28 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _layers_geojson_layer__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./layers/geojson-layer */ "./js/layers/geojson-layer.js");
 /* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "GeoJSONLayer", function() { return _layers_geojson_layer__WEBPACK_IMPORTED_MODULE_1__["default"]; });
 
-/* harmony import */ var _layers_flyline_layer__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./layers/flyline-layer */ "./js/layers/flyline-layer.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "FlyLineLayer", function() { return _layers_flyline_layer__WEBPACK_IMPORTED_MODULE_2__["default"]; });
+/* harmony import */ var _layers_geojson_layer2__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./layers/geojson-layer2 */ "./js/layers/geojson-layer2.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "GeoJSONLayer2", function() { return _layers_geojson_layer2__WEBPACK_IMPORTED_MODULE_2__["default"]; });
 
-/* harmony import */ var _layers_bar_layer__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./layers/bar-layer */ "./js/layers/bar-layer.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "BarLayer", function() { return _layers_bar_layer__WEBPACK_IMPORTED_MODULE_3__["default"]; });
+/* harmony import */ var _layers_flyline_layer__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./layers/flyline-layer */ "./js/layers/flyline-layer.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "FlyLineLayer", function() { return _layers_flyline_layer__WEBPACK_IMPORTED_MODULE_3__["default"]; });
 
-/* harmony import */ var _layers_text_layer__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./layers/text-layer */ "./js/layers/text-layer.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "TextLayer", function() { return _layers_text_layer__WEBPACK_IMPORTED_MODULE_4__["default"]; });
+/* harmony import */ var _layers_bar_layer__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./layers/bar-layer */ "./js/layers/bar-layer.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "BarLayer", function() { return _layers_bar_layer__WEBPACK_IMPORTED_MODULE_4__["default"]; });
 
-/* harmony import */ var _maphelper__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./maphelper */ "./js/maphelper.js");
-/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "mapHelper", function() { return _maphelper__WEBPACK_IMPORTED_MODULE_5__; });
-/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./util */ "./js/util.js");
-/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "Util", function() { return _util__WEBPACK_IMPORTED_MODULE_6__; });
-/* harmony import */ var _color__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./color */ "./js/color.js");
-/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "color", function() { return _color__WEBPACK_IMPORTED_MODULE_7__["default"]; });
+/* harmony import */ var _layers_text_layer__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./layers/text-layer */ "./js/layers/text-layer.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "TextLayer", function() { return _layers_text_layer__WEBPACK_IMPORTED_MODULE_5__["default"]; });
 
-/* harmony import */ var _theme_index__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./theme/index */ "./js/theme/index.js");
-/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "theme", function() { return _theme_index__WEBPACK_IMPORTED_MODULE_8__; });
+/* harmony import */ var _maphelper__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./maphelper */ "./js/maphelper.js");
+/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "mapHelper", function() { return _maphelper__WEBPACK_IMPORTED_MODULE_6__; });
+/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./util */ "./js/util.js");
+/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "Util", function() { return _util__WEBPACK_IMPORTED_MODULE_7__; });
+/* harmony import */ var _color__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./color */ "./js/color.js");
+/* harmony reexport (safe) */ __webpack_require__.d(__webpack_exports__, "color", function() { return _color__WEBPACK_IMPORTED_MODULE_8__["default"]; });
+
+/* harmony import */ var _theme_index__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./theme/index */ "./js/theme/index.js");
+/* harmony reexport (module object) */ __webpack_require__.d(__webpack_exports__, "theme", function() { return _theme_index__WEBPACK_IMPORTED_MODULE_9__; });
+
 
 
 
@@ -2114,6 +2118,651 @@ __webpack_require__.r(__webpack_exports__);
 
 // geojson 地图
 class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
+    constructor(data, options) {
+        super(data, options);
+        const defaultOptions = {
+            // 是否自动适配尺寸。如果设置为 true，配置项中的 depth\offset\scale 等尺寸会根据当前行政区来自动适配，用户传入的值就无效了。
+            isAutoResize: true, 
+            // 适配参数，仅当 isAutoResize 设置为 true 时有效。
+            resizeParam: {
+                depth: 1.5,
+                offset: 0,
+                scale1: 22,
+                scale2: 20
+            }, 
+            isExtrude: true, // 是否拉伸面
+            depth: 16, // 拉伸厚度
+            forceBoundsCenter: false, // 地区中心点是否计算成外包矩形中心点
+            // 地区名字
+            areaText: {
+                show: true, // 是否显示【无数据】区域文字，不能控制无数据区域文字
+                offset: 1, // 文字离地面高度
+                isAvoidCollision: true, // 是否避免文字碰撞
+                textStyle: { // 有数据地区的名字样式
+                    show: true, // 是否显示有数据地区文字
+                    scale: 1, // 缩放比例
+                    fontStyle: 'normal',
+                    fontWeight: 'normal',
+                    fontSize: '16px',
+                    fontFamily: 'Microsoft YaHei',
+                    fontColor: '#000',
+                    textAlign: 'center',
+                    textBaseline: 'middle',
+                    maxWidth: 512,
+                    offsetY: 0,
+                    labelPointStyle: {
+                        show: true, // 是否显示文字旁边的标注点
+                        margin: 4, // 标注点距离文字的距离
+                        radius: 6, // 标注点半径
+                        color: '#0f0' // 标注点颜色，可以是 hexString、rgb、rgba
+                    }
+                },
+                nullTextStyle: { // 无数据地区的名字样式
+                    scale: 1, // 缩放比例
+                    fontStyle: 'normal',
+                    fontWeight: 'normal',
+                    fontSize: '16px',
+                    fontFamily: 'Microsoft YaHei',
+                    fontColor: '#000',
+                    textAlign: 'center',
+                    textBaseline: 'middle',
+                    maxWidth: 512,
+                    offsetY: 0,
+                    labelPointStyle: {
+                        show: true, // 是否显示文字旁边的标注点
+                        margin: 4, // 标注点距离文字的距离
+                        radius: 6, // 标注点半径
+                        color: '#0f0' // 标注点颜色，可以是 hexString、rgb、rgba
+                    }
+                }
+            },
+            isAreaMutilColor: false, // 面是否采用不同颜色
+            mutiColors: ['#7EBFF0', '#D1F6FC', '#53A4EA', '#107AE0'],
+            areaMaterial: { // 面材质配置
+                color: 0x00ff00,
+                side: THREE.DoubleSide,
+                opacity: 1
+            },
+            extrudeMaterial: { // 侧面材质,如果为 null，则与面材质相同
+                color:  0x00ff00,
+                opacity: 1,
+                textureSrc: null
+            },
+            hightLight: {
+                show: false,
+                color: '#639fc0'
+            },
+            tooltip: {
+                show: false
+            },
+            outline: {  // 拉伸地图的轮廓
+                normal: {
+                    show: true,
+                    color: 0x999999,
+                    width: 1.5,
+                    opacity: 1
+                },
+                top: {
+                    show: false,
+                    color: 0x00ff00,
+                    width: 1,
+                    opacity: 1
+                },
+                bottom: {
+                    show: false,
+                    color: 0x00ff00,
+                    width: 1,
+                    opacity: 1
+                }
+            }
+        };
+        this.options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](true, defaultOptions, options);
+        this.type = 'geojson';
+        this._initFeatures();
+    }
+    onAdd(map) {
+        _layer__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.onAdd.call(this, map); 
+        this._initBoundsAndCenter();
+        if (this.options.isAutoResize) {
+            this._initResizeOptions();
+        }
+        this._draw();
+        // FIXME: 文字的碰撞计算 worldToScreen 需要等底图绘制完成才能计算准确
+        this.updateLabels();
+        if (this.options.hightLight.show) {
+            this._map.on('mousemove', this._mousemoveEvtHandler, this);
+        }
+        if (this.options.tooltip.show) {
+            this._tooltip = new _tooltip__WEBPACK_IMPORTED_MODULE_4__["default"](this._map.getContainerElement());
+        }
+    }
+    onRemove(map) {
+        _layer__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.onRemove.call(this, map);
+        this._textLayer && this._map.removeLayer(this._textLayer);
+        this._nulltextLayer && this._map.removeLayer(this._nulltextLayer);
+        this._map.off('mousemove', this._mousemoveEvtHandler, this);
+        this._tooltip && this._tooltip.remove();
+        this._tooltip = null;
+    }
+    getBounds() {
+        return this._bounds;
+    }
+    getCenter() {
+        return this._center;
+    }
+    getFeatures() {
+        return this._features || [];
+    }
+    getDepth() {
+        if (this.options.isExtrude) {
+            return this.options.depth;
+        } else {
+            return 0;
+        }
+    }
+    getRatio() {
+        return this._ratio;
+    }
+    createFeatureArray(json) {
+        var feature_array = [];
+        var temp_feature;
+
+        if (json.type == 'Feature') {
+            feature_array.push(json);
+        } else if (json.type == 'FeatureCollection') {
+            for (var feature_num = 0; feature_num < json.features.length; feature_num++) {
+                feature_array.push(json.features[feature_num]);
+            }
+        } else if (json.type == 'GeometryCollection') {
+            for (var geom_num = 0; geom_num < json.geometries.length; geom_num++) {
+                temp_feature = {
+                    geometry: json.geometries[geom_num]
+                }
+                feature_array.push(temp_feature);
+            }
+        } else {
+            throw new Error('The geoJSON is not valid.');
+        }
+        return feature_array;
+    }
+    createCoordinateArray(feature) {
+        //Loop through the coordinates and figure out if the points need interpolation.
+        var temp_array = [];
+        var interpolation_array = [];
+
+        for (var point_num = 0; point_num < feature.length; point_num++) {
+            var point1 = feature[point_num];
+            var point2 = feature[point_num - 1];
+
+            if (point_num > 0) {
+                if (this.needsInterpolation(point2, point1)) {
+                    interpolation_array = [point2, point1];
+                    interpolation_array = this.interpolatePoints(interpolation_array);
+
+                    for (var inter_point_num = 0; inter_point_num < interpolation_array.length; inter_point_num++) {
+                        temp_array.push(interpolation_array[inter_point_num]);
+                    }
+                } else {
+                    temp_array.push(point1);
+                }
+            } else {
+                temp_array.push(point1);
+            }
+        }
+        return temp_array;
+    }
+    needsInterpolation(point2, point1) {
+        //If the distance between two latitude and longitude values is
+        //greater than five degrees, return true.
+        var lon1 = point1[0];
+        var lat1 = point1[1];
+        var lon2 = point2[0];
+        var lat2 = point2[1];
+        var lon_distance = Math.abs(lon1 - lon2);
+        var lat_distance = Math.abs(lat1 - lat2);
+
+        if (lon_distance > 5 || lat_distance > 5) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    interpolatePoints(interpolation_array) {
+        //This function is recursive. It will continue to add midpoints to the
+        //interpolation array until needsInterpolation() returns false.
+        var temp_array = [];
+        var point1, point2;
+
+        for (var point_num = 0; point_num < interpolation_array.length - 1; point_num++) {
+            point1 = interpolation_array[point_num];
+            point2 = interpolation_array[point_num + 1];
+
+            if (this.needsInterpolation(point2, point1)) {
+                temp_array.push(point1);
+                temp_array.push(this.getMidpoint(point1, point2));
+            } else {
+                temp_array.push(point1);
+            }
+        }
+
+        temp_array.push(interpolation_array[interpolation_array.length - 1]);
+
+        if (temp_array.length > interpolation_array.length) {
+            temp_array = this.interpolatePoints(temp_array);
+        } else {
+            return temp_array;
+        }
+        return temp_array;
+    }
+    getMidpoint(point1, point2) {
+        var midpoint_lon = (point1[0] + point2[0]) / 2;
+        var midpoint_lat = (point1[1] + point2[1]) / 2;
+        var midpoint = [midpoint_lon, midpoint_lat];
+
+        return midpoint;
+    }
+    convertCoordinates(coordinateArray) {
+        return coordinateArray.map(lnglat => {
+            let mecatorPoint = _maphelper__WEBPACK_IMPORTED_MODULE_2__["wgs84ToMecator"](lnglat);
+            return mecatorPoint.map(p => p / this._map.options.SCALE_RATIO);
+        });
+    }
+    _initBoundsAndCenter() {
+        let bounds;
+        let mapOptions = this._map.options;
+        if (mapOptions.type === 'plane') {
+            if (mapOptions.region === 'world') {
+                bounds = _maphelper__WEBPACK_IMPORTED_MODULE_2__["getBounds"]('world', mapOptions.crs);
+            } else if (mapOptions.region === 'china') {
+                bounds = _maphelper__WEBPACK_IMPORTED_MODULE_2__["getBounds"]('china', mapOptions.crs);
+            } else {
+                bounds = _maphelper__WEBPACK_IMPORTED_MODULE_2__["getBounds"](this._data, mapOptions.crs);
+            }
+        } else {
+            // sphere
+        }
+        if (bounds) {
+            if (mapOptions.crs === _maphelper__WEBPACK_IMPORTED_MODULE_2__["CRS"].epsg4326) {
+                this._bounds = bounds;
+                this._center = bounds.getCenter();
+            } else {
+                let scale = mapOptions.SCALE_RATIO;
+                this._bounds = bounds.scale(1/scale);
+                this._center = this._bounds.getCenter();
+            }
+        }
+    }
+    _initResizeOptions() {
+        const ratio = this._map.getRatio(this._bounds);
+        const resizeParam = this.options.resizeParam;
+        this.options.depth = resizeParam.depth * ratio;
+        this.options.areaText.offset = resizeParam.offset * ratio;
+        this.options.areaText.textStyle.scale = resizeParam.scale1 * ratio;
+        this.options.areaText.nullTextStyle.scale = resizeParam.scale2 * ratio;
+        this._ratio = ratio;
+    }
+    _initFeatures() {
+        this._features = this.createFeatureArray(this._data);
+    }
+    _draw() {
+        if (this._features == null || !this._features.length) {return;}
+        for (let i = 0, len = this._features.length; i < len; i++) {
+            let feature = this._features[i];
+            let geometry = feature.geometry;
+            let userData = {
+                name: _maphelper__WEBPACK_IMPORTED_MODULE_2__["getNormalizeName"](feature),
+                // color: Util.getRandomColor()
+                color: this.options.mutiColors[ i > (this.options.mutiColors.length - 1) ? i % (this.options.mutiColors.length) : i ] 
+            };
+            let featureGroup = new THREE.Group();
+            this._container.add(featureGroup);
+            if (geometry == null) continue;
+            if (geometry.type == 'Point') {
+
+            } else if (geometry.type == 'MultiPoint') {
+
+            } else if (geometry.type == 'LineString') {
+
+            } else if (geometry.type == 'MultiLineString') {
+
+            } else if (geometry.type == 'Polygon') {
+                for (let segment_num = 0; segment_num < geometry.coordinates.length; segment_num++) {
+                    let coordinate_array = this.createCoordinateArray(geometry.coordinates[segment_num]);
+                    let convert_array = coordinate_array;
+                    if (this._map.options.crs === _maphelper__WEBPACK_IMPORTED_MODULE_2__["CRS"].epsg3857) {
+                        convert_array = this.convertCoordinates(coordinate_array);
+                    }
+                    this.drawPolygon(convert_array, userData, featureGroup);
+                }
+
+            } else if (geometry.type == 'MultiPolygon') {
+                for (let polygon_num = 0; polygon_num < geometry.coordinates.length; polygon_num++) {
+                    for (let segment_num = 0; segment_num < geometry.coordinates[polygon_num].length; segment_num++) {
+                        let coordinate_array = this.createCoordinateArray(geometry.coordinates[polygon_num][segment_num]);
+                        let convert_array = coordinate_array;
+                        if (this._map.options.crs === _maphelper__WEBPACK_IMPORTED_MODULE_2__["CRS"].epsg3857) {
+                            convert_array = this.convertCoordinates(coordinate_array);
+                        }
+                        this.drawPolygon(convert_array, userData, featureGroup);
+                    }
+                }
+            } else {
+                throw new Error('The geoJSON is not valid.');
+            }
+        }
+    }
+    _mousemoveEvtHandler(event) {
+        const mapSize = this._map.getContainerSize();
+        const camera = this._map.getCamera();
+        const sx = event.offsetX; 
+        const sy = event.offsetY;
+        const cx = event.clientX;
+        const cy = event.clientY;
+        //屏幕坐标转标准设备坐标
+        const x = (sx / mapSize.width) * 2 - 1; 
+        const y = -(sy / mapSize.height) * 2 + 1;
+        //标准设备坐标
+        const standardVector = new THREE.Vector3(x, y, 0.5); 
+        //标准设备坐标转世界坐标
+        const worldVector = standardVector.unproject(camera);
+        //射线投射方向单位向量(worldVector坐标减相机位置坐标)
+        const ray = worldVector.sub(camera.position).normalize();
+        //创建射线投射器对象
+        const raycaster = new THREE.Raycaster(camera.position, ray);
+        //返回射线选中的对象
+        const intersects = raycaster.intersectObjects(this._container.children, true);
+      
+        // 避免连续选中
+        if (this._currentSelectGroup) {
+            this._currentSelectGroup.children.forEach(obj => {
+                obj.material.color = obj.userData.oldColor;
+            });
+            this._currentSelectGroup = null;
+            this._tooltip && this._tooltip.close();
+        }
+
+        for (var i = 0; i < intersects.length; i++) {
+            let object = intersects[i].object;
+            let udata = object.userData;
+            if (udata && udata.type === 'area') { 
+                this._currentSelectGroup = object.parent;
+                this._currentSelectGroup.children.forEach(obj => {
+                    obj.userData.oldColor = obj.material.color;
+                    obj.material.color = new THREE.Color(this.options.hightLight.color);
+                });
+                let content = `${udata['name']}`;
+                this._tooltip && this._tooltip.open(sx, sy, content);
+                break;
+            }
+        }
+        if (i === intersects.length) {
+            if (this._currentSelectGroup) {
+                this._currentSelectGroup.children.forEach(obj => {
+                    obj.material.color = obj.userData.oldColor;
+                });
+                this._currentSelectGroup = null;
+                this._tooltip && this._tooltip.close();
+            }
+        }
+    }
+    updateLabels(barLayer, filterText = []) {
+        if (this._features == null || !this._features.length) {return;}
+        let barWidth = 0;
+        if (barLayer) {
+            barWidth = barLayer.options.barStyle.width;
+        }
+        let textData = [];
+        let nullTextData = [];
+        let forceBoundsCenter = this.options.forceBoundsCenter;
+        // if (this._map.options.region === 'china' || this._map.options.region === 'world') {
+        //     forceBoundsCenter = false;
+        // }
+
+        for (let i = 0, len = this._features.length; i < len; i++) {
+            let f = this._features[i];
+            let yoffset = this.getDepth();
+            let tempobj = {};
+            let name = _maphelper__WEBPACK_IMPORTED_MODULE_2__["getNormalizeName"](f);
+            let center = _maphelper__WEBPACK_IMPORTED_MODULE_2__["getNormalizeCenter"](f, forceBoundsCenter);
+            if (center == null || !Array.isArray(center)) {
+                continue; // geometry 为null时得不到center
+            }
+            // FIXME: 采用简单粗暴方法避免文字覆盖
+            // tempobj.textAlign = 'left';
+            // if (new RegExp(name).test('香港')) {
+            //     tempobj.textAlign = 'left'
+            // } else if (new RegExp(name).test('澳门')) {
+            //     tempobj.textAlign = 'right'
+            // } else if (new RegExp(name).test('广东')) {
+            //     tempobj.textBaseline = 'bottom'
+            // } else if (new RegExp(name).test('北京')) {
+            //     tempobj.textAlign = 'right'
+            // } else if (new RegExp(name).test('天津')) {
+            //     tempobj.textAlign = 'left'
+            // }
+            tempobj.text = name;
+            tempobj.center = center;
+            tempobj.center[1] += barWidth*2; // TODO: 避免文字覆盖柱子
+            tempobj.altitude = yoffset + this.options.areaText.offset;
+            if (f.hasBarData) {
+                textData.push(tempobj);
+            } else {
+                let isFilter = filterText.indexOf(tempobj.text) !== -1;
+                if (!isFilter) {
+                    nullTextData.push(tempobj);
+                }
+            }  
+        }
+        const textOptions = {
+            isAvoidCollision: this.options.areaText.isAvoidCollision,
+            textStyle: this.options.areaText.textStyle
+        };
+        const nullTextOptions = {
+            isAvoidCollision: this.options.areaText.isAvoidCollision,
+            textStyle: this.options.areaText.nullTextStyle
+        };
+        if (this.options.areaText.textStyle.show) {
+            if (this._textLayer) {
+                this._textLayer.update(textData);
+            } else {
+                this._textLayer = new _text_layer__WEBPACK_IMPORTED_MODULE_3__["default"](textData, textOptions);
+                this._map.addLayer(this._textLayer);
+            }
+        }
+        if (this.options.areaText.show) {
+            if (this._nulltextLayer) {
+                this._nulltextLayer.update(nullTextData);
+            } else {
+                this._nulltextLayer = new _text_layer__WEBPACK_IMPORTED_MODULE_3__["default"](nullTextData, nullTextOptions);
+                this._map.addLayer(this._nulltextLayer);
+            }
+        }
+    }
+    drawOutLine(points, mesh, lineOptions) {
+        // 画轮廓线
+        // 因为面是画在xy平面的，然后通过旋转而来，为了保持一致，轮廓线也绘制在xy平面，这样变换就能与面同步
+        let line_geom = new THREE.Geometry();
+        for (let i = 0, len=points.length; i < len ; i++) {
+            line_geom.vertices.push(new THREE.Vector3(points[i][0], points[i][1], 0));
+        }
+        let options = {
+            color: lineOptions.color,
+            linewidth: lineOptions.width
+        };
+        let line_material = new THREE.LineBasicMaterial(options);
+        if (lineOptions.opacity > 0) {
+            line_material.transparent = true;
+            line_material.opacity = lineOptions.opacity;
+        }
+        let line = new THREE.Line(line_geom, line_material);
+        if (lineOptions.offset) {
+            line.translateZ(lineOptions.offset);
+        }
+        // line.renderOrder = 80;
+        // line.material.depthTest = false;
+        mesh.add(line);
+    }
+    drawOutLine2(points, mesh, options) {
+        const size = this._map.getContainerSize();
+
+        points = points.map(pt => new THREE.Vector3(pt[0], pt[1], 0));
+
+        const geometry = new THREE.Geometry().setFromPoints( points );
+        
+        const line = new _custom_meshline__WEBPACK_IMPORTED_MODULE_5__["MeshLine"]();
+        line.setGeometry(geometry);
+
+        const resolution = new THREE.Vector2(size.width, size.height);
+        const lineColor = new THREE.Color(options.color);
+        const opacity = options.opacity;
+        const linewidth = options.width;
+        const shaderMaterial = new _custom_meshline__WEBPACK_IMPORTED_MODULE_5__["MeshLineMaterial"]({
+            resolution: resolution,
+            color: lineColor,
+            opacity: opacity,
+            sizeAttenuation: false,
+            lineWidth: linewidth
+        });
+
+        const lineMesh = new THREE.Mesh(line.geometry, shaderMaterial);
+        if (options.offset) {
+            lineMesh.translateZ(options.offset);
+        }
+        // lineMesh.renderOrder = 80;
+        // lineMesh.material.depthTest = false;
+        mesh.add(lineMesh);
+    }
+    createGeometry(points) {
+        const shape = new THREE.Shape();
+        for (let i = 0; i < points.length; i++) {
+            let point = points[i];
+            if (i === 0) {
+                shape.moveTo(point[0], point[1]);
+            } else {
+                shape.lineTo(point[0], point[1]);
+            }
+        }
+        shape.closePath();  
+        
+        let geometry;
+        if (this.options.isExtrude) {
+            let extrudeSettings = {
+                depth: this.options.depth, 
+                bevelEnabled: false   // 是否用斜角
+            };
+            geometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings);
+        } else {
+            geometry = new THREE.ShapeBufferGeometry(shape);
+        }
+        return geometry;
+    }
+    drawPolygon(points, userData, container) {
+
+        let geometry, material;
+        let areaMaterialOptions = this.options.areaMaterial;
+        if (this.options.isAreaMutilColor) {
+            areaMaterialOptions.color = userData.color;
+        }
+
+        geometry = this.createGeometry(points);
+
+        if (this.options.isExtrude) {
+            // 拉伸
+            // let extrudeSettings = {
+            //     depth: this.options.depth, 
+            //     bevelEnabled: false   // 是否用斜角
+            // };
+            // geometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings);
+            let material1 = new THREE.MeshPhongMaterial(areaMaterialOptions);
+            if (areaMaterialOptions.opacity < 1) {
+                material1.transparent = true;
+                material1.opacity = areaMaterialOptions.opacity;
+            }
+            if (this.options.extrudeMaterial) {
+                let texture;
+                if (this.options.extrudeMaterial.textureSrc) {
+                    texture = new THREE.TextureLoader().load(this.options.extrudeMaterial.textureSrc);
+                    texture.center = new THREE.Vector2(0.5, 0.5);
+                    texture.rotation = Math.PI;
+                }
+                let material2 = new THREE.MeshPhongMaterial({
+                    map: texture ? texture : null,
+                    color: texture ? 0xffffff : this.options.extrudeMaterial.color
+                });
+                if (this.options.extrudeMaterial.opacity < 1) {
+                    material2.transparent = true;
+                    material2.opacity = this.options.extrudeMaterial.opacity;
+                }
+                material = [material1, material2];
+            } else {
+                material = material1;
+            }
+        } else {
+            // 不拉伸
+            // geometry = new THREE.ShapeBufferGeometry(shape);
+            material = new THREE.MeshBasicMaterial(areaMaterialOptions);
+            if (areaMaterialOptions.opacity < 1) {
+                material.transparent = true;
+                material.opacity = areaMaterialOptions.opacity;
+            }
+        }
+        
+        let mesh = new THREE.Mesh(geometry, material);
+
+        // 画线
+        let options = {
+            offset: this.options.isExtrude ? this.options.depth : 0
+        };
+        if (this.options.outline.normal.show) {
+            options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](options, this.options.outline.normal);
+            if (options.width <= 1) {
+                this.drawOutLine(points, mesh, options);
+            } else {
+                this.drawOutLine2(points, mesh, options);
+            }
+        }
+        if (this.options.outline.top.show) {
+            options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](options, this.options.outline.top);
+            this.drawOutLine2(points, mesh, options);
+        }
+        if (this.options.outline.bottom.show) {
+            options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](options, this.options.outline.bottom);
+            options.offset = 0;
+            this.drawOutLine2(points, mesh, options);
+        }
+
+        mesh.rotateX(-Math.PI/2);
+        mesh.userData = _util__WEBPACK_IMPORTED_MODULE_1__["extend"]({type: 'area'}, userData);
+        container.add(mesh);
+    }
+}
+
+/***/ }),
+
+/***/ "./js/layers/geojson-layer2.js":
+/*!*************************************!*\
+  !*** ./js/layers/geojson-layer2.js ***!
+  \*************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return GeoJSONLayer2; });
+/* harmony import */ var _layer__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./layer */ "./js/layers/layer.js");
+/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../util */ "./js/util.js");
+/* harmony import */ var _maphelper__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../maphelper */ "./js/maphelper.js");
+/* harmony import */ var _text_layer__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./text-layer */ "./js/layers/text-layer.js");
+/* harmony import */ var _tooltip__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../tooltip */ "./js/tooltip.js");
+/* harmony import */ var _custom_meshline__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./custom-meshline */ "./js/layers/custom-meshline.js");
+
+
+
+
+
+
+// geojson 地图
+class GeoJSONLayer2 extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
     constructor(data, options) {
         super(data, options);
         const defaultOptions = {

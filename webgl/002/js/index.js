@@ -1,6 +1,7 @@
 export {default as ThreeMap} from './three-map';
 
 export {default as GeoJSONLayer} from './layers/geojson-layer';
+export {default as GeoJSONLayer2} from './layers/geojson-layer2';
 
 export {default as FlyLineLayer} from './layers/flyline-layer';
 
