@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>d3-geo</title>
+    <script src="../lib/jquery.min.js"></script>
+    <script src="../lib/d3/d3.js"></script>
+    <script src="../lib/d3-geo/d3-geo.js"></script>
+</head>
+
+<body>
+    <svg id="svg"></svg>
+    <script>
+        function getJsonCompleteHandler(data) {
+            const width = 1024;
+            const height = 600;
+            const projection = d3.geoMercator()
+                .scale(550)
+                .center([105, 38])
+                .translate([width/2, height/2]);
+            const path = d3.geoPath(projection);
+            const colors = d3.scaleOrdinal(d3.schemeBrBG[11]);
+            const svg = d3.select("#svg")
+                .attr('width', width)
+                .attr('height', height);
+            svg.selectAll('path')
+               .data(data.features)
+               .enter()
+               .append('path')
+               .attr('d', path)
+               .attr('fill', function(d, i){
+                   return colors(i);
+               })
+               .attr('stroke', 'rgba(255,255,255,1)')
+               .attr('stroke-width', 1);
+        }
+        $.getJSON('../data/china_province.json', getJsonCompleteHandler);
+    </script>
+</body>
+
+</html>
