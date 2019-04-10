@@ -1,3 +1,9 @@
+---
+presentation:
+  theme: black.css
+  width: 1024
+  height: 1200
+---
 
 <!-- slide -->
 
@@ -17,19 +23,19 @@ bezier 曲线是法国工程师为雷诺公司车身设计而开发的。
 
 控制点：2
 
-![bezier1](./bezier1.png)
+![bezier1](./bezier1.gif)
 
 #### 二阶 bezier
 
 控制点：3
 
-![bezier2](./bezier2.png)
+![bezier2](./bezier2.gif)
 
 #### 三阶 bezier
 
 控制点：4
 
-![bezier3](./bezier3.png)
+![bezier3](./bezier3.gif)
 
 <!-- slide -->
 
@@ -68,14 +74,28 @@ bezier 曲线是法国工程师为雷诺公司车身设计而开发的。
 6. 取下一个 t 值，重复步骤 3，直到 t 为 1，这时就得到 bezier 曲线上所有点，连接这些点就构成 bezier 曲线。
 
 <!-- slide -->
-
-![bezier_t](./bezier_t.png)
-
-[此篇文章有详细介绍](https://www.w3cplus.com/canvas/drawing-curve.html)
-
+![1](./step1.png)
+<!-- slide -->
+![2](./step2.png)
+<!-- slide -->
+![3](./step3.png)
+<!-- slide -->
+![4](./step4.png)
+<!-- slide -->
+![5](./step5.png)
+<!-- slide -->
+![6](./step6.png)
+<!-- slide -->
+![7](./step7.png)
+<!-- slide -->
+![8](./step8.png)
+<!-- slide -->
+![9](./step9.png)
 <!-- slide -->
 
-对于 四个 控制点，步骤一样。
+[演示示例](http://192.168.8.159:8081/playground.html)
+
+<!-- slide -->
 
 对于 N 个控制点，步骤：
 
@@ -90,16 +110,16 @@ bezier 曲线是法国工程师为雷诺公司车身设计而开发的。
 ### 数学公式
 
 * 一阶 bezier
-
 ![bformula1](./bformula1.png)
 
 * 二阶 bezier
-
 ![bformula2](./bformula2.png)
 
 * 三阶 bezier
-
 ![bformula3](./bformula3.png)
+
+* n阶 bezier
+![bformulan](./bformulan.png)
 
 <!-- slide -->
 
