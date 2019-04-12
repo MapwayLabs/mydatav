@@ -39,17 +39,24 @@ bezier 曲线是法国工程师为雷诺公司车身设计而开发的。
 
 <!-- slide -->
 
-结论：
+<p class="codepen" data-height="500" data-theme-id="0" data-default-tab="js,result" data-user="tholman" data-slug-hash="foxtn" style="height: 500px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 2px solid black; margin: 1em 0; padding: 1em;" data-pen-title="Bezier Sim">
+  <span>See the Pen <a href="https://codepen.io/tholman/pen/foxtn/">
+  Bezier Sim</a> by Tim Holman (<a href="https://codepen.io/tholman">@tholman</a>)
+  on <a href="https://codepen.io">CodePen</a>.</span>
+</p>
+<script async src="https://static.codepen.io/assets/embed/ei.js"></script>
+
+<!-- slide -->
+
+特点：
 
 1. 并不是所有控制点都在 bezier 曲线上
 
 2. bezier 曲线的阶数等于控制点数减1
 
-3. 曲线总在控制点组成的最小凸多边形内部
+3. 曲线总在控制点组成的[最小凸多边形](https://cloud.tencent.com/developer/information/%E6%9C%80%E5%B0%8F%E5%87%B8%E5%A4%9A%E8%BE%B9%E5%BD%A2%E7%AE%97%E6%B3%95)内部（用于优化图形相交检测）
 
 ![bezier3-e](./bezier3-e.png)
-
-> 用于优化图形相交检测
 
 <!-- slide -->
 
@@ -118,18 +125,18 @@ bezier 曲线是法国工程师为雷诺公司车身设计而开发的。
 * 三阶 bezier
 ![bformula3](./bformula3.png)
 
-* n阶 bezier
+* n阶 bezier(多项式展开式)
 ![bformulan](./bformulan.png)
 
 <!-- slide -->
 
-## bezier 曲线在前端的应用
+## bezier 曲线的应用
 
 <!-- slide -->
 
 ### 绘制优美的曲线
 
-<p class="codepen" data-height="265" data-theme-id="0" data-default-tab="js,result" data-user="linghuam" data-slug-hash="VNLMeg" style="height: 265px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 2px solid black; margin: 1em 0; padding: 1em;" data-pen-title="Canvas: 绘制心形">
+<p class="codepen" data-height="500" data-theme-id="0" data-default-tab="js,result" data-user="linghuam" data-slug-hash="VNLMeg" style="height: 500px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 2px solid black; margin: 1em 0; padding: 1em;" data-pen-title="Canvas: 绘制心形">
   <span>See the Pen <a href="https://codepen.io/linghuam/pen/VNLMeg/">
   Canvas: 绘制心形</a> by linghuam (<a href="https://codepen.io/linghuam">@linghuam</a>)
   on <a href="https://codepen.io">CodePen</a>.</span>
@@ -138,19 +145,61 @@ bezier 曲线是法国工程师为雷诺公司车身设计而开发的。
 
 <!-- slide -->
 
-### 制作不同动效的动画
+### 绘制路径文字(来自[codepen](https://codepen.io/))
 
-* css `transition-timing-function` 属性
-
-<p class="codepen" data-height="265" data-theme-id="0" data-default-tab="js,result" data-user="linghuam" data-slug-hash="dLoOWL" style="height: 265px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 2px solid black; margin: 1em 0; padding: 1em;" data-pen-title="css动画-transition">
-  <span>See the Pen <a href="https://codepen.io/linghuam/pen/dLoOWL/">
-  css动画-transition</a> by linghuam (<a href="https://codepen.io/linghuam">@linghuam</a>)
+<p class="codepen" data-height="500" data-theme-id="0" data-default-tab="js,result" data-user="linghuam" data-slug-hash="BEZLgg" style="height: 500px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 2px solid black; margin: 1em 0; padding: 1em;" data-pen-title="SVG text on an interactive bezier path.">
+  <span>See the Pen <a href="https://codepen.io/linghuam/pen/BEZLgg/">
+  SVG text on an interactive bezier path.</a> by linghuam (<a href="https://codepen.io/linghuam">@linghuam</a>)
   on <a href="https://codepen.io">CodePen</a>.</span>
 </p>
 <script async src="https://static.codepen.io/assets/embed/ei.js"></script>
 
 <!-- slide -->
 
+### 艺术效果(来自[codepen](https://codepen.io/))
+
+<p class="codepen" data-height="500" data-theme-id="0" data-default-tab="js,result" data-user="loktar00" data-slug-hash="tbgDv" style="height: 500px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 2px solid black; margin: 1em 0; padding: 1em;" data-pen-title="Bezier curve art">
+  <span>See the Pen <a href="https://codepen.io/loktar00/pen/tbgDv/">
+  Bezier curve art</a> by Loktar (<a href="https://codepen.io/loktar00">@loktar00</a>)
+  on <a href="https://codepen.io">CodePen</a>.</span>
+</p>
+<script async src="https://static.codepen.io/assets/embed/ei.js"></script>
+
+<!-- slide -->
+
+### 制作不同动效的动画
+
+* css `transition-timing-function` 和 `animation-timing-function` 属性(来自[codepen](https://codepen.io/))
+
+<p class="codepen" data-height="500" data-theme-id="0" data-default-tab="js,result" data-user="jamiejefferson" data-slug-hash="sFDBe" style="height: 500px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 2px solid black; margin: 1em 0; padding: 1em;" data-pen-title="Adding bezier curve eases to GSAP">
+  <span>See the Pen <a href="https://codepen.io/jamiejefferson/pen/sFDBe/">
+  Adding bezier curve eases to GSAP</a> by Jamie Jefferson (<a href="https://codepen.io/jamiejefferson">@jamiejefferson</a>)
+  on <a href="https://codepen.io">CodePen</a>.</span>
+</p>
+<script async src="https://static.codepen.io/assets/embed/ei.js"></script>
+
+<!-- slide -->
+
+### 旋转动画
+
+<p class="codepen" data-height="500" data-theme-id="0" data-default-tab="css,result" data-user="linghuam" data-slug-hash="GLJEME" style="height: 500px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 2px solid black; margin: 1em 0; padding: 1em;" data-pen-title="css动画-animation">
+  <span>See the Pen <a href="https://codepen.io/linghuam/pen/GLJEME/">
+  css动画-animation</a> by linghuam (<a href="https://codepen.io/linghuam">@linghuam</a>)
+  on <a href="https://codepen.io">CodePen</a>.</span>
+</p>
+<script async src="https://static.codepen.io/assets/embed/ei.js"></script>
+
+<!-- slide -->
+### js 动画
+
+<p class="codepen" data-height="500" data-theme-id="0" data-default-tab="js,result" data-user="linghuam" data-slug-hash="zXGzQv" style="height: 500px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 2px solid black; margin: 1em 0; padding: 1em;" data-pen-title="tween-example">
+  <span>See the Pen <a href="https://codepen.io/linghuam/pen/zXGzQv/">
+  tween-example</a> by linghuam (<a href="https://codepen.io/linghuam">@linghuam</a>)
+  on <a href="https://codepen.io">CodePen</a>.</span>
+</p>
+<script async src="https://static.codepen.io/assets/embed/ei.js"></script>
+
+<!-- slide -->
 缓动函数
 ![linear](./linear.png)
 ![ease](./ease.png)
@@ -160,27 +209,18 @@ bezier 曲线是法国工程师为雷诺公司车身设计而开发的。
 
 <!-- slide -->
 
-* css `animation-timing-function` 属性
+### 酷炫效果(来自[codepen](https://codepen.io/))
 
-<p class="codepen" data-height="265" data-theme-id="0" data-default-tab="css,result" data-user="linghuam" data-slug-hash="GLJEME" style="height: 265px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 2px solid black; margin: 1em 0; padding: 1em;" data-pen-title="css动画-animation">
-  <span>See the Pen <a href="https://codepen.io/linghuam/pen/GLJEME/">
-  css动画-animation</a> by linghuam (<a href="https://codepen.io/linghuam">@linghuam</a>)
+<p class="codepen" data-height="500" data-theme-id="0" data-default-tab="js,result" data-user="kryo2k" data-slug-hash="yNjdZb" style="height: 500px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 2px solid black; margin: 1em 0; padding: 1em;" data-pen-title="Bezier Curves">
+  <span>See the Pen <a href="https://codepen.io/kryo2k/pen/yNjdZb/">
+  Bezier Curves</a> by kryo (<a href="https://codepen.io/kryo2k">@kryo2k</a>)
   on <a href="https://codepen.io">CodePen</a>.</span>
 </p>
 <script async src="https://static.codepen.io/assets/embed/ei.js"></script>
 
 <!-- slide -->
 
-* TWEEN.js `TWEEN.Easing` 函数
-
-* [时序图示例](http://192.168.8.159:8080/map/timeplay/)
-
-<p class="codepen" data-height="265" data-theme-id="0" data-default-tab="js,result" data-user="linghuam" data-slug-hash="zXGzQv" style="height: 265px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 2px solid black; margin: 1em 0; padding: 1em;" data-pen-title="tween-example">
-  <span>See the Pen <a href="https://codepen.io/linghuam/pen/zXGzQv/">
-  tween-example</a> by linghuam (<a href="https://codepen.io/linghuam">@linghuam</a>)
-  on <a href="https://codepen.io">CodePen</a>.</span>
-</p>
-<script async src="https://static.codepen.io/assets/embed/ei.js"></script>
+[时序图示例](http://192.168.8.159:8080/map/timeplay/)
 
 <!-- slide -->
 
