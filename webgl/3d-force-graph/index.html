@@ -1,12 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>3d-force-graph</title>
+    <script src="../../lib/threejs/three.js"></script>
+    <script src="./3d-force-graph-1.45.6/dist/3d-force-graph.js"></script>
+    <style>
+        body {
+            margin: 0;
+        }
+    </style>
 </head>
+
 <body>
-    
+    <div id="3d-graph"></div>
+
+    <script>
+        // Random tree
+        const N = 300;
+        const gData = {
+            nodes: [...Array(N).keys()].map(i => ({
+                id: i
+            })),
+            links: [...Array(N).keys()]
+                .filter(id => id)
+                .map(id => ({
+                    source: id,
+                    target: Math.round(Math.random() * (id - 1))
+                }))
+        };
+
+        const Graph = ForceGraph3D()
+            (document.getElementById('3d-graph'))
+            .graphData(gData);
+        Graph.forceEngine('d3');
+        // Graph.forceEngine('ngraph');
+        Graph.enableNodeDrag(true);
+        // Graph.cooldownTicks(0);
+        Graph.cooldownTime(500);
+        Graph.numDimensions(3);
+        Graph.nodeRelSize(10);
+        Graph.linkWidth(1);
+        Graph.linkDirectionalArrowLength(15);
+        Graph.linkDirectionalArrowRelPos(1);
+        Graph.linkCurvature(1);
+    </script>
 </body>
+
 </html>

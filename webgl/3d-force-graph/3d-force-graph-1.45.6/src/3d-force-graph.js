@@ -252,13 +252,15 @@ export default Kapsule({
           const initPos = node.__initialFixedPos;
 
           if (initPos) {
-            ['x', 'y', 'z'].forEach(c => {
-              const fc = `f${c}`;
-              if (initPos[fc] === undefined) {
-                node[fc] = undefined
-              }
-            });
-            delete(node.__initialFixedPos);
+            // NOTE: 控制节点是否自动布局
+            // 官方解释: To unfix a node that was previously fixed, set node.fx, node.fy and node.fz to null, or delete these properties.
+            // ['x', 'y', 'z'].forEach(c => {
+            //   const fc = `f${c}`;
+            //   if (initPos[fc] === undefined) {
+            //     node[fc] = undefined
+            //   }
+            // });
+            // delete(node.__initialFixedPos);
 
             state.onNodeDragEnd(node);
           }
