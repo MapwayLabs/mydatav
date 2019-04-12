@@ -93,7 +93,7 @@ bezier 曲线是法国工程师为雷诺公司车身设计而开发的。
 ![9](./step9.png)
 <!-- slide -->
 
-[演示示例](http://192.168.8.159:8081/playground.html)
+[演示示例](http://192.168.8.159:8080/docs/bezier/bezierMaker.js/example/playground.html)
 
 <!-- slide -->
 
@@ -172,6 +172,8 @@ bezier 曲线是法国工程师为雷诺公司车身设计而开发的。
 <!-- slide -->
 
 * TWEEN.js `TWEEN.Easing` 函数
+
+* [时序图示例](http://192.168.8.159:8080/map/timeplay/)
 
 <p class="codepen" data-height="265" data-theme-id="0" data-default-tab="js,result" data-user="linghuam" data-slug-hash="zXGzQv" style="height: 265px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 2px solid black; margin: 1em 0; padding: 1em;" data-pen-title="tween-example">
   <span>See the Pen <a href="https://codepen.io/linghuam/pen/zXGzQv/">
