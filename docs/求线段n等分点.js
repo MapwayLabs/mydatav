@@ -1,4 +1,4 @@
-// 用向量理解
+// 用向量理解，共线向量倍数关系
 // |AC| = t|AB|
 function partN (a, b, t) {
     return {
