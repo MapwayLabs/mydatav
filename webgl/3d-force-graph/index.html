@@ -33,7 +33,9 @@
                 }))
         };
 
-        const Graph = ForceGraph3D()
+        const Graph = ForceGraph3D({
+            controlType: 'orbit'
+        })
             (document.getElementById('3d-graph'))
             .graphData(gData);
         Graph.forceEngine('d3');
@@ -47,6 +49,7 @@
         Graph.linkDirectionalArrowLength(15);
         Graph.linkDirectionalArrowRelPos(1);
         Graph.linkCurvature(1);
+        const orbitControl = Graph.controls();
     </script>
 </body>
 
