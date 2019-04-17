@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>drawImage</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <script>    
+        var canvas, ctx, canvasSize;
+        function initCanvas(width, height) {
+            canvas = document.createElement('canvas');
+            canvas.width = width || 300;
+            canvas.height = height || 150;
+            document.body.appendChild(canvas);
+            canvas.style.backgroundColor = "#ccc";
+            ctx = canvas.getContext('2d');
+        }
+        canvasSize = 512
+        initCanvas(canvasSize, canvasSize);
+        
+        function drawImage(url) {
+            const img = new Image();
+            const dpr = window.devicePixelRatio || 1;
+            img.onload = function() {
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(canvasSize/2, canvasSize/2, canvasSize/2, 0, 2 * Math.PI);
+                ctx.clip();
+                if (img.width <= canvasSize/2 && img.height <= canvasSize/2) {
+                    ctx.drawImage(img, canvasSize/2-img.width/2, canvasSize/2-img.height/2);
+                } else {
+                    // 让图片保持原始比例 
+                    // refer to: https://www.canvasapi.cn/CanvasRenderingContext2D/drawImage#&examples
+                    const ratio = canvasSize / canvasSize;
+                    const sWidth = img.width;
+                    const sHeight = ratio * sWidth;
+                    const sx = 0;
+                    const sy = (img.height - sHeight) / 2;
+                    ctx.drawImage(img, sx, sy, sWidth, sHeight, 0, 0, canvasSize, canvasSize);
+                }
+                ctx.restore();
+            };
+            img.src = url;
+        }
+        drawImage("../images/kg1.png");
+    </script>
+</body>
+
+</html>
