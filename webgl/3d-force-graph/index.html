@@ -7,6 +7,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>3d-force-graph</title>
     <script src="../../lib/threejs/three.js"></script>
+    <script src="../../lib/d3/d3.js"></script>
     <script src="./3d-force-graph-1.45.6/dist/3d-force-graph.js"></script>
     <style>
         body {
@@ -20,7 +21,7 @@
 
     <script>
         // Random tree
-        const N = 300;
+        const N = 100;
         const gData = {
             nodes: [...Array(N).keys()].map(i => ({
                 id: i
@@ -37,19 +38,44 @@
             controlType: 'orbit'
         })
             (document.getElementById('3d-graph'))
-            .graphData(gData);
-        Graph.forceEngine('d3');
-        // Graph.forceEngine('ngraph');
-        Graph.enableNodeDrag(true);
-        // Graph.cooldownTicks(0);
-        Graph.cooldownTime(500);
-        Graph.numDimensions(3);
-        Graph.nodeRelSize(10);
-        Graph.linkWidth(1);
-        Graph.linkDirectionalArrowLength(15);
-        Graph.linkDirectionalArrowRelPos(1);
-        Graph.linkCurvature(1);
-        const orbitControl = Graph.controls();
+            .graphData(gData)
+            .forceEngine('d3')
+        //  .forceEngine('ngraph')
+            .enableNodeDrag(true)
+        //  .cooldownTicks(0)
+            .cooldownTime(500)
+            .numDimensions(3)
+            .nodeRelSize(10)
+            .linkColor(0xFF0000)
+            .linkWidth(1)
+            .linkOpacity(0.4)
+            // .linkMaterial(function() {
+            //     return new THREE.LineBasicMaterial({
+            //         color: 0xFF0000,
+            //         linewidth: 1
+            //     });
+            // })
+            .linkThreeObject(function(link) {
+                const geometry = new THREE.BufferGeometry();
+                const material = new THREE.LineBasicMaterial( { 
+                    color: 0x1F3D7A, 
+                    linewidth: 1, 
+                    linecap: 'round' } );
+                material.transparent = true;
+                material.opacity = 0.5;
+                const positions = [];
+                positions.push(link.source.x, link.source.y, link.source.z);
+                positions.push(link.target.x, link.target.y, link.target.z);
+                geometry.addAttribute( 'position', new THREE.Float32BufferAttribute( positions, 3 ) );
+                return new THREE.Line( geometry, material );
+            })
+            .nodeOpacity(1)
+            .d3Force('collision', d3.forceCollide(20))
+            .d3Force('collision', d3.forceCollide(20))
+        //  .linkDirectionalArrowLength(15)
+        //  .linkDirectionalArrowRelPos(1)
+        //  .linkCurvature(1)
+        // const orbitControl = Graph.controls();
     </script>
 </body>
 
