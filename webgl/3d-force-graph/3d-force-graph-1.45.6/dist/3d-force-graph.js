@@ -58411,7 +58411,7 @@
   var _threeTrackballcontrols_0_0_7_threeTrackballcontrols = TrackballControls = function ( object, domElement ) {
 
   	var _this = this;
-  	var STATE = { NONE: - 1, ROTATE: 0, ZOOM: 1, PAN: 2, TOUCH_ROTATE: 3, TOUCH_ZOOM_PAN: 4 };
+  	var STATE = { NONE: - 1, ROTATE: 2, ZOOM: 1, PAN: 0, TOUCH_ROTATE: 3, TOUCH_ZOOM_PAN: 4 };
 
   	this.object = object;
   	this.domElement = ( domElement !== undefined ) ? domElement : document;
@@ -59909,12 +59909,12 @@
 
   		scope.domElement.addEventListener( 'contextmenu', onContextMenu, false );
 
-  		scope.domElement.addEventListener( 'mousedown', onMouseDown, false );
+  		// scope.domElement.addEventListener( 'mousedown', onMouseDown, false );
   		scope.domElement.addEventListener( 'wheel', onMouseWheel, false );
 
-  		scope.domElement.addEventListener( 'touchstart', onTouchStart, false );
-  		scope.domElement.addEventListener( 'touchend', onTouchEnd, false );
-  		scope.domElement.addEventListener( 'touchmove', onTouchMove, false );
+  		// scope.domElement.addEventListener( 'touchstart', onTouchStart, false );
+  		// scope.domElement.addEventListener( 'touchend', onTouchEnd, false );
+  		// scope.domElement.addEventListener( 'touchmove', onTouchMove, false );
 
   		window.addEventListener( 'keydown', onKeyDown, false );
 
