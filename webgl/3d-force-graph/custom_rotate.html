@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>custom_rotate</title>
+    <script src="../../lib/threejs/three.js"></script>
+    <script src="./SelectHandler.js"></script>
+    <script src="../../lib/tween.js-master/src/Tween.js"></script>
+    <style>
+        #glcanvas {
+            position: absolute;
+            left: 0;
+            top: 0;
+            z-index: 1;
+            background: #000;
+            bottom: 0;
+            right: 0;
+        }
+
+        p {
+            margin: 0;
+            padding: 0;
+        }
+
+        .buttons {
+            position: absolute;
+            z-index: 99;
+            background: white;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="buttons">
+        <p><button onclick="handleUp()">up</button></p>
+        <p><button onclick="handleDown()">down</button></p>
+        <p><button onclick="handleLeft()">left</button></p>
+        <p><button onclick="handleRight()">right</button></p>
+        <p><button onclick="handleRotateLeft()">rotateLeft</button></p>
+        <p><button onclick="handleRotateRight()">rotateRight</button></p>
+        <p><button onclick="handleZoomIn()">zoomIn</button></p>
+        <p><button onclick="handleZoomOut()">zoomOut</button></p>
+    </div>
+    <canvas id="glcanvas"></canvas>
+    <script>
+        // 画布
+        var renderer = new THREE.WebGLRenderer({
+            antialias: true, // 抗锯齿
+            canvas: document.getElementById("glcanvas")
+        });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.domElement.style.backgroundColor = "#000";
+
+        // 场景
+        var scene = new THREE.Scene();
+        var group = new THREE.Group();
+        scene.add(group);
+
+        // 相机
+        var camera = new THREE.PerspectiveCamera(
+            45,
+            window.innerWidth / window.innerHeight,
+            1,
+            1000
+        );
+
+        var dis = (256 / 2) / Math.tan(Math.PI / 8);
+        camera.position.set(128, 195, dis * 1.5);
+        camera.lookAt(128, 0, 0);
+
+        // 灯光
+        scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+
+        // 坐标轴
+        function drawAxis(len) {
+            if (len === undefined) {
+                len = 100;
+            }
+            // x 轴
+            var xline_geom = new THREE.Geometry();
+            xline_geom.vertices.push(new THREE.Vector3(0, 0, 0));
+            xline_geom.vertices.push(new THREE.Vector3(len, 0, 0));
+            var xline_material = new THREE.LineBasicMaterial({
+                color: 0xff0000
+            });
+            var xline = new THREE.Line(xline_geom, xline_material);
+            group.add(xline);
+
+            // y 轴
+            var yline_geom = new THREE.Geometry();
+            yline_geom.vertices.push(new THREE.Vector3(0, 0, 0));
+            yline_geom.vertices.push(new THREE.Vector3(0, len, 0));
+            var yline_material = new THREE.LineBasicMaterial({
+                color: 0x00ff00
+            });
+            var yline = new THREE.Line(yline_geom, yline_material);
+            group.add(yline);
+
+            // z 轴
+            var zline_geom = new THREE.Geometry();
+            zline_geom.vertices.push(new THREE.Vector3(0, 0, 0));
+            zline_geom.vertices.push(new THREE.Vector3(0, 0, len));
+            var zline_material = new THREE.LineBasicMaterial({
+                color: 0x0000ff
+            });
+            var zline = new THREE.Line(zline_geom, zline_material);
+            group.add(zline);
+        }
+        drawAxis(256);
+
+        function addSphere(pos, container = group, color = 0xffff00) {
+            var geometry = new THREE.SphereBufferGeometry(10, 32, 32);
+            var material = new THREE.MeshBasicMaterial({
+                color: color
+            });
+            var sphere = new THREE.Mesh(geometry, material);
+            sphere.position.set(pos[0], pos[1], pos[2]);
+            container.add(sphere);
+            return sphere;
+        }
+        addSphere([128, 128, 128], group, 0xff0000);
+        addSphere([0, 0, 0], group);
+        addSphere([64, 64, 64], group);
+
+        function addBox() {
+            var material = new THREE.MeshBasicMaterial({
+                color: 0xff00ff
+            });
+            var geometry = new THREE.BoxBufferGeometry(64, 64, 64);
+            var cube = new THREE.Mesh(geometry, material);
+            group.add(cube);
+            return cube;
+        }
+        var cube = addBox();
+        cube.position.set(128, 32, 32);
+
+        function addLine(pos) {
+            var line_geom = new THREE.Geometry();
+            line_geom.vertices.push(new THREE.Vector3(0, 0, 0));
+            line_geom.vertices.push(new THREE.Vector3(pos[0], pos[1], pos[2]));
+            var line_material = new THREE.LineBasicMaterial({
+                color: 0xff0000
+            });
+            var line = new THREE.Line(line_geom, line_material);
+            group.add(line);
+        }
+        addLine([64, 64, 64]);
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            camera.updateProjectionMatrix();
+
+            renderer.render(scene, camera);
+
+            TWEEN.update();
+        }
+        animate();
+
+        window.addEventListener('resize', function () {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+    <!-------------------->
+    <script>
+        function CustomOrbitControl(scene, camera, renderer) {
+            this._scene = scene;
+            this._camera = camera;
+            this._renderer = renderer;
+            this.size = {
+                width: renderer.domElement.width,
+                height: renderer.domElement.height
+            };
+            this.lastXY = {
+                x: 0,
+                y: 0
+            };
+            this.latestMousePoint = {
+                x: 0,
+                y: 0,
+                screenX: 0,
+                screenY: 0
+            };
+            this.center = new THREE.Vector3();
+            this._triggered = false;
+            this._selectHandler = new SelectHandler(renderer.domElement)
+                .onStart(e => {
+                    const event = e.e;
+                    // 限制右键点击触发
+                    if (event.button !== 2) {
+                        return this._triggered = false;
+                    }
+                    this._triggered = true;
+                    this.lastXY.x = event.offsetX / this.size.width * 2 - 1;
+                    this.lastXY.y = -event.offsetY / this.size.height * 2 + 1;
+                })
+                .onSelect(e => {
+                    if (!this._triggered) return;
+                    const event = e.e;
+                    this.latestMousePoint.x = event.offsetX / this.size.width * 2 - 1;
+                    this.latestMousePoint.y = -event.offsetY / this.size.height * 2 + 1;
+                    this.latestMousePoint.screenX = event.offsetX;
+                    this.latestMousePoint.screenY = event.offsetY;
+                    if (Math.abs(this.latestMousePoint.x - this.lastXY.x) < .1) {
+                        this.rotateAroundSelectedNode(1 * (this.latestMousePoint.x - this.lastXY.x), 1 * (this
+                                .latestMousePoint.y - this.lastXY.y), this.latestMousePoint.x, this
+                            .latestMousePoint.y);
+                    }
+                    this.lastXY.x = this.latestMousePoint.x;
+                    this.lastXY.y = this.latestMousePoint.y;
+                })
+                .startSelect();
+        }
+        CustomOrbitControl.prototype = {
+            constructor: CustomOrbitControl,
+            rotateAroundSelectedNode: function (e, t) {
+                t = t || 0;
+                var n = this.center;
+                var r = this._scene.localToWorld(n.clone());
+                var i = e * Math.PI;
+                var a = -1 * t * Math.PI;
+                this._scene.rotateY(i);
+                this._scene.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), a);
+                this._scene.updateMatrixWorld();
+                var s = this._scene.localToWorld(n.clone()).sub(r);
+                this._scene.position.sub(s);
+            },
+            moveLeft: function (e) {
+                e = e || 5;
+                var t = new THREE.Vector3();
+                this._camera.getWorldDirection(t);
+                t.cross(this._camera.up).normalize();
+                this._scene.position.add(t.clone().multiplyScalar(1 * e));
+            },
+            moveRight: function (e) {
+                e = e || -5;
+                var t = new THREE.Vector3();
+                this._camera.getWorldDirection(t);
+                var n = t.clone().cross(this._camera.up).normalize();
+                this._scene.position.add(n.clone().multiplyScalar(1 * e));
+            },
+            moveUp: function (e) {
+                e = e || -5;
+                var t = new THREE.Vector3();
+                this._camera.getWorldDirection(t);
+                var n = t.clone().cross(this._camera.up).cross(t.clone()).normalize();
+                this._scene.position.add(n.multiplyScalar(1 * e));
+            },
+            moveDown: function (e) {
+                e = e || 5;
+                var t = new THREE.Vector3();
+                this._camera.getWorldDirection(t);
+                var n = t.clone().cross(this._camera.up).cross(t).normalize();
+                this._scene.position.add(n.multiplyScalar(1 * e));
+            },
+            moveForward: function (e) {
+                e = e || 5;
+                var n = new THREE.Vector3();
+                this._camera.getWorldDirection(n);
+                this._scene.position.add(n.clone().multiplyScalar(-1 * e));
+            },
+            moveBackward: function (e) {
+                e = e || -5;
+                var n = new THREE.Vector3();
+                this._camera.getWorldDirection(n);
+                this._scene.position.add(n.clone().multiplyScalar(-1 * e));
+            },
+            rotateLeft: function (e) {
+                e = e || 0.05;
+                this.rotateAroundSelectedNode(e);
+            },
+            rotateRight: function (e) {
+                e = e || -0.05;
+                this.rotateAroundSelectedNode(e);
+            }
+        };
+
+        var customCtr = new CustomOrbitControl(scene, camera, renderer);
+
+        function handleUp() {
+            customCtr.moveUp();
+        }
+
+        function handleDown() {
+            customCtr.moveDown();
+        }
+
+        function handleLeft() {
+            customCtr.moveLeft();
+        }
+
+        function handleRight() {
+            customCtr.moveRight();
+        }
+
+        function handleRotateLeft() {
+            customCtr.rotateLeft();
+        }
+
+        function handleRotateRight() {
+            customCtr.rotateRight();
+        }
+
+        function handleZoomIn() {
+            customCtr.moveForward();
+        }
+
+        function handleZoomOut() {
+            customCtr.moveBackward();
+        }
+    </script>
+</body>
+
+</html>
