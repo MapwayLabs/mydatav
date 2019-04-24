@@ -59,6 +59,9 @@
         var group = new THREE.Group();
         scene.add(group);
 
+        var axesHelper = new THREE.AxesHelper( 255 );
+        // scene.add( axesHelper );
+
         // 相机
         var camera = new THREE.PerspectiveCamera(
             45,
@@ -109,7 +112,7 @@
             var zline = new THREE.Line(zline_geom, zline_material);
             group.add(zline);
         }
-        drawAxis(256);
+        // drawAxis(256);
 
         function addSphere(pos, container = group, color = 0xffff00) {
             var geometry = new THREE.SphereBufferGeometry(10, 32, 32);
@@ -136,6 +139,7 @@
         }
         var cube = addBox();
         cube.position.set(128, 32, 32);
+        cube.add(axesHelper);
 
         function addLine(pos) {
             var line_geom = new THREE.Geometry();
@@ -192,15 +196,15 @@
                 .onStart(e => {
                     const event = e.e;
                     // 限制右键点击触发
-                    if (event.button !== 2) {
-                        return this._triggered = false;
-                    }
-                    this._triggered = true;
+                    // if (event.button !== 2) {
+                    //     return this._triggered = false;
+                    // }
+                    // this._triggered = true;
                     this.lastXY.x = event.offsetX / this.size.width * 2 - 1;
                     this.lastXY.y = -event.offsetY / this.size.height * 2 + 1;
                 })
                 .onSelect(e => {
-                    if (!this._triggered) return;
+                    // if (!this._triggered) return;
                     const event = e.e;
                     this.latestMousePoint.x = event.offsetX / this.size.width * 2 - 1;
                     this.latestMousePoint.y = -event.offsetY / this.size.height * 2 + 1;
