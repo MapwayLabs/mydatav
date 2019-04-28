@@ -18,9 +18,10 @@
 
   var simulation = d3.forceSimulation(nodes)
     .force("charge", d3.forceManyBody())
-    // .force("link", d3.forceLink(links).distance(20).strength(1))
-    // .force("x", d3.forceX())
-    // .force("y", d3.forceY())
+    .force("link", d3.forceLink(links).distance(20).strength(1))
+    .force("x", d3.forceX(48).strength(1))
+    .force("y", d3.forceY(48).strength(1))
+    .force("radius", d3.forceRadial(50).strength(1))
     .on("tick", ticked);
 
   var canvas = document.querySelector("canvas"),
