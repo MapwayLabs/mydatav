@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link href="ressources/css/style.css" rel="stylesheet" type="text/css">
+	</head>
+	<body>
+		<div id="container">
+			<canvas id="target">
+				Your browser do not support the &lt;canvas&gt; element. You should update it :)
+			</canvas>
+			<div id="tooltip"></div>
+			<div id="events-display"></div>
+
+		</div>
+
+
+		<div id="help">
+			<ul>
+				<li class="separator"> not customizable </li>
+				<li><span>Zoom</span>: mouse wheel / pinch</li>
+				<li><span>Rotate</span>: drag on empty area</li>
+				<li><span>Pan</span>: drag with right mouse button</li>
+				<li class="separator">Customizable</li>
+				<li><span>Select node</span>: click on it</li>
+				<li><span>Unselect node</span>: double-click on it</li>
+				<li><span>Pin node</span>: drag and drop it</li>
+			</ul>
+		</div>
+
+<!--
+		<div id="params">
+			<ul>
+				<li class="separator"> Parameters </li>
+				<li>
+					<span>linkDistance</span>
+
+				</li>
+			</ul>
+		</div> -->
+
+
+
+
+
+
+		<script src="ressources/libs/three.js"></script>
+		<script src="ressources/libs/OrbitControls.js"></script>
+		<script src="ressources/libs/d3-3d.js"></script>
+		<script src="ressources/libs/stats.min.js"></script>
+
+		<script src="ressources/libs/gravity.js"></script>
+
+		<script>
+
+
+
+			var graph_instance;
+
+			graph_instance = (function(){
+
+				var target_canvas, tooltip, graph, graph_instance, events_display;
+
+				target_canvas = document.getElementById('target');
+				tooltip = document.getElementById('tooltip');
+				events_display = document.getElementById('events-display');
+
+
+				// INIT GRAVITY
+
+				graph_instance = gravity.graph.create({
+					"canvas" : target_canvas,
+					"worker-path" : "ressources/libs/gravity-worker.js",
+					"stats" : true,
+					"webgl" : {
+						"antialias" : true,
+						"background" : false,
+						"lights" : true,
+						"shadows" : true
+					},
+					"force": {
+
+					}
+				});
+
+
+				// EVENTS
+
+				// once initialised, add content
+				graph_instance.on("ready", function(){
+
+					display_event(":ready");
+					console.log("Downloading demo data…");
+
+					d3.json("ressources/data/miserables.json", function(error, graph) {
+						if(error){
+							alert("Error loading demo data… :( ");
+							console.error(error);
+						}
+						else{
+							graph_instance.nodes(graph.nodes);
+							graph_instance.links(graph.links);
+
+							graph_instance.updateForce();
+						}
+					});
+				});
+
+				// mouse over a node
+				graph_instance.on("node-over", function(node, event){
+
+					tooltip.innerText = node.name;
+					tooltip.textContent = node.name;
+
+					target_canvas.style.cursor = "pointer";
+					tooltip.style.top = event.clientY + "px";
+					tooltip.style.left = event.clientX + "px";
+					tooltip.style.display = "block";
+
+					display_event(":node-over");
+				});
+
+
+				// mouse leave a node
+				graph_instance.on("node-blur", function(){
+					target_canvas.style.cursor = "inherit";
+					tooltip.style.display = "none";
+					display_event(":node-blur");
+				});
+
+
+				graph_instance.on("node-click", function(node, event){
+					graph_instance.selectNode(node);
+					display_event(":node-click");
+				});
+
+				graph_instance.on("node-select", function(node){
+					display_event(":node-select");
+				});
+
+				graph_instance.on("node-dbl-click", function(node, event){
+					graph_instance.unpinNode(node);
+					graph_instance.resume();
+					display_event(":node-dbl-click");
+				});
+
+				graph_instance.on("void-click", function(event){
+					display_event(":void-click");
+				});
+
+				graph_instance.on("drag-start", function(event){
+					display_event(":drag-start");
+				});
+
+				graph_instance.on("drag-end", function(node, event){
+					graph_instance.pinNode(node);
+					graph_instance.resume();
+					display_event(":drag-end");
+				});
+
+
+
+				// MISC
+
+				// Add stats
+				if(graph_instance.stats.domElement){
+					var stats = graph_instance.stats.domElement;
+					stats.style.left = "auto";
+					stats.style.top = "auto";
+					stats.style.right = "0px";
+					stats.style.bottom = "0px";
+					target_canvas.parentElement.appendChild(stats);
+				}
+
+
+				// interface
+				var display_timout;
+
+				function display_event(event_name){
+					if(display_timout){
+						clearTimeout(display_timout);
+					}
+					events_display.innerText = event_name;
+					events_display.textContent = event_name;
+					events_display.className = "shown";
+					display_timout = setTimeout(function(){
+						events_display.className = "hidden";
+					}, 2000);
+				}
+				window.display_event = display_event;  // TODO : remove
+
+
+				return graph_instance;
+			})();
+
+
+		</script>
+	</body>
+</html>
