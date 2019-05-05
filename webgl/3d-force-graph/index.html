@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>testGraph</title>
+    <script>
+    // global variables
+    window._near = 2.6;
+    window.SIZE = {
+        width: window.innerWidth,
+        height: window.innerHeight
+    };
+    window.Config = {
+        canRecord: false,
+        nodeSizeScale: 1
+    };
+    window.layoutOptions = {
+        "linkStrength": 1,
+        "linkDistance": 0.5,
+        "charge": -0.01,
+        "gravity": 0.2,
+        "friction": 0.3,
+        "heightCompress": 1
+    }
+    </script>
+    <script src="./lib/three.js"></script>
+    <script src="./lib/d3.js"></script>
+    <script src="./lib/OrbitControls.js"></script>
+    <script src="./app.js"></script>
+    <!-- <script src="./layoutWorker.worker.js"></script> -->
+    <script src="./js/workerMessage.js"></script>
+    <script src="./js/forceGraph.js"></script>
+    <script src="./js/node.js"></script>
+    <script src="./data/data2.js"></script>
+    <style>
+    #canvas-renderContainer {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        margin: 0;
+        padding: 0;
+    }
+    </style>
+</head>
+
+<body>
+    <div id="canvas-renderContainer"></div>
+    <script>
+    var forceGraph = new ForceGraph();
+    var idMap = {};
+    GraphData.nodes.forEach((n,index) => {
+    	idMap[index] = n.id;
+    });
+    var graph = {
+    	layoutEdges: GraphData.links.map(l => ({
+    		alpha: 0.6,
+    		sourceId: l.source,
+    		targetId: l.target
+    	})),
+    	layoutNodes: GraphData.nodes.map((n,index) => ({
+    		alpha: index ? 1 : 0.001,
+    		id: n.id,
+    		position: new THREE.Vector3(0, 0, 0),
+    		data: {}
+    	})),
+    	serialize: function() {
+    		// return JSON.stringify({ layoutEdges: this.layoutEdges, layoutNodes: this.layoutNodes });
+    		return { layoutEdges: this.layoutEdges, layoutNodes: this.layoutNodes };
+    	}
+    };
+    workerMessage.init(graph, window.layoutOptions);
+    window.onWorkerMessage = function(data, isFinish) {
+    	if (isFinish) {
+    	    console.log(data);
+    	    forceGraph.renderGraph(data);	
+    	}
+    }
+    </script>
+</body>
+
+</html>

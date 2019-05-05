@@ -1,0 +1,178 @@
+{
+    "command": "init_graph",
+    "payload":
+    {
+        "graph":
+        {
+            "layoutEdges": [],
+            "layoutNodes": [
+            {
+                "alpha": 1,
+                "id": "2188",
+                "position":
+                {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "data":
+                {}
+            }]
+        },
+        "options":
+        {
+            "linkStrength": 1,
+            "linkDistance": 0.5,
+            "charge": -0.01,
+            "gravity": 0.2,
+            "friction": 0.3,
+            "heightCompress": 1
+        }
+    }
+}
+
+{
+    "command": "init_graph",
+    "payload":
+    {
+        "graph":
+        {
+            "layoutEdges": [
+            {
+                "alpha": 0.6,
+                "sourceId": "2188",
+                "targetId": "702"
+            },
+            {
+                "alpha": 0.6,
+                "sourceId": "2188",
+                "targetId": "703"
+            },
+            {
+                "alpha": 0.6,
+                "sourceId": "2188",
+                "targetId": "1773"
+            },
+            {
+                "alpha": 0.6,
+                "sourceId": "2188",
+                "targetId": "2925"
+            },
+            {
+                "alpha": 0.6,
+                "sourceId": "2188",
+                "targetId": "1410"
+            }],
+            "layoutNodes": [
+            {
+                "alpha": 0.001,
+                "id": "2188",
+                "position":
+                {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "data":
+                {}
+            },
+            {
+                "alpha": 1,
+                "id": "702",
+                "position":
+                {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "data":
+                {}
+            },
+            {
+                "alpha": 1,
+                "id": "703",
+                "position":
+                {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "data":
+                {}
+            },
+            {
+                "alpha": 1,
+                "id": "1773",
+                "position":
+                {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "data":
+                {}
+            },
+            {
+                "alpha": 1,
+                "id": "2925",
+                "position":
+                {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "data":
+                {}
+            },
+            {
+                "alpha": 1,
+                "id": "1410",
+                "position":
+                {
+                    "x": 0,
+                    "y": 0,
+                    "z": 0
+                },
+                "data":
+                {}
+            }]
+        },
+        "options":
+        {
+            "linkStrength": 1,
+            "linkDistance": 0.5,
+            "charge": -0.01,
+            "gravity": 0.2,
+            "friction": 0.3,
+            "heightCompress": 1
+        }
+    }
+}
+
+{
+    "command": "pinNodeIds",
+    "payload":
+    {
+        "nodeIds": ["2925"]
+    }
+}
+
+{
+    "command": "restart_layout",
+    "payload":
+    {}
+}
+
+{
+    "command": "setNodesPositions",
+    "payload":
+    {
+        "nodeIds": ["2925"],
+        "positions": [
+        {
+            "x": 0.2517766772481819,
+            "y": 0.12626069770667298,
+            "z": -0.08323645485922238
+        }]
+    }
+}
