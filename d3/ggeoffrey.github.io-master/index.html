@@ -16,7 +16,7 @@
 		</div>
 
 
-		<div id="help">
+<!-- 		<div id="help">
 			<ul>
 				<li class="separator"> not customizable </li>
 				<li><span>Zoom</span>: mouse wheel / pinch</li>
@@ -27,7 +27,7 @@
 				<li><span>Unselect node</span>: double-click on it</li>
 				<li><span>Pin node</span>: drag and drop it</li>
 			</ul>
-		</div>
+		</div> -->
 
 <!--
 		<div id="params">
@@ -51,6 +51,8 @@
 		<script src="ressources/libs/stats.min.js"></script>
 
 		<script src="ressources/libs/gravity.js"></script>
+
+		<script src="data2.js"></script>
 
 		<script>
 
@@ -80,7 +82,14 @@
 						"shadows" : true
 					},
 					"force": {
-
+						// size: [1, 1, 1],
+						// linkStrength: 1,
+					 //    linkDistance: 20,
+					 //    friction: 1,
+					 //    charge: -30,
+					 //    gravity: 0.1,
+					 //    theta: 0.8,
+					 //    alpha: 0.1
 					}
 				});
 
@@ -88,23 +97,37 @@
 				// EVENTS
 
 				// once initialised, add content
+				var idMap = {};
 				graph_instance.on("ready", function(){
 
 					display_event(":ready");
 					console.log("Downloading demo data…");
 
-					d3.json("ressources/data/miserables.json", function(error, graph) {
-						if(error){
-							alert("Error loading demo data… :( ");
-							console.error(error);
-						}
-						else{
-							graph_instance.nodes(graph.nodes);
-							graph_instance.links(graph.links);
-
-							graph_instance.updateForce();
-						}
+					var graph = Eledata;
+					// Eledata.nodes = Eledata.nodes.map(n => ({ index: n.id, group: 1 }));
+					Eledata.nodes.forEach((n, index) => {
+						idMap[n.id] = index;
 					});
+					Eledata.links.forEach(l => {
+						l.source = idMap[l.source];
+						l.target = idMap[l.target];
+					});
+					graph_instance.nodes(graph.nodes);
+					graph_instance.links(graph.links);
+					graph_instance.updateForce();
+
+					// d3.json("ressources/data/miserables.json", function(error, graph) {
+					// 	if(error){
+					// 		alert("Error loading demo data… :( ");
+					// 		console.error(error);
+					// 	}
+					// 	else{
+					// 		graph_instance.nodes(graph.nodes);
+					// 		graph_instance.links(graph.links);
+
+					// 		graph_instance.updateForce();
+					// 	}
+					// });
 				});
 
 				// mouse over a node
