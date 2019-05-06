@@ -5,35 +5,28 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>testGraph</title>
-    <script>
-    // global variables
-    window._near = 2.6;
-    window.SIZE = {
-        width: window.innerWidth,
-        height: window.innerHeight
-    };
-    window.Config = {
-        canRecord: false,
-        nodeSizeScale: 1
-    };
-    window.layoutOptions = {
-        "linkStrength": 1,
-        "linkDistance": 0.5,
-        "charge": -0.01,
-        "gravity": 0.2,
-        "friction": 0.3,
-        "heightCompress": 1
-    }
-    </script>
+
     <script src="./lib/three.js"></script>
-    <script src="./lib/d3.js"></script>
     <script src="./lib/OrbitControls.js"></script>
-    <script src="./app.js"></script>
-    <!-- <script src="./layoutWorker.worker.js"></script> -->
-    <script src="./js/workerMessage.js"></script>
-    <script src="./js/forceGraph.js"></script>
-    <script src="./js/node.js"></script>
+    <script src="./lib/lodash.js"></script>
+    <script src="./lib/tween.js"></script>
+
+    <script src="./js/config.js"></script>
+    <script src="./js/graph.js"></script>
+    <script src="./js/graphController.js"></script>
+    <script src="./js/layoutController.js"></script>
+    <script src="./js/nodeCloud.js"></script>
+    <script src="./js/edgeCloud.js"></script>
+    <script src="./js/imageCloud.js"></script>
+    <script src="./js/relationshipCloud.js"></script>
+    <script src="./js/textCloud.js"></script>
+    <script src="./js/drawing.js"></script>
+    <script src="./js/force3d.js"></script>
+    <script src="./js/selectHandler.js"></script>
+    <script src="./js/customOrbitControl.js"></script>
+
     <script src="./data/data2.js"></script>
+    <!-- <script src="./data/odipus.js"></script> -->
     <style>
     #canvas-renderContainer {
         position: absolute;
@@ -51,35 +44,10 @@
 <body>
     <div id="canvas-renderContainer"></div>
     <script>
-    var forceGraph = new ForceGraph();
-    var idMap = {};
-    GraphData.nodes.forEach((n,index) => {
-    	idMap[index] = n.id;
-    });
-    var graph = {
-    	layoutEdges: GraphData.links.map(l => ({
-    		alpha: 0.6,
-    		sourceId: l.source,
-    		targetId: l.target
-    	})),
-    	layoutNodes: GraphData.nodes.map((n,index) => ({
-    		alpha: index ? 1 : 0.001,
-    		id: n.id,
-    		position: new THREE.Vector3(0, 0, 0),
-    		data: {}
-    	})),
-    	serialize: function() {
-    		// return JSON.stringify({ layoutEdges: this.layoutEdges, layoutNodes: this.layoutNodes });
-    		return { layoutEdges: this.layoutEdges, layoutNodes: this.layoutNodes };
-    	}
-    };
-    workerMessage.init(graph, window.layoutOptions);
-    window.onWorkerMessage = function(data, isFinish) {
-    	if (isFinish) {
-    	    console.log(data);
-    	    forceGraph.renderGraph(data);	
-    	}
-    }
+        var force3d = new Force3D(document.getElementById('canvas-renderContainer'), {
+            data: GraphData,
+            size: [window.innerWidth, window.innerHeight]
+        });
     </script>
 </body>
 

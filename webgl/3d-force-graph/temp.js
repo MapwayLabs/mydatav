@@ -8,6 +8,58 @@ window._app
 window._task
 
 
+// 23962 graph定义
+function e(t) {
+    u(this, e),
+    this.options = t || {},
+    this.nodeSet = {},
+    this.nodes = [],
+    this.edges = [],
+    this.filters = [],
+    this.renderNeedsUpdate = !1,
+    this.colorSchema = l.LABEL,
+    this.visibleNodes = [],
+    this.visibleEdges = [],
+    this.layoutNodes = this.visibleNodes,
+    this.layoutEdges = this.visibleEdges
+}
+
+// 24445 Node定义
+function e(t, n) {
+    u(this, e),
+    this.id = String(t),
+    this.index = 0,
+    this.degree = 0,
+    this.position = new o.Vector3(0,0,0),
+    this.color = new o.Color(3836361),
+    this.alpha = 1,
+    this.imageAlpha = 1,
+    this.icon = 0,
+    this.data = {},
+    this.pinned = !1,
+    this.fixed = !1,
+    this.selected = !1,
+    this.wasFixed = !1,
+    this.size = Math.pow(10, .2),
+    this.clone = this.clone.bind(this)
+}
+
+// 24524 link定义
+function e(t, n, r) {
+    u(this, e),
+    this.uid = "",
+    this.sourceId = t.id,
+    this.targetId = n.id,
+    this.source = t,
+    this.target = n,
+    this.name = "",
+    this.alpha = r && r.alpha ? r.alpha : a.default.config.edgeDefaultAlpha,
+    this.properties = {},
+    this.color = new o.Color(r && r.color ? r.color : a.default.colors.edge)
+}
+
+
+
 // 104309
 WebGLRenderer
 

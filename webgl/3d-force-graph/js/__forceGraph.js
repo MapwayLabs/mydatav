@@ -1,3 +1,7 @@
+// 104224
+// app 12603
+// init 102435
+// events 68336
 function ForceGraph(options, store, graph, graphController) {
    this.options = options || {},
    this.updateFuncs = [],
@@ -223,7 +227,7 @@ ForceGraph.prototype = {
           tagColor: 0xFFFFFF,
           size: 1.58,
           alpha: n.alpha,
-          icon: 0
+          icon: 0  // icon sprite 图编号，从0开始；
         })),
         visibleEdges: [],
         layoutNodes: [],
