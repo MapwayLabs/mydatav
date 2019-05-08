@@ -21,7 +21,9 @@ const layoutController = {
                     graph: this.graph.serialize(),
                     options: this.options
                 }
-            })
+            });
+         console.log(`节点数：${this.graph.nodes.length};关系数：${this.graph.edges.length}`);
+
     },
     initOrContinue: function(e, t) {
         var n = this;

@@ -1,24 +1,26 @@
 // export default GraphController;
 
 // 118830
-function GraphController(t, n, r) {
+function GraphController(t, n, r, d) {
 	var i = this;
 	this.graph = t;
 	// this.historyLine
 	this.scene = n;
 	this.store = r;
+    this.drawing = d;
+    this.tooltip = this.drawing.tooltip;
 	this.hideLeaf = false;
 
-	window.Config.graphLayout.genNodesReportFunc = function() {
+	Config.graphLayout.genNodesReportFunc = function() {
 		return i.gen_node_report();
 	};
-    window.Config.graphLayout.getNodeKeysMap = function() {
+    Config.graphLayout.getNodeKeysMap = function() {
         return i.get_node_keys_map()
     };
-    window.Config.graphLayout.genEdgesReportFunc = function() {
+    Config.graphLayout.genEdgesReportFunc = function() {
         return i.gen_edge_report()
     };
-    window.Config.graphLayout.getEdgeKeysMap = function() {
+    Config.graphLayout.getEdgeKeysMap = function() {
         return i.get_edge_keys_map()
     };
 }
@@ -26,6 +28,14 @@ function GraphController(t, n, r) {
 GraphController.prototype = {
 	constructor: GraphController,
 	showNodeInfo: function(e) {
+        // console.log(this.graph.getNodeById(e));
+        var n = this.graph.getNodeById(e);
+        if (n) {
+            var r = this.drawing.convertCloudPoint(n.position);
+            this.tooltip.open(r.x, r.y, 'I am a node!');
+        } else {
+            this.tooltip.close();
+        }
         // this.store.getState().node.showNodeId != e && this.store.dispatch(c.Actions.showNodeInfo(e))
     },
     showTableResultInfo: function(e) {

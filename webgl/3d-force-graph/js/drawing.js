@@ -1,10 +1,19 @@
+// import Config from './config';
+// import DragSelection from './dragSelection';
 // import NodeCloud from './nodeCloud';
 // import EdgeCloud from './edgeCloud';
+// import Graph2DControl from './graph2DControl';
+// import GraphController from './graphController';
+// import GraphShareInstance from './graphShareInstance';
+// import ImageCloud from './imageCloud';
+// import layoutController from './layoutController';
+// import LayoutShareInstance from './layoutShareInstance';
+// import MouseGraphControl from './mouseGraphControl';
+// import { MouseStream, KeyboardStream } from './mouseStream';
 // import TextCloud from './textCloud';
 // import RelationShipCloud from './relationshipCloud';
-// import CustomOrbitControl from './customOrbitControl';
+// import ToolTip from './tooltip';
 // export default Drawing;
-
 
 // drawing 104224
 // app 12603
@@ -12,14 +21,13 @@
 // events 68336
 
 const _near = 2.6;
-function Drawing(options, store, graph, graphController) {
+function Drawing(options, graph) {
    this.options = options || {},
    this.updateFuncs = [],
    this.graph = graph,
    this.nodeCounts = 0,
-   this.graphController = graphController,
    this.camera,
-   this.controls,
+   // this.controls,
    this.scene,
    this.renderer,
    this.vehicle = new THREE.Vector3(0,0,3);
@@ -47,15 +55,45 @@ function Drawing(options, store, graph, graphController) {
    this.INTERSECTED = null,
    this.selectedNodeId = null,
    this.layoutController = layoutController,
-   this.layoutController.init(this.graph, window.Config.layoutControllerOptions || {}),
+   this.layoutController.init(this.graph, Config.layoutControllerOptions || {}),
    this.initBasicThree(),
    this.initLighting(),
    this.nodeCloud = new NodeCloud(this.graph, this.cloudScene),
    this.edgeCloud = new EdgeCloud(this.graph, this.cloudScene, true),
    // this.textCloud = new TextCloud(this.graph, this.cloudScene, this.camera),
    this.addImageCloud();
-   this.relationshipCloud = new RelationShipCloud(this.cloudScene, this.graph, this.camera),
-   this.animate()
+   this.relationshipCloud = new RelationShipCloud(this.cloudScene, this.graph, this.camera);
+
+   // TODO:
+   // this.dragSelection = { enable: false };
+    this.dragSelection = new DragSelection({
+      dom: this.dom
+    }, this);
+    this.dragSelection.on(this.dragSelection.eventNames.end, (e, t) => {
+        this.handleSelectFromRegion(e, t)
+    });
+    
+    // TODO:
+    this.graphShareInstance = GraphShareInstance;
+    this.graphShareInstance.bindGraph(this.graph);
+    // I.default.bindGraph(this.graph);
+    // I.default.on("change", function(e) {
+    //     c.highlightNeighbor(null);
+    //     var t = I.default.singleNode;
+    //     1 == t.selectCount && t.node ? c.store.dispatch(a.Actions.setCurrentNodeId(t.node.id)) : c.store.dispatch(a.Actions.setCurrentNodeId(null))
+    // }, "Drawing");
+
+   this.layoutShareInstance = LayoutShareInstance;
+   this.layoutShareInstance.bindLayout(this.layoutController);
+   this.layoutShareInstance.on("change", e => {
+        this.layoutController.restart_layout();
+    }, "Drawing");
+
+   this.tooltip = new ToolTip(this.dom);
+
+   this.initControl();
+
+   this.animate();
 }
 
 Drawing.prototype = {
@@ -87,17 +125,24 @@ Drawing.prototype = {
         this.scene.add(this.cloudScene);
         // this.camera = new THREE.PerspectiveCamera(this.fov, window.innerWidth / window.innerHeight, .01, 500);
         this.camera = new THREE.PerspectiveCamera(this.fov, this.size[0] / this.size[1], .01, 500);
-        this.camera.position.set(0, 0, 0.001);
+        this.camera.position.set(0, 0, 0.001).add(this.vehicle)
+        // this.camera.position.set(0, 0, 0.001);
         // this.camera.lookAt(0, 0, 0);
 
-        this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
-        this.controls.enabled = true;
-        this.controls.enableZoom = true;
-        this.controls.enableRotate = false;
-        this.controls.enablePan = false;
-        this.controls.enableDamping = true;
-        var axesHelper = new THREE.AxesHelper( 64 );
-        this.customOrbitControl = new CustomOrbitControl(this.scene, this.camera, this.renderer, axesHelper, null);
+        // this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
+        // this.controls.enabled = false;
+        // this.controls.enableZoom = false;
+        // this.controls.enableRotate = false;
+        // this.controls.enablePan = false;
+        // this.controls.enableDamping = false;
+        
+        // this.keyboardState = new THREEx.KeyboardState();
+        this.keyboardState = GraphShareInstance.keyboardState;
+        this.keyboardStream = new KeyboardStream();
+        this.mouseStream = new MouseStream(this.renderer.domElement);
+        this.graph2DControl = new Graph2DControl(this.camera, this.cloudScene, this.keyboardStream, this.mouseStream, this);
+        this.updateFuncs.push(this.graph2DControl.update.bind(this.graph2DControl));
+        
         window.addEventListener("resize", function(t) {
             return _this.resizeRenderer(t)
         }, true);
@@ -117,20 +162,29 @@ Drawing.prototype = {
         e.restoreGraph();
       }
     },
+    hideArrow: function(e) {
+      this.edgeCloud.hideArrow(e);
+    },
+    initControl: function() {
+        this.graphController = new GraphController(this.graph, this.scene, this.store, this);
+        this.mouseGraphControl = new MouseGraphControl(this);
+    },
     addRenderObject: function(e) {
       this.renderObjects.push(e);
     },
     removeRenderObject: function(e) {
       this.renderObjects.indexOf(e) >=0 && this.renderObjects.splice(this.renderObjects.indexOf(e), 1);
     },
+    handleCleanGraph: function() {},
     startLayout: function() {
-      this.layoutController.init(this.graph, window.Config.layoutControllerOptions || {});
+      this.layoutController.init(this.graph, Config.layoutControllerOptions || {});
     },
     forceStartLayout: function() {
       this.graph.update_degree();
       this.calculateTimeLine(this.graph);
       this.startLayout();
     },
+    getGraphPhysics: function() {},
     updateSize: function() {
       var rect = this.dom.getBoundingClientRect();
       return this.size = [rect.width, rect.height];
@@ -157,17 +211,17 @@ Drawing.prototype = {
         this.camera.add(this.headLamp);
     },
     animate: function() {
-        window.Config.config.canRecord && window.performance.advance && window.performance.advance();
+        Config.config.canRecord && window.performance.advance && window.performance.advance();
         var e = window.performance.now();
-        window.Config.config.canRecord ? requestAnimationFrame(this.animate.bind(this)) : this.renderer.setAnimationLoop(this.animate.bind(this)),
+        Config.config.canRecord ? requestAnimationFrame(this.animate.bind(this)) : this.renderer.setAnimationLoop(this.animate.bind(this)),
         TWEEN.update(e),
-        this.render(),
-        this.controls.enabled && this.controls.update()
+        this.render()
+        // this.controls.enabled && this.controls.update()
         // u.default.update(this.scene, this.camera);
     },
     updateControlCenter: function() {
-        var e = this.controls.target.clone().sub(this.controls.object.position).normalize();
-        this.controls.target.copy(this.controls.object.position.clone().add(e.multiplyScalar(.5)));
+        // var e = this.controls.target.clone().sub(this.controls.object.position).normalize();
+        // this.controls.target.copy(this.controls.object.position.clone().add(e.multiplyScalar(.5)));
     },
     render: function() {
         var e = this;
@@ -284,6 +338,6 @@ Drawing.prototype = {
         this.graph.visibleNodes.forEach(function(e) {
             f.containsPoint(n.cloudScene.localToWorld(e.position.clone())) && h.push(e.id)
         });
-        I.default.selectWithNodeIds(h);
+        this.graphShareInstance.selectWithNodeIds(h);
     }
 };

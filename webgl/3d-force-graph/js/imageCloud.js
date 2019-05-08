@@ -1,3 +1,4 @@
+// import Config from './config';
 // export default ImageCloud;
 
 // 105034
@@ -27,7 +28,7 @@ var u = {
 	        })
 	          , s = new THREE.Mesh(new THREE.CircleGeometry(1,64,64),o);
 	        s.scale.set(.001, .001, .001),
-	        (new THREE.ImageLoader).load('img/icon.png', function(e) {
+	        (new THREE.ImageLoader).load(e, function(e) {
 	            var o = e.width < e.height ? e.width : e.height;
 	            n.width = o,
 	            n.height = o;
@@ -165,7 +166,10 @@ ImageCloud.prototype = Object.assign( Object.create(THREE.Group.prototype), {
             }).forEach(function(n) {
                 Promise.resolve().then(function() {
                     // var r = e.getAvatar(n.data.detail.data)
-                    var r = 'img/icon.png'
+                    // console.log(n);
+                    // var url = n.data.style['background-image'];
+                    // var r = url && url.substring(4, url.length-1)
+                    var r = 'img/kg1.png'
                       , i = null;
                     r && (i = (0,
                     u.createHexagonSpriteFromUrl)(r)),
@@ -203,7 +207,7 @@ ImageCloud.prototype = Object.assign( Object.create(THREE.Group.prototype), {
         e.forEach(function(e) {
             if (e.image) {
                 var t = Math.abs(Math.sin(.003 * Date.now()))
-                  , n = window.Config.config.nodeSizeScale * (1 + t) * .04 || 1e-4;
+                  , n = Config.config.nodeSizeScale * (1 + t) * .04 || 1e-4;
                 e.image.scale.set(n, n, n)
             }
         }),

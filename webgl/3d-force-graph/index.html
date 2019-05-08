@@ -10,6 +10,8 @@
     <script src="./lib/OrbitControls.js"></script>
     <script src="./lib/lodash.js"></script>
     <script src="./lib/tween.js"></script>
+    <script src="./lib/rxjs.umd.min.js"></script>
+    <script src="./lib/threex.keyboardstate.js"></script>
 
     <script src="./js/config.js"></script>
     <script src="./js/graph.js"></script>
@@ -22,12 +24,23 @@
     <script src="./js/textCloud.js"></script>
     <script src="./js/drawing.js"></script>
     <script src="./js/force3d.js"></script>
-    <script src="./js/selectHandler.js"></script>
-    <script src="./js/customOrbitControl.js"></script>
+  <!--   <script src="./js/selectHandler.js"></script>
+    <script src="./js/customOrbitControl.js"></script> -->
+    <script src="./js/helper.js"></script>
+    <script src="./js/mouseStream.js"></script>
+    <script src="./js/graph2DControl.js"></script>
+    <script src="./js/mouseGraphControl.js"></script>
+    <script src="./js/graphShareInstance.js"></script>
+    <script src="./js/layoutShareInstance.js"></script>
+    <script src="./js/dragSelection.js"></script>
+    <script src="./js/tooltip.js"></script>
 
     <script src="./data/data2.js"></script>
     <!-- <script src="./data/odipus.js"></script> -->
     <style>
+    html, body{
+        overflow: hidden;
+    }
     #canvas-renderContainer {
         position: absolute;
         width: 100%;
@@ -37,17 +50,68 @@
         bottom: 0;
         margin: 0;
         padding: 0;
+ /*       width: 500px;
+        height: 400px;
+        left: 40px;
+        top: 20px;*/
+    }
+    .btns {
+        user-select: none;
+        position: absolute;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        right: 10px;
+        bottom: 10px;
+    }
+    button {
+        cursor: pointer;
     }
     </style>
 </head>
 
 <body>
+    <div class="btns">
+        <div class="row"><button onclick="clickHandler('top')">上</button></div>
+        <div class="row"><button onclick="clickHandler('left')">左</button><button onclick="clickHandler('reset')">reset</button><button onclick="clickHandler('right')">右</button></div>
+        <div class="row"><button onclick="clickHandler('bottom')">下</button></div>
+        <div class="row"><button onclick="clickHandler('turnLeft')">左转</button><button onclick="clickHandler('turnRight')">右转</button></div>
+        <div class="row"><button onclick="clickHandler('near')">近</button><button onclick="clickHandler('far')">远</button></div>
+    </div>
     <div id="canvas-renderContainer"></div>
     <script>
+        /*
+        const N = 1000;
+        var GraphData = {
+          nodes: [...Array(N).keys()].map(i => ({ id: i })),
+          links: [...Array(N).keys()]
+            .filter(id => id)
+            .map(id => ({
+              source: id,
+              target: Math.round(Math.random() * (id-1))
+            }))
+        };
+        */
         var force3d = new Force3D(document.getElementById('canvas-renderContainer'), {
             data: GraphData,
             size: [window.innerWidth, window.innerHeight]
         });
+        var g = force3d.drawing.graph2DControl;
+        var clickHandler = function(type) {
+            switch(type){
+                case 'top': g.moveUp(-.05);break;
+                case 'left': g.moveLeft(.05);break;
+                case 'reset': g.reset();break;
+                case 'right': g.moveRight(-.05);break;
+                case 'bottom': g.moveDown(.05);break;
+                case 'turnLeft': g.rotateAroundSelectedNode(.05);break;
+                case 'turnRight': g.rotateAroundSelectedNode(-.05);break;
+                case 'near': g.moveForward(.05);break;
+                case 'far': g.moveBackward(-.05);break;
+            }
+        }
     </script>
 </body>
 

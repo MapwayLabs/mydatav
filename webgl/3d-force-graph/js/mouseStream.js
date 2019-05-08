@@ -1,21 +1,26 @@
+// export { MouseStream, KeyboardStream }
+
 // 116745
 // Subject 23892
+// graph2DControl 111766
+// handleStream 68385
+// 框选 111514
 function MouseStream(t) {
     var n = this;
     this.enable = true,
     this.movable = true,
     this.dom = t,
-    this.move = new s.default.Subject,
-    this.up = new s.default.Subject,
-    this.down = new s.default.Subject,
-    this.out = new s.default.Subject,
-    this.dbClick = new s.default.Subject,
-    this.wheel = new s.default.Subject,
+    this.move = new window.Rx.Subject,
+    this.up = new window.Rx.Subject,
+    this.down = new window.Rx.Subject,
+    this.out = new window.Rx.Subject,
+    this.dbClick = new window.Rx.Subject,
+    this.wheel = new window.Rx.Subject,
     this.drag = this.down.flatMap(function() {
         var e = n.latestMousePoint.x
           , t = n.latestMousePoint.y;
         return n.move.map(function(n) {
-            return i({}, n, {
+            return Object.assign({}, n, {
                 startPos: {
                     x: e,
                     y: t
@@ -56,8 +61,8 @@ MouseStream.prototype = {
     },
 	mouseDBClick: function(e) {
         if (!this.needFilter(e)) {
-            var t = e.clientX / window.innerWidth * 2 - 1
-              , n = -e.clientY / window.innerHeight * 2 + 1;
+            var t = e.offsetX / this.dom.width * 2 - 1
+              , n = -e.offsetY / this.dom.height * 2 + 1;
             this.dbClick.next({
                 x: t,
                 y: n
@@ -68,8 +73,8 @@ MouseStream.prototype = {
         var t = this;
         this.needFilter(e) || (this.wheel.next({
             deltaY: e.deltaY,
-            x: e.clientX / window.innerWidth * 2 - 1,
-            y: -e.clientY / window.innerHeight * 2 + 1
+            x: e.offsetX / this.dom.width * 2 - 1,
+            y: -e.offsetY / this.dom.height * 2 + 1
         }),
         this._wheelTimeout && clearTimeout(this._wheelTimeout),
         this._wheelTimeout = setTimeout(function() {
@@ -77,16 +82,16 @@ MouseStream.prototype = {
         }, 250))
     },
 	mouseEnter: function(e) {
-        this.enable && this.movable && (this.latestMousePoint.x = e.clientX / window.innerWidth * 2 - 1,
-        this.latestMousePoint.y = -e.clientY / window.innerHeight * 2 + 1,
-        this.latestMousePoint.screenX = e.clientX,
-        this.latestMousePoint.screenY = e.clientY)
+        this.enable && this.movable && (this.latestMousePoint.x = e.offsetX / this.dom.width * 2 - 1,
+        this.latestMousePoint.y = -e.offsetY / this.dom.height * 2 + 1,
+        this.latestMousePoint.screenX = e.offsetX,
+        this.latestMousePoint.screenY = e.offsetY)
     },
 	mouseMove: function(e) {
-        this.enable && this.movable && (this.latestMousePoint.x = e.clientX / window.innerWidth * 2 - 1,
-        this.latestMousePoint.y = -e.clientY / window.innerHeight * 2 + 1,
-        this.latestMousePoint.screenX = e.clientX,
-        this.latestMousePoint.screenY = e.clientY,
+        this.enable && this.movable && (this.latestMousePoint.x = e.offsetX / this.dom.width * 2 - 1,
+        this.latestMousePoint.y = -e.offsetY / this.dom.height * 2 + 1,
+        this.latestMousePoint.screenX = e.offsetX,
+        this.latestMousePoint.screenY = e.offsetY,
         this.latestMousePoint.buttons = e.buttons,
         this.latestMousePoint.isFilter = this.needFilter(e),
         this.latestMousePoint = Object.assign({
@@ -99,14 +104,14 @@ MouseStream.prototype = {
         return !(this.enable && (e.fromReact || e.target.id == this.dom.id) && !t)
     },
 	mouseDown: function(e) {
-        if (this.latestMousePoint.x = e.clientX / window.innerWidth * 2 - 1,
-        this.latestMousePoint.y = -e.clientY / window.innerHeight * 2 + 1,
-        this.latestMousePoint.screenX = e.clientX,
-        this.latestMousePoint.screenY = e.clientY,
+        if (this.latestMousePoint.x = e.offsetX / this.dom.width * 2 - 1,
+        this.latestMousePoint.y = -e.offsetY / this.dom.height * 2 + 1,
+        this.latestMousePoint.screenX = e.offsetX,
+        this.latestMousePoint.screenY = e.offsetY,
         this.latestMousePoint.buttons = e.buttons,
         !this.needFilter(e)) {
-            var t = e.clientX / window.innerWidth * 2 - 1
-              , n = -e.clientY / window.innerHeight * 2 + 1;
+            var t = e.offsetX / this.dom.width * 2 - 1
+              , n = -e.offsetY / this.dom.height * 2 + 1;
             this.down.next({
                 x: t,
                 y: n,
@@ -117,8 +122,8 @@ MouseStream.prototype = {
     },
 	mouseUp: function(e) {
         if (this.enable) {
-            var t = e.clientX / window.innerWidth * 2 - 1
-              , n = -e.clientY / window.innerHeight * 2 + 1;
+            var t = e.offsetX / this.dom.width * 2 - 1
+              , n = -e.offsetY / this.dom.height * 2 + 1;
             this.up.next({
                 x: t,
                 y: n
@@ -130,10 +135,10 @@ MouseStream.prototype = {
     }
 };
 
-function KeyStream() {
+function KeyboardStream() {
     this.enable = true,
-    this.down = new s.default.Subject,
-    this.up = new s.default.Subject,
+    this.down = new window.Rx.Subject,
+    this.up = new window.Rx.Subject,
     document.addEventListener("keydown", this.keydown.bind(this), false),
     document.addEventListener("keyup", this.keyup.bind(this), false),
     this.controlDown = this.down.filter(function(e) {
@@ -143,8 +148,9 @@ function KeyStream() {
         return "Control" == e
     })
 }
-KeyStream.prototype = {
-	constructor: KeyStream,
+
+KeyboardStream.prototype = {
+	constructor: KeyboardStream,
 	ingoreFilter: function(e) {
         return ["input", "textarea"].includes(e.target.tagName.toLocaleLowerCase())
     },

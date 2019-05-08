@@ -1,3 +1,4 @@
+// import Config from './config';
 // export default NodeCloud;
 
 const NodeShader = {
@@ -157,8 +158,8 @@ NodeCloud.prototype = {
             u.toArray(e.nodeColors, 3 * o);
             var l = Math.abs(Math.sin(t))
               , c = new THREE.Color("red");
-            e.nodeSize[o] = r.size * window.Config.config.nodeSizeScale,
-            r.selected ? e.nodeSize[o] = r.size * window.Config.config.nodeSizeScale * (1 + l) : c = u,
+            e.nodeSize[o] = r.size * Config.config.nodeSizeScale,
+            r.selected ? e.nodeSize[o] = r.size * Config.config.nodeSizeScale * (1 + l) : c = u,
             c.toArray(e.nodeBorderColors, 3 * o),
             e.nodeAlpha[o] = r.alpha,
             e.icon[o] = 1 * r.icon
@@ -175,11 +176,10 @@ NodeCloud.prototype = {
     tweenNode: function() {
         var e = this;
         !function(e, t, n, r) {
-            var i = arguments.length > 4 && void 0 !== arguments[4] ? arguments[4] : Tween.Easing.Quadratic.InOut;
+            var i = arguments.length > 4 && void 0 !== arguments[4] ? arguments[4] : TWEEN.Easing.Quadratic.InOut;
             new Promise(function(o) {
-                new Tween.Tween(e).to(t, n).start().easing(i).on("update", r).on("complete", o)
-            }
-            )
+                new TWEEN.Tween(e).to(t, n).start().easing(i).onUpdate(r).onComplete(o)
+            })
         }({
             time: .1
         }, {
