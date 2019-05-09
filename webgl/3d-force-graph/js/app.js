@@ -28,5 +28,6 @@ var clickHandler = function(type) {
         case 'expand': force3d.expandSelectedNodesAction();break;
         case 'delete': force3d.deleteSelectedNodes();break;
         case 'flyTo': force3d.flyTo();break;
+        case 'inverse': force3d.inverseSelection();break;
     }
 }

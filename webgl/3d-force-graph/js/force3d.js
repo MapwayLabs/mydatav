@@ -214,5 +214,22 @@ Force3D.prototype = {
     },
     getInternalRelationships: function() {
         // TODO:
+    },
+    inverseSelection: function() {
+        var e = []
+          , t = this.graph.visibleNodes.filter(function(e) {
+            return e.selected
+        });
+        // TODO:
+        //   , n = t && t.length > 0 ? _.uniq(t.map(function(e) {
+        //     return e.data.detail.type
+        // })) : null;
+        // this.graph.visibleNodes.forEach(function(t) {
+        //     !t.selected && -1 < n.indexOf(t.data.detail.type) && e.push(t.id)
+        // });
+        this.graph.visibleNodes.forEach(function(t) {
+            !t.selected && e.push(t.id)
+        });
+        this.graphShareInstance.selectWithNodeIds(e, this.graphShareInstance.selectTypes.new);
     }
 };
