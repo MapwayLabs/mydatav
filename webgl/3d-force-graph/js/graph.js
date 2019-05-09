@@ -252,13 +252,16 @@ Graph.prototype = {
         i
 	},
 	removeEdge: function(e, t) {
-		var index = -1;
-		index = this.edges.findIndex(n => n.sourceId == e && n.targetId == t);
-		-1 !== index && this.edges.splice(index, 1);
-		index = this.layoutEdges.findIndex(n => n.sourceId == e && n.targetId == t);
-		-1 !== index && this.layoutEdges.splice(index, 1);
-		index = this.visibleEdges.findIndex(n => n.sourceId == e && n.targetId == t);
-		-1 !== index && this.visibleEdges.splice(index, 1);
+        _.remove(this.edges, function(n) {
+            return n.sourceId == e && n.targetId == t
+        }),
+        _.remove(this.layoutEdges, function(n) {
+            return n.sourceId == e && n.targetId == t
+        }),
+        _.remove(this.visibleEdges, function(n) {
+            return n.sourceId == e && n.targetId == t
+        }),
+        this.renderNeedsUpdate = !0
 	},
 	reached_limit: function() {
 		return void 0 != this.options.limit && this.options.limit <= this.nodes.length;
@@ -283,7 +286,34 @@ Graph.prototype = {
             e.source == e.target && console.log("src == tgt " + e.sourceId + " --- " + e.targetId)
         });
 	},
-	createFromArray: function() {},
+	createFromArray: function(e) {
+        var t = this
+          , n = {};
+        e.layoutNodes.forEach(function(e) {
+            t.addNode(e, !1),
+            n[e.id] = e.id
+        }),
+        this.removeNodesByIds(this.nodes.filter(function(e) {
+            return void 0 === n[e.id]
+        }).map(function(e) {
+            return e.id
+        }));
+        var r = {};
+        e.layoutEdges.forEach(function(e) {
+            var n = t.addEdge(t.getNodeById(e.sourceId), t.getNodeById(e.targetId), {}, !1);
+            n && n.id && (r[n.id] = n.id)
+        }),
+        _.remove(this.edges, function(e) {
+            return !r[e.id]
+        }),
+        _.remove(this.layoutEdges, function(e) {
+            return !r[e.id]
+        }),
+        _.remove(this.visibleEdges, function(e) {
+            return !r[e.id]
+        }),
+        this.renderNeedsUpdate = !0
+    },
 	serialize: function() {
         var e = this.layoutEdges
           , t = this.layoutNodes;
@@ -342,8 +372,8 @@ Graph.prototype = {
             if (r.length < 2)
                 console.log("Not enough valid number for node size scaling");
             else {
-                var o = Math.max(...r) + 1e-4
-                  , a = Math.min(...r);
+                var o = _.max(r) + 1e-4
+                  , a = _.min(r);
                 n.forEach(function(e) {
                     var n, r, i;
                     void 0 !== e.data.detail.data[t] && "number" == typeof e.data.detail.data[t] && (e.size = (n = e.data.detail.data[t],
@@ -389,9 +419,9 @@ Graph.prototype = {
             e[t.sourceId][t.id] = t.id,
             e[t.targetId][t.id] = t.id
         }),
-        // i.default.forEach(e, function(t, n) {
-        //     e[n] = i.default.size(t)
-        // }),
+        _.forEach(e, function(t, n) {
+            e[n] = _.size(t)
+        }),
         this.visibleNodes = this.visibleNodes.filter(function(t) {
             return e[t.id] > 1
         }),
@@ -405,14 +435,14 @@ Graph.prototype = {
 	removeNodeWithoutEdges: function() {
         var e = this
           , t = this.visibleNodes.filter(function(t) {
-          	var n = this.visibleEdges.filter(function(e) {
-          		return e.sourceId == t.id || e.targetId == t.id
-          	});
+            var n = _.filter(e.visibleEdges, function(e) {
+                return e.sourceId == t.id || e.targetId == t.id
+            });
             return !n || 0 == n.length
         });
         this.removeNodesByIds(t.map(function(e) {
             return e.id
-        }), !0);
+        }), !0)
 	},
 	removeEdgesNodeNotExist: function() {
         var e = this
@@ -431,84 +461,58 @@ Graph.prototype = {
 	removeNodesByIds: function(e, t) {
         var n = this;
         if (e && Array.isArray(e) && e.length > 0) {
-            // var r = i.default.remove(t ? this.visibleEdges : this.edges, function(t) {
-            //     return e.includes(t.sourceId) || e.includes(t.targetId)
-            // })
-            var r = (t ? this.visibleEdges : this.edges).filter(t => {
-            	return e.includes(t.sourceId) || e.includes(t.targetId);
-            });
-            var o = {};
+            var r = _.remove(t ? this.visibleEdges : this.edges, function(t) {
+                return e.includes(t.sourceId) || e.includes(t.targetId)
+            })
+              , o = {};
             r.forEach(function(e) {
                 o[e.id] = !0
-            });
-            // i.default.remove(this.edges, function(e) {
-            //     return o[e.id]
-            // }),
-            // i.default.remove(this.visibleEdges, function(e) {
-            //     return o[e.id]
-            // }),
-            // i.default.remove(this.layoutEdges, function(e) {
-            //     return o[e.id]
-            // }),
-            var index = -1;
-            index = this.edges.findIndex(e => o[e.id]);
-            -1 !== index && this.edges.splice(index, 1);
-            index = this.visibleEdges.findIndex(e => o[e.id]);
-            -1 !== index && this.visibleEdges.splice(index, 1);
-            index = this.layoutEdges.findIndex(e => o[e.id]);
-            -1 !== index && this.layoutEdges.splice(index, 1);
-
+            }),
+            _.remove(this.edges, function(e) {
+                return o[e.id]
+            }),
+            _.remove(this.visibleEdges, function(e) {
+                return o[e.id]
+            }),
+            _.remove(this.layoutEdges, function(e) {
+                return o[e.id]
+            }),
             r && r.length > 0 && r.forEach(function(e) {
                 e.source.data.neighborsCount = 0,
                 e.source.data.hasAllNeighbors = !1,
                 e.target.data.neighborsCount = 0,
                 e.target.data.hasAllNeighbors = !1
             });
-            // var a = i.default.remove(t ? this.visibleNodes : this.nodes, function(t) {
-            //     return e.includes(t.id)
-            // }).map(function(e) {
-            //     return e.id
-            // });
-            var a = (t ? this.visibleNodes : this.nodes).filter(t => e.includes(t.id)).map(e => e.id);
+            var a = _.remove(t ? this.visibleNodes : this.nodes, function(t) {
+                return e.includes(t.id)
+            }).map(function(e) {
+                return e.id
+            });
             a && a.length > 0 && (a.forEach(function(e) {
                 delete n.nodeSet[e]
-            }));
-            // i.default.remove(this.nodes, function(e) {
-            //     return a.includes(e.id)
-            // }),
-            // i.default.remove(this.layoutNodes, function(e) {
-            //     return a.includes(e.id)
-            // }),
-            // i.default.remove(this.visibleNodes, function(e) {
-            //     return a.includes(e.id)
-            // }))
-            index = this.nodes.findIndex(e => a.includes(e.id));
-            -1 !== index && this.nodes.splice(index, 1);
-            index = this.layoutNodes.findIndex(e => a.includes(e.id));
-            -1 !== index && this.layoutNodes.splice(index, 1);
-            index = this.visibleNodes.findIndex(e => a.includes(e.id));
-            -1 !== index && this.visibleNodes.splice(index, 1);
+            }),
+            _.remove(this.nodes, function(e) {
+                return a.includes(e.id)
+            }),
+            _.remove(this.layoutNodes, function(e) {
+                return a.includes(e.id)
+            }),
+            _.remove(this.visibleNodes, function(e) {
+                return a.includes(e.id)
+            }))
         }
 	},
 	removeEdgesByIds: function(e) {
         if (e && Array.isArray(e) && e.length > 0) {
-            // var t = i.default.remove(this.edges, function(t) {
-            //     return e.includes(t.id)
-            // });
-            // i.default.remove(this.layoutEdges, function(t) {
-            //     return e.includes(t.id)
-            // }),
-            // i.default.remove(this.visibleEdges, function(t) {
-            //     return e.includes(t.id)
-            // }),
-            var t = this.edges.filter(t => e.includes(t.id));
-            var index = -1;
-            index = this.edges.findIndex(t => e.includes(t.id));
-            -1 !== index && this.edges.splice(index, 1);
-            index = this.layoutEdges.findIndex(t => e.includes(t.id));
-            -1 !== index && this.layoutEdges.splice(index, 1);
-            index = this.visibleEdges.findIndex(t => e.includes(t.id));
-            -1 !== index && this.visibleEdges.splice(index, 1);
+            var t = _.remove(this.edges, function(t) {
+                return e.includes(t.id)
+            });
+            _.remove(this.layoutEdges, function(t) {
+                return e.includes(t.id)
+            }),
+            _.remove(this.visibleEdges, function(t) {
+                return e.includes(t.id)
+            }),
             t && t.length > 0 && t.forEach(function(e) {
                 e.source.data.neighborsCount = 0,
                 e.source.data.hasAllNeighbors = !1,

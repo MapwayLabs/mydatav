@@ -1,6 +1,6 @@
 // export default LayoutShareInstance;
 
-// 38280
+// NodesPinManager 38280
 var LayoutShareInstance = (function (){
     var instance;
 	function e(t) {

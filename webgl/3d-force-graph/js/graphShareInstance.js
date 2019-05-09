@@ -1,6 +1,6 @@
 // export default GraphShareInstance;
 
-// 12392
+// NodesSelectManager 12392
 var GraphShareInstance = function() {
     var i = function() {
         function e(e, t) {

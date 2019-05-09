@@ -268,34 +268,34 @@ Drawing.prototype = {
         // T.default.updateNodeId(e, this.graph)
     },
     calculateTimeLine: function(e) {
-        var t = {};
-        e.visibleNodes.forEach(function(e) {
-            var n = e.data.detail.type
-              , r = e.data.detail.data;
-            Object.keys(r).forEach(function(e) {
-                if (/^\d{4}[-\/]\d{2}[-\/]\d{2}/gi.test(r[e]) && Date.parse(r[e]) > 0 || /create_at|created_at|date|time|hasfunded_at/i.test(e)) {
-                    if (!t[n] || !t[n][e]) {
-                        var i = {};
-                        t[n] = t[n] ? t[n] : {},
-                        (i = {}).min = 0,
-                        i.max = 0,
-                        i.duration = !1,
-                        i.duration_min = 0,
-                        i.duration_max = 0,
-                        i.duration_unit = 0,
-                        t[n][e] = i
-                    }
-                    var o = null;
-                    try {
-                        (o = new Date(r[e]).getTime()) || (o = parseInt(r[e]))
-                    } catch (e) {}
-                    0 == t[n][e].min && o && (t[n][e].min = o),
-                    o && o <= t[n][e].min && (t[n][e].min = o - o % 864e5),
-                    o && o > t[n][e].max && (t[n][e].max = o + (864e5 - o % 864e5))
-                }
-            })
-        }),
-        _.isEmpty(t) || this.store.dispatch(a.Actions.setTimeRange(t))
+        // var t = {};
+        // e.visibleNodes.forEach(function(e) {
+        //     var n = e.data.detail.type
+        //       , r = e.data.detail.data;
+        //     Object.keys(r).forEach(function(e) {
+        //         if (/^\d{4}[-\/]\d{2}[-\/]\d{2}/gi.test(r[e]) && Date.parse(r[e]) > 0 || /create_at|created_at|date|time|hasfunded_at/i.test(e)) {
+        //             if (!t[n] || !t[n][e]) {
+        //                 var i = {};
+        //                 t[n] = t[n] ? t[n] : {},
+        //                 (i = {}).min = 0,
+        //                 i.max = 0,
+        //                 i.duration = !1,
+        //                 i.duration_min = 0,
+        //                 i.duration_max = 0,
+        //                 i.duration_unit = 0,
+        //                 t[n][e] = i
+        //             }
+        //             var o = null;
+        //             try {
+        //                 (o = new Date(r[e]).getTime()) || (o = parseInt(r[e]))
+        //             } catch (e) {}
+        //             0 == t[n][e].min && o && (t[n][e].min = o),
+        //             o && o <= t[n][e].min && (t[n][e].min = o - o % 864e5),
+        //             o && o > t[n][e].max && (t[n][e].max = o + (864e5 - o % 864e5))
+        //         }
+        //     })
+        // })
+        // _.isEmpty(t) || this.store.dispatch(a.Actions.setTimeRange(t))
     },
     convertScreenPoint: function(e) {
         var t = this.camera.position.clone()

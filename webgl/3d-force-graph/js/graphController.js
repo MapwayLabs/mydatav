@@ -1,4 +1,130 @@
+// import { Node, Edge } from './js/graph';
 // export default GraphController;
+
+// 22949
+// var ColorHelper = function() {
+//     "use strict";
+//     var r = function() {
+//         function e(e, t) {
+//             for (var n = 0; n < t.length; n++) {
+//                 var r = t[n];
+//                 r.enumerable = r.enumerable || !1,
+//                 r.configurable = !0,
+//                 "value"in r && (r.writable = !0),
+//                 Object.defineProperty(e, r.key, r)
+//             }
+//         }
+//         return function(t, n, r) {
+//             return n && e(t.prototype, n),
+//             r && e(t, r),
+//             t
+//         }
+//     }();
+//     var s = ["#74b9ff", "#a29bfe", "#0984e3", "#6c5ce7", "#ff7675", "#fd79a8", "#fdcb6e", "#e17055", "#e84393"]
+//       , u = null
+//       , l = function() {
+//         function e() {
+//             var t = this;
+//             !function(e, t) {
+//                 if (!(e instanceof t))
+//                     throw new TypeError("Cannot call a class as a function")
+//             }(this, e),
+//             this.colors = s.concat(d3.scaleOrdinal(d3.schemeCategory10).range()).concat(d3.scaleOrdinal(d3.schemeAccent).range()).concat(d3.scaleOrdinal(d3.schemePaired).range()).concat(d3.scaleOrdinal(d3.schemeSet1).range()),
+//             this.labelColorMap = {},
+//             o.default.neo4jBaseInfo.labels.map(function(e) {
+//                 t._autoGenerateColor(e)
+//             })
+//         }
+//         return r(e, null, [{
+//             key: "shareInstance",
+//             value: function() {
+//                 return u || (u = new e),
+//                 u
+//             }
+//         }, {
+//             key: "getColorByType",
+//             value: function(e) {
+//                 return this.shareInstance().getColorByType(e)
+//             }
+//         }, {
+//             key: "getIconByType",
+//             value: function(e) {
+//                 return this.shareInstance().getIconByType(e)
+//             }
+//         }, {
+//             key: "labels",
+//             get: function() {
+//                 return Object.keys(this.shareInstance().labelColorMap)
+//             }
+//         }]),
+//         r(e, [{
+//             key: "_autoGenerateColor",
+//             value: function(e) {
+//                 var t = this
+//                   , n = {
+//                     color: "#ffffff",
+//                     iconIndex: 0
+//                 };
+//                 if (!e || "" == e)
+//                     return n;
+//                 if ("Remark" == e)
+//                     return n.color = "#e67e22",
+//                     n;
+//                 if (/\:/gi.test(e)) {
+//                     var r = e.split(":");
+//                     if (r.length > 0 && !this.labelColorMap[e]) {
+//                         var i = "#FFFFFF";
+//                         r.forEach(function(e) {
+//                             var n = t.labelColorMap[e] ? t.labelColorMap[e] : "#ffffff";
+//                             i = t.avgcolor(i, n)
+//                         })
+//                     }
+//                 }
+//                 return this.labelColorMap[e] ? n.color = this.labelColorMap[e] : (this.labelColorMap[e] = this.colors[Object.keys(this.labelColorMap).length % this.colors.length],
+//                 n.color = this.labelColorMap[e]),
+//                 n
+//             }
+//         }, {
+//             key: "avgcolor",
+//             value: function(e, t) {
+//                 var n = function(e, t) {
+//                     return (e + t) / 2
+//                 }
+//                   , r = function(e) {
+//                     return parseInt(("" + e).replace("#", ""), 16)
+//                 }
+//                   , i = function(e) {
+//                     return (e >> 0).toString(16)
+//                 }
+//                   , o = r(e)
+//                   , a = r(t)
+//                   , s = function(e) {
+//                     return e >> 16 & 255
+//                 }
+//                   , u = function(e) {
+//                     return e >> 8 & 255
+//                 }
+//                   , l = function(e) {
+//                     return 255 & e
+//                 };
+//                 return "#" + i(n(s(o), s(a))) + i(n(u(o), u(a))) + i(n(l(o), l(a)))
+//             }
+//         }, {
+//             key: "getIconByType",
+//             value: function(e) {
+//                 return this._autoGenerateColor(e).iconIndex
+//             }
+//         }, {
+//             key: "getColorByType",
+//             value: function(e) {
+//                 var t = i.default.instance().getLabelConfig(e)
+//                   , n = this._autoGenerateColor(e).color;
+//                 return t && t.background_color ? t.background_color : n
+//             }
+//         }]),
+//         e
+//     }();
+// }();
 
 // 118830
 function GraphController(t, n, r, d) {
@@ -68,24 +194,30 @@ GraphController.prototype = {
         var t = {
             scale: 3
         };
-        new Tween.Tween(t).to({
+        new TWEEN.Tween(t).to({
             scale: 1
         }, 3e3).onUpdate(function() {
             e.data.sizeScale = t.scale
-        }).easing(Tween.Easing.Elastic.InOut).start(window.performance.now())
+        }).easing(TWEEN.Easing.Elastic.InOut).start(window.performance.now())
     },
     createNode: function(e, t, n) {
-        // var r = new Node(e,10);
-        // r.data.sizeScale = 1,
-        // r.data.notes = e,
-        // n && this.animateNewNode(r);
+        var r = new Node(e);
+        r.data.sizeScale = 1,
+        r.data.notes = e,
+        n && this.animateNewNode(r);
+
+        // TODO:
         // var i = t.type ? f.default.getColorByType(t.type) : null
         //   , o = 0
         //   , s = m.default.instance().iconMap[t.type];
-        // return t.type && s && (o = s.id),
-        // this.setNodeColorSize(r, i, o),
-        // this.graph.addNode(r),
-        // r
+
+        var i = '#3a89c9'
+          , o = 0
+          , s = null;
+        return t.type && s && (o = s.id),
+        this.setNodeColorSize(r, i, o),
+        this.graph.addNode(r),
+        r
     },
     updatePropertyByLabel: function(e, t, n) {
         this.graph.updatePropertyByLabel(e, t, n)
@@ -156,7 +288,7 @@ GraphController.prototype = {
     },
     setNodeColorSize: function(e, t, n) {
         e.color = new THREE.Color(t),
-        e.ringColor = l.default.colors.external.clone(),
+        e.ringColor = Config.colors.external.clone(),
         e.size = Math.pow(10, .2),
         e.data.mouseoverScale = 1,
         n && (e.icon = n)

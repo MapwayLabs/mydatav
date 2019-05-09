@@ -1,7 +1,9 @@
 // import Graph from './graph';
 // import Drawing from './drawing';
+// import Helper from './helper';
 // export default Force3D;
 
+// 102112 等同于_app.controller 
 function Force3D(dom, options) {
     this.dom = dom;
     this.data = options.data || {};
@@ -18,7 +20,10 @@ Force3D.prototype = {
     init: function() {
         this.graph = new Graph();
         this.createDrawing();
-        
+        this.graphController = this.drawing && this.drawing.graphController;
+        this.graphShareInstance = this.drawing && this.drawing.graphShareInstance;
+        this.layoutShareInstance = this.drawing && this.drawing.layoutShareInstance;
+
         // var nodes = this.data.nodes.map((n, index) => {
         //     return {
         //         id: n.data.id,
@@ -96,5 +101,118 @@ Force3D.prototype = {
             }, this.graph) : (this.drawing.graph.clear(),
                 this.drawing.loadAndRun()),
             window._graph3Drawing = this.drawing
+    },
+    update: function() {
+        // TODO:
+    },
+    handleSysCommand: function(e) {
+        // var t = this
+        //   , n = (new s.Command).init(this.store, p.Actions, this.graph).executeSysCommand(e);
+        // n instanceof Promise && n.then(function(e) {
+        //     "graph" == e.type ? ((0,
+        //     R.jsonToGraph)(t.graph, e.data),
+        //     t.drawing.forceStartLayout()) : "mysql" == e.type && t.store.dispatch(p.Actions.showGraphBuilder(!0, "mysql", "schemaName", e.data))
+        // })
+    },
+    updatePropertyByLabel: function(e, t, n) {
+        void 0 == n ? this.graphController.updateNodeSizeByProperty(e, t) : this.graphController.updatePropertyByLabel(e, t, n)
+    },
+    resetCameraAndFly: function(e, t) {
+        var n = this
+          , r = this.graph.getNode(t)
+          , i = new THREE.Vector3(0,0,3)
+          , o = e.position.clone();
+        o.distanceTo(i) > 3 ? (0,
+        Helper.tweenHelper)(o, i, 1e3, function(t) {
+            e.position.copy(t),
+            e.lookAt(r.position)
+        }).then(function() {
+            n.flyToNode(t)
+        }) : this.flyToNode(t)
+    },
+    clearGraph: function() {
+        // this.nodeController.clearGraph(),
+        // x.default.shareInstance().nodes = [],
+        // x.default.shareInstance().relationships = [],
+        this.drawing.clearAllPin();
+        this.graphShareInstance.selectWithNodeIds([], this.graphShareInstance.selectTypes.new);
+    },
+    flyToNode: function(e) {
+        if (!_.isEmpty(e)) {
+            var t = this.graph.getNode(e);
+            t && (this.drawing.graph2DControl.flyToNode(t),
+            this.graphShareInstance.selectWithNodeIds([t.id], this.graphShareInstance.selectTypes.new))
+        }
+    },
+    flyTo: function() {
+        this.drawing.graph2DControl.flyToPosition(this.graphShareInstance.center);
+    },
+    deleteSelectedNodes: function() {
+        var e = this.graph.nodes.filter(function(e) {
+            return e.selected
+        }).map(function(e) {
+            return e.id
+        });
+        this.graphShareInstance.selectWithNodeIds([], this.graphShareInstance.selectTypes.new);
+        this.layoutShareInstance.pinNodeIds(e, !0);
+        // this.graphController.historyLine.add();
+        this.graph.removeNodesByIds(e);
+        // this.graphController.historyLine.add();
+        this.drawing.forceStartLayout();
+    },
+    expandSelectedNodesAction: function() {
+        var t = this.graph.nodes.filter(e => e.selected).map(e => e.id);
+        if (t && t.length) {
+            var n = this.graph.nodeSet[t[0]].position.clone();
+            // var r = {}, i = {};
+            // _.forEach(this.graph.edges, e => {
+            //     (t.includes(e.sourceId) || t.includes(e.targetId)) && (r[e.targetId] = e.targetId,
+            //     r[e.sourceId] = e.sourceId,
+            //     e.properties && e.properties.id && (i[e.properties.id] = e.properties.id))
+            // });
+            // TODO: showLoading
+            // TODO: getNodeNeighbors 获取相邻节点和边，参数：uids:t, rids: Object.keys(i)
+            Promise.resolve().then(e => {
+                var id = t[0];
+                var expandCount = 10;
+                var data = {};
+                data.nodes = [...Array(expandCount).keys()].map(i => ({ id:id + '-' + i, labels:['Investor'], properties:{} }));
+                data.relationships = [...Array(expandCount).keys()].map(i => ({ id: id + '-r' + i, startNodeId: id, endNodeId: data.nodes[i].id, type: "link_to", properties: {weight:1} }));
+
+                var r = data.relationships.map((e, i) => {
+                    var obj = {
+                        id: e.id,
+                        object: { uid: e.startNodeId },
+                        subject:{ uid: e.endNodeId },
+                        properties: e.properties,
+                        relationship: e.type,
+                        position: n.clone()
+                    };
+                    var s = data.nodes.find(n => n.id === e.endNodeId);
+                    if (!this.graph.nodeIdExist(e.endNodeId) && s) {
+                        obj.subject.type = s.labels[0];
+                        obj.subject.data = s.properties;
+                    }
+                    return obj;
+                });
+                this.handleTempGraphData(r, true);
+            }).catch(e => {
+                console.error(e);
+            });
+        } else {
+            alert('未选择要扩展的节点！');
+        }
+    },
+    handleTempGraphData: function(e, t, n) {
+        this.graphController.setDataToGraph(e, !0),
+        this.drawing.calculateTimeLine(this.graph),
+        t && this.drawing.startLayout()
+        // this.store.dispatch(p.Actions.graphDataUpdate(_app.controller.graph.visibleNodes.length))
+    },
+    calculateInternalRelationships: function() {
+        // TODO:
+    },
+    getInternalRelationships: function() {
+        // TODO:
     }
 };
