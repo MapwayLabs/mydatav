@@ -1,6 +1,7 @@
 // import Graph from './graph';
 // import Drawing from './drawing';
 // import Helper from './helper';
+// import formatShareInstance from './formatShareInstance';
 // export default Force3D;
 
 // 102112 等同于_app.controller 
@@ -23,6 +24,7 @@ Force3D.prototype = {
         this.graphController = this.drawing && this.drawing.graphController;
         this.graphShareInstance = this.drawing && this.drawing.graphShareInstance;
         this.layoutShareInstance = this.drawing && this.drawing.layoutShareInstance;
+        this.formatShareInstance = formatShareInstance;
 
         // var nodes = this.data.nodes.map((n, index) => {
         //     return {
@@ -179,22 +181,30 @@ Force3D.prototype = {
                 data.nodes = [...Array(expandCount).keys()].map(i => ({ id:id + '-' + i, labels:['Investor'], properties:{} }));
                 data.relationships = [...Array(expandCount).keys()].map(i => ({ id: id + '-r' + i, startNodeId: id, endNodeId: data.nodes[i].id, type: "link_to", properties: {weight:1} }));
 
-                var r = data.relationships.map((e, i) => {
-                    var obj = {
-                        id: e.id,
-                        object: { uid: e.startNodeId },
-                        subject:{ uid: e.endNodeId },
-                        properties: e.properties,
-                        relationship: e.type,
-                        position: n.clone()
-                    };
-                    var s = data.nodes.find(n => n.id === e.endNodeId);
-                    if (!this.graph.nodeIdExist(e.endNodeId) && s) {
-                        obj.subject.type = s.labels[0];
-                        obj.subject.data = s.properties;
-                    }
-                    return obj;
+                var ex = {
+                    data: data,
+                    type: "GRAPH"
+                };
+
+                var r = this.formatShareInstance.format(ex)
+                // .filterNodes(function(e) {
+                //     return (0,
+                //     m.filterInvisibleLabel)(e)
+                // }).filterNodes(function(e) {
+                //     return (0,
+                //     m.filterInvisibleNodeProperty)(e)
+                // }).filterRelationships(function(e) {
+                //     return (0,
+                //     m.filterInvisibleRelationship)(e)
+                // }).filterRelationships(function(e) {
+                //     return (0,
+                //     m.filterInvisibleRelationshipProperty)(e)
+                // })
+                .build();
+                r.forEach(function(e) {
+                    e.position = n.clone()
                 });
+
                 this.handleTempGraphData(r, true);
             }).catch(e => {
                 console.error(e);
