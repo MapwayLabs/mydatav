@@ -5,36 +5,43 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>testGraph</title>
-    <script>
-    // global variables
-    window._near = 2.6;
-    window.SIZE = {
-        width: window.innerWidth,
-        height: window.innerHeight
-    };
-    window.Config = {
-        canRecord: false,
-        nodeSizeScale: 1
-    };
-    window.layoutOptions = {
-        "linkStrength": 1,
-        "linkDistance": 0.5,
-        "charge": -0.01,
-        "gravity": 0.2,
-        "friction": 0.3,
-        "heightCompress": 1
-    }
-    </script>
+
     <script src="./lib/three.js"></script>
-    <script src="./lib/d3.js"></script>
-    <script src="./lib/OrbitControls.js"></script>
-    <script src="./app.js"></script>
-    <!-- <script src="./layoutWorker.worker.js"></script> -->
-    <script src="./js/workerMessage.js"></script>
-    <script src="./js/forceGraph.js"></script>
-    <script src="./js/node.js"></script>
+    <!-- <script src="./lib/OrbitControls.js"></script> -->
+    <script src="./lib/lodash.js"></script>
+    <script src="./lib/tween.js"></script>
+    <script src="./lib/rxjs.umd.min.js"></script>
+    <script src="./lib/threex.keyboardstate.js"></script>
+
+    <script src="./js/config.js"></script>
+    <script src="./js/graph.js"></script>
+    <script src="./js/graphController.js"></script>
+    <script src="./js/layoutController.js"></script>
+    <script src="./js/nodeCloud.js"></script>
+    <script src="./js/edgeCloud.js"></script>
+    <script src="./js/imageCloud.js"></script>
+    <script src="./js/relationshipCloud.js"></script>
+    <script src="./js/textCloud.js"></script>
+    <script src="./js/drawing.js"></script>
+    <script src="./js/force3d.js"></script>
+  <!--   <script src="./js/selectHandler.js"></script>
+    <script src="./js/customOrbitControl.js"></script> -->
+    <script src="./js/helper.js"></script>
+    <script src="./js/mouseStream.js"></script>
+    <script src="./js/graph2DControl.js"></script>
+    <script src="./js/mouseGraphControl.js"></script>
+    <script src="./js/graphShareInstance.js"></script>
+    <script src="./js/layoutShareInstance.js"></script>
+    <script src="./js/formatShareInstance.js"></script>
+    <script src="./js/dragSelection.js"></script>
+    <script src="./js/tooltip.js"></script>
+
     <script src="./data/data2.js"></script>
+    <!-- <script src="./data/odipus.js"></script> -->
     <style>
+    html, body{
+        overflow: hidden;
+    }
     #canvas-renderContainer {
         position: absolute;
         width: 100%;
@@ -44,43 +51,41 @@
         bottom: 0;
         margin: 0;
         padding: 0;
+ /*       width: 500px;
+        height: 400px;
+        left: 40px;
+        top: 20px;*/
+    }
+    .btns {
+        user-select: none;
+        position: absolute;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        right: 10px;
+        bottom: 10px;
+    }
+    button {
+        cursor: pointer;
     }
     </style>
 </head>
 
 <body>
+    <div class="btns">
+        <div class="row"><button onclick="clickHandler('top')">上</button></div>
+        <div class="row"><button onclick="clickHandler('left')">左</button><button onclick="clickHandler('reset')">重置</button><button onclick="clickHandler('right')">右</button></div>
+        <div class="row"><button onclick="clickHandler('bottom')">下</button></div>
+        <div class="row"><button onclick="clickHandler('turnLeft')">左转</button><button onclick="clickHandler('turnRight')">右转</button></div>
+        <div class="row"><button onclick="clickHandler('near')">近</button><button onclick="clickHandler('far')">远</button></div>
+        <div class="row"><button onclick="clickHandler('expand')">扩展</button><button onclick="clickHandler('delete')">删除</button></div>
+        <div class="row"><button onclick="clickHandler('flyTo')">定位</button></div>
+        <div class="row"><button onclick="clickHandler('inverse')">反选</button></div>
+    </div>
     <div id="canvas-renderContainer"></div>
-    <script>
-    var forceGraph = new ForceGraph();
-    var idMap = {};
-    GraphData.nodes.forEach((n,index) => {
-    	idMap[index] = n.id;
-    });
-    var graph = {
-    	layoutEdges: GraphData.links.map(l => ({
-    		alpha: 0.6,
-    		sourceId: l.source,
-    		targetId: l.target
-    	})),
-    	layoutNodes: GraphData.nodes.map((n,index) => ({
-    		alpha: index ? 1 : 0.001,
-    		id: n.id,
-    		position: new THREE.Vector3(0, 0, 0),
-    		data: {}
-    	})),
-    	serialize: function() {
-    		// return JSON.stringify({ layoutEdges: this.layoutEdges, layoutNodes: this.layoutNodes });
-    		return { layoutEdges: this.layoutEdges, layoutNodes: this.layoutNodes };
-    	}
-    };
-    workerMessage.init(graph, window.layoutOptions);
-    window.onWorkerMessage = function(data, isFinish) {
-    	if (isFinish) {
-    	    console.log(data);
-    	    forceGraph.renderGraph(data);	
-    	}
-    }
-    </script>
+    <script src="./js/app.js"></script>
 </body>
 
 </html>

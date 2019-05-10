@@ -12,6 +12,7 @@
             "color": "rgb(116,185,255)",
             "size": 1.5848931924611136,
             "alpha": 0.001,
+            "image": "THREE.MESH",
             "imageAlpha": 1,
             "icon": 0,
             "data":
