@@ -1,7 +1,6 @@
-// const N = 1;
+// const N = 5000;
 // var GraphData = {
 //   nodes: [...Array(N).keys()].map(i => ({ id: i })),
-//   // links: []
 //   links: [...Array(N).keys()]
 //     .filter(id => id)
 //     .map(id => ({
