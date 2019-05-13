@@ -77,14 +77,14 @@ Node.prototype = {
 
 //////////////////// 边 24524
 function Edge(t, n, r) {
-    this.uid = "",
-    this.sourceId = t.id,
-    this.targetId = n.id,
-    this.source = t,
-    this.target = n,
-    this.name = "",
-    this.alpha = r && r.alpha ? r.alpha : window.Config.config.edgeDefaultAlpha,
-    this.properties = {},
+    this.uid = "";
+    this.sourceId = t.id;
+    this.targetId = n.id;
+    this.source = t;
+    this.target = n;
+    this.name = "";
+    this.alpha = r && r.alpha ? r.alpha : window.Config.config.edgeDefaultAlpha;
+    this.properties = {};
     this.color = new THREE.Color(r && r.color ? r.color : window.Config.colors.edge);
     
     var me = this;

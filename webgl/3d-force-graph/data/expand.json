@@ -1,0 +1,251 @@
+[
+{
+    "id": "14-r0",
+    "properties":
+    {
+        "weight": 1
+    },
+    "object":
+    {
+        "uid": "14"
+    },
+    "subject":
+    {
+        "uid": "14-0",
+        "data":
+        {},
+        "type": "Investor"
+    },
+    "relationship": "link_to",
+    "position":
+    {
+        "x": 0.37399582634082185,
+        "y": -0.12951891259053352,
+        "z": 1.2328397489534728
+    }
+},
+{
+    "id": "14-r1",
+    "properties":
+    {
+        "weight": 1
+    },
+    "object":
+    {
+        "uid": "14"
+    },
+    "subject":
+    {
+        "uid": "14-1",
+        "data":
+        {},
+        "type": "Investor"
+    },
+    "relationship": "link_to",
+    "position":
+    {
+        "x": 0.37399582634082185,
+        "y": -0.12951891259053352,
+        "z": 1.2328397489534728
+    }
+},
+{
+    "id": "14-r2",
+    "properties":
+    {
+        "weight": 1
+    },
+    "object":
+    {
+        "uid": "14"
+    },
+    "subject":
+    {
+        "uid": "14-2",
+        "data":
+        {},
+        "type": "Investor"
+    },
+    "relationship": "link_to",
+    "position":
+    {
+        "x": 0.37399582634082185,
+        "y": -0.12951891259053352,
+        "z": 1.2328397489534728
+    }
+},
+{
+    "id": "14-r3",
+    "properties":
+    {
+        "weight": 1
+    },
+    "object":
+    {
+        "uid": "14"
+    },
+    "subject":
+    {
+        "uid": "14-3",
+        "data":
+        {},
+        "type": "Investor"
+    },
+    "relationship": "link_to",
+    "position":
+    {
+        "x": 0.37399582634082185,
+        "y": -0.12951891259053352,
+        "z": 1.2328397489534728
+    }
+},
+{
+    "id": "14-r4",
+    "properties":
+    {
+        "weight": 1
+    },
+    "object":
+    {
+        "uid": "14"
+    },
+    "subject":
+    {
+        "uid": "14-4",
+        "data":
+        {},
+        "type": "Investor"
+    },
+    "relationship": "link_to",
+    "position":
+    {
+        "x": 0.37399582634082185,
+        "y": -0.12951891259053352,
+        "z": 1.2328397489534728
+    }
+},
+{
+    "id": "14-r5",
+    "properties":
+    {
+        "weight": 1
+    },
+    "object":
+    {
+        "uid": "14"
+    },
+    "subject":
+    {
+        "uid": "14-5",
+        "data":
+        {},
+        "type": "Investor"
+    },
+    "relationship": "link_to",
+    "position":
+    {
+        "x": 0.37399582634082185,
+        "y": -0.12951891259053352,
+        "z": 1.2328397489534728
+    }
+},
+{
+    "id": "14-r6",
+    "properties":
+    {
+        "weight": 1
+    },
+    "object":
+    {
+        "uid": "14"
+    },
+    "subject":
+    {
+        "uid": "14-6",
+        "data":
+        {},
+        "type": "Investor"
+    },
+    "relationship": "link_to",
+    "position":
+    {
+        "x": 0.37399582634082185,
+        "y": -0.12951891259053352,
+        "z": 1.2328397489534728
+    }
+},
+{
+    "id": "14-r7",
+    "properties":
+    {
+        "weight": 1
+    },
+    "object":
+    {
+        "uid": "14"
+    },
+    "subject":
+    {
+        "uid": "14-7",
+        "data":
+        {},
+        "type": "Investor"
+    },
+    "relationship": "link_to",
+    "position":
+    {
+        "x": 0.37399582634082185,
+        "y": -0.12951891259053352,
+        "z": 1.2328397489534728
+    }
+},
+{
+    "id": "14-r8",
+    "properties":
+    {
+        "weight": 1
+    },
+    "object":
+    {
+        "uid": "14"
+    },
+    "subject":
+    {
+        "uid": "14-8",
+        "data":
+        {},
+        "type": "Investor"
+    },
+    "relationship": "link_to",
+    "position":
+    {
+        "x": 0.37399582634082185,
+        "y": -0.12951891259053352,
+        "z": 1.2328397489534728
+    }
+},
+{
+    "id": "14-r9",
+    "properties":
+    {
+        "weight": 1
+    },
+    "object":
+    {
+        "uid": "14"
+    },
+    "subject":
+    {
+        "uid": "14-9",
+        "data":
+        {},
+        "type": "Investor"
+    },
+    "relationship": "link_to",
+    "position":
+    {
+        "x": 0.37399582634082185,
+        "y": -0.12951891259053352,
+        "z": 1.2328397489534728
+    }
+}]

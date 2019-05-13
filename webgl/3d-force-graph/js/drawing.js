@@ -59,7 +59,7 @@ function Drawing(options, graph) {
    this.initBasicThree(),
    this.initLighting(),
    this.nodeCloud = new NodeCloud(this.graph, this.cloudScene),
-   this.edgeCloud = new EdgeCloud(this.graph, this.cloudScene, true),
+   this.edgeCloud = new EdgeCloud(this.graph, this.cloudScene, false),
    // this.textCloud = new TextCloud(this.graph, this.cloudScene, this.camera),
    this.addImageCloud();
    this.relationshipCloud = new RelationShipCloud(this.cloudScene, this.graph, this.camera);
