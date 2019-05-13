@@ -1,7 +1,8 @@
 // export default layoutController;
 
 const layoutController = {
-    workerLayout: new Worker("layoutWorker.worker.js"),
+    // workerLayout: new Worker("layoutWorker.worker.js"),
+    workerLayout: new Worker("d3-force-3d/worker.js"),
     graph: null,
     options: null,
     isFinish: false,

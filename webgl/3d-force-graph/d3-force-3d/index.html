@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>d3-force-3d</title>
+    <script src="./d3-binarytree.js"></script>
+    <script src="./d3-quadtree.js"></script>
+    <script src="./d3-octree.js"></script>
+    <script src="./d3-dispatch.js"></script>
+    <script src="./d3-timer.js"></script>
+    <script src="./d3-force-3d.min.js"></script>
+</head>
+
+<body>
+    <script>
+    const N = 100;
+    var GraphData = {
+        nodes: [...Array(N).keys()].map(i => ({ id: i })),
+        links: [...Array(N).keys()]
+            .filter(id => id)
+            .map(id => ({
+                source: id,
+                target: Math.round(Math.random() * (id - 1))
+            }))
+    };
+    var simulation = d3.forceSimulation(GraphData.nodes, 3).stop();
+    // simulation.on('start', e => {
+    //     console.log('start');
+    // });
+    simulation.on('tick', e => {
+    	console.log('tick');
+    });
+    simulation.on('end', e => {
+        console.log('end');
+    });
+    </script>
+</body>
+
+</html>
