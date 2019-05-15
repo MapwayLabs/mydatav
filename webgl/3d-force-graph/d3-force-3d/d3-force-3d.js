@@ -411,7 +411,7 @@ function simulation(nodes, numDimensions) {
   return simulation = {
     tick: tick,
 
-    restart: function() {
+    start: function() {
       return stepper.restart(step), simulation;
     },
 
@@ -427,6 +427,18 @@ function simulation(nodes, numDimensions) {
 
     nodes: function(_) {
       return arguments.length ? (nodes = _, initializeNodes(), forces.forEach(initializeForce), simulation) : nodes;
+    },
+
+    links: function(_) {
+      return arguments.length ? (this.force('link', link(_)), simulation) : this.force('link').links();
+    },
+
+    linkStrength: function(_) {
+      return arguments.length ? (this.force('link').strength(_), simulation) : this.force('link').strength();
+    },
+
+    linkDistance: function(_) {
+      return arguments.length ? (this.force('link').distance(_), simulation) : this.force('link').distance();
     },
 
     alpha: function(_) {

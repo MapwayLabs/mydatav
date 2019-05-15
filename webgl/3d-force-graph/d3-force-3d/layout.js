@@ -1,4 +1,10 @@
 // layoutWorker.worker.js 35983
+const ENGINE = {
+    force3D: 'force3D',
+    d3Layout: 'd3Layout',
+    d3Force3D: 'd3Force3D'
+};
+var layoutEngine = ENGINE.d3Force3D;
 var layout = {
     handleStart: null,
     handleStop: null,
@@ -42,27 +48,41 @@ var layout = {
 
         console.log("initialize Layout...");
         this.force && (this.force.on("tick", null), this.force.on("end", null));
-        var r = this.graphD3Layout.heightCompress;
         if (this.force) {
             if (this.force.alpha() <= .5) this.force.alpha(.6);
         } else {
-            this.force = d3.layout.force3D();
-            this.force.size([0, 0, 0]);
-
-            // this.force = d3.forceSimulation([], 3).stop();
-            // this.force.force("charge", d3.forceManyBody().strength(-0.01).theta(0.2))
-            // .force("center", d3.forceCenter(0, 0, 0))
-            // .force("x", d3.forceX(1))
-            // .force("y", d3.forceY(1))
-            // .force("z", d3.forceZ(1));
+            switch (layoutEngine) {
+                case ENGINE.d3Layout: this.force = d3.layout.force3D(); break;
+                case ENGINE.d3Force3D: this.force = d3.forceSimulation([], 3).stop(); break;
+            };
         }
-        this.force.nodes(this.nodes)
-            .links(this.links)
-            .linkStrength(this.graphD3Layout.linkStrength)
-            .linkDistance(this.graphD3Layout.linkDistance)
-            .charge(this.graphD3Layout.charge)
-            .gravity(this.graphD3Layout.gravity)
-            .heightCompress(r)
+
+        if (layoutEngine === ENGINE.d3Layout) {
+            this.force.size([0, 0, 0]) 
+                .nodes(this.nodes)
+                .links(this.links)
+                .linkStrength(this.graphD3Layout.linkStrength)
+                .linkDistance(this.graphD3Layout.linkDistance)
+                .charge(this.graphD3Layout.charge)
+                .gravity(this.graphD3Layout.gravity)
+                .heightCompress(this.graphD3Layout.heightCompress);     
+        } else {
+            this.force.nodes(this.nodes)
+                .links(this.links)
+                .linkStrength(this.graphD3Layout.linkStrength)
+                .linkDistance(this.graphD3Layout.linkDistance)
+                // forceManyBody 基于四叉树（2D）或八叉树（3D）的空间划分，节点代表空间中心点
+                // strength 表示力的大小，负数为斥力，正数为引力；
+                // theta 表示密集程度，值越小，body之间的空隙越大；值越大，body之间的空隙越小。
+                // Whether a node is or isn't sufficiently far away from a body, depends on the quotient {\displaystyle s/d} s/d, where s is the width of the region represented by the internal node, and d is the distance between the body and the node's center of mass. The node is sufficiently far away when this ratio is smaller than a threshold value θ. The parameter θ determines the accuracy of the simulation; larger values of θ increase the speed of the simulation but decreases its accuracy. If θ = 0, no internal node is treated as a single body and the algorithm degenerates to a direct-sum algorithm.
+                // .force("charge", d3.forceManyBody().strength(-0.01).theta(0.2))
+                .force("charge", d3.forceManyBody().strength(-0.02).theta(0.2))
+                // .force("collide", d3.forceCollide(0.02).strength(1).iterations(3))
+                .force("center", d3.forceCenter(0, 0, 0))
+                .force("x", d3.forceX(0))
+                .force("y", d3.forceY(0))
+                .force("z", d3.forceZ(0)); 
+        }
 
         this.force.on("tick", function() {
             _.size(n.pinNodes) > 0 && _.forEach(n.pinNodes, function(t, e) {
