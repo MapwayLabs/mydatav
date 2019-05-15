@@ -136,6 +136,8 @@ Force3D.prototype = {
         // this.nodeController.clearGraph(),
         // x.default.shareInstance().nodes = [],
         // x.default.shareInstance().relationships = [],
+        this.graph.removeAllNodesAndEdges();
+        this.drawing.nodeCloud.removeAllNodes();
         this.drawing.clearAllPin();
         this.graphShareInstance.selectWithNodeIds([], this.graphShareInstance.selectTypes.new);
     },

@@ -1,8 +1,16 @@
 // export default layoutController;
-
-const layoutController = {
+// 110092 layoutEngine:109892
+var getWebWorker = function(e) {
+    return new Worker("d3-force-3d/worker.js");
+};
+var worker = getWebWorker();
+window.addEventListener("beforeunload", function(e) {
+    worker && worker.terminate && worker.terminate();
+});
+var layoutController = {
     // workerLayout: new Worker("layoutWorker.worker.js"),
-    workerLayout: new Worker("d3-force-3d/worker.js"),
+    // workerLayout: new Worker("d3-force-3d/worker.js"),
+    workerLayout: worker,
     graph: null,
     options: null,
     isFinish: false,
