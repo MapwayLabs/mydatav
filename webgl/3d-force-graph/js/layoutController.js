@@ -2,6 +2,7 @@
 // 110092 layoutEngine:109892
 var getWebWorker = function(e) {
     return new Worker("d3-force-3d/worker.js");
+    // return new Worker("layoutWorker.worker.js");
 };
 var worker = getWebWorker();
 window.addEventListener("beforeunload", function(e) {

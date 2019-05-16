@@ -1,10 +1,9 @@
 // layoutWorker.worker.js 35983
 const ENGINE = {
-    force3D: 'force3D',
     d3Layout: 'd3Layout',
     d3Force3D: 'd3Force3D'
 };
-var layoutEngine = ENGINE.d3Force3D;
+var layoutEngine = ENGINE.d3Layout;
 var layout = {
     handleStart: null,
     handleStop: null,

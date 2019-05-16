@@ -1,11 +1,12 @@
-// const N = 5000;
+// const N = 100;
 // var GraphData = {
 //   nodes: [...Array(N).keys()].map(i => ({ id: i })),
 //   links: [...Array(N).keys()]
 //     .filter(id => id)
 //     .map(id => ({
 //       source: id,
-//       target: Math.round(Math.random() * (id-1))
+//       // target: Math.round(Math.random() * (id-1))
+//       target: 0
 //     }))
 // };
 var force3d = new Force3D(document.getElementById('canvas-renderContainer'), {
