@@ -10,6 +10,8 @@ function MouseStream(t) {
     this.enable = true,
     this.movable = true,
     this.dom = t,
+    // NOTE: 需要适配retina屏，size采用style属性的size，而不是canvas的width&height属性值。
+    this.dpr = window.devicePixelRatio || 1,
     this.move = new window.Rx.Subject,
     this.up = new window.Rx.Subject,
     this.down = new window.Rx.Subject,
@@ -61,8 +63,8 @@ MouseStream.prototype = {
     },
 	mouseDBClick: function(e) {
         if (!this.needFilter(e)) {
-            var t = e.offsetX / this.dom.width * 2 - 1
-              , n = -e.offsetY / this.dom.height * 2 + 1;
+            var t = e.offsetX / (this.dom.width / this.dpr) * 2 - 1
+              , n = -e.offsetY / (this.dom.height / this.dpr) * 2 + 1;
             this.dbClick.next({
                 x: t,
                 y: n
@@ -73,8 +75,8 @@ MouseStream.prototype = {
         var t = this;
         this.needFilter(e) || (this.wheel.next({
             deltaY: e.deltaY,
-            x: e.offsetX / this.dom.width * 2 - 1,
-            y: -e.offsetY / this.dom.height * 2 + 1
+            x: e.offsetX / (this.dom.width / this.dpr) * 2 - 1,
+            y: -e.offsetY / (this.dom.height / this.dpr) * 2 + 1
         }),
         this._wheelTimeout && clearTimeout(this._wheelTimeout),
         this._wheelTimeout = setTimeout(function() {
@@ -82,14 +84,14 @@ MouseStream.prototype = {
         }, 250))
     },
 	mouseEnter: function(e) {
-        this.enable && this.movable && (this.latestMousePoint.x = e.offsetX / this.dom.width * 2 - 1,
-        this.latestMousePoint.y = -e.offsetY / this.dom.height * 2 + 1,
+        this.enable && this.movable && (this.latestMousePoint.x = e.offsetX / (this.dom.width / this.dpr) * 2 - 1,
+        this.latestMousePoint.y = -e.offsetY / (this.dom.height / this.dpr) * 2 + 1,
         this.latestMousePoint.screenX = e.offsetX,
         this.latestMousePoint.screenY = e.offsetY)
     },
 	mouseMove: function(e) {
-        this.enable && this.movable && (this.latestMousePoint.x = e.offsetX / this.dom.width * 2 - 1,
-        this.latestMousePoint.y = -e.offsetY / this.dom.height * 2 + 1,
+        this.enable && this.movable && (this.latestMousePoint.x = e.offsetX / (this.dom.width / this.dpr) * 2 - 1,
+        this.latestMousePoint.y = -e.offsetY / (this.dom.height / this.dpr) * 2 + 1,
         this.latestMousePoint.screenX = e.offsetX,
         this.latestMousePoint.screenY = e.offsetY,
         this.latestMousePoint.buttons = e.buttons,
@@ -104,14 +106,14 @@ MouseStream.prototype = {
         return !(this.enable && (e.fromReact || e.target.id == this.dom.id) && !t)
     },
 	mouseDown: function(e) {
-        if (this.latestMousePoint.x = e.offsetX / this.dom.width * 2 - 1,
-        this.latestMousePoint.y = -e.offsetY / this.dom.height * 2 + 1,
+        if (this.latestMousePoint.x = e.offsetX / (this.dom.width / this.dpr) * 2 - 1,
+        this.latestMousePoint.y = -e.offsetY / (this.dom.height / this.dpr) * 2 + 1,
         this.latestMousePoint.screenX = e.offsetX,
         this.latestMousePoint.screenY = e.offsetY,
         this.latestMousePoint.buttons = e.buttons,
         !this.needFilter(e)) {
-            var t = e.offsetX / this.dom.width * 2 - 1
-              , n = -e.offsetY / this.dom.height * 2 + 1;
+            var t = e.offsetX / (this.dom.width / this.dpr) * 2 - 1
+              , n = -e.offsetY / (this.dom.height / this.dpr) * 2 + 1;
             this.down.next({
                 x: t,
                 y: n,
@@ -122,8 +124,8 @@ MouseStream.prototype = {
     },
 	mouseUp: function(e) {
         if (this.enable) {
-            var t = e.offsetX / this.dom.width * 2 - 1
-              , n = -e.offsetY / this.dom.height * 2 + 1;
+            var t = e.offsetX / (this.dom.width / this.dpr) * 2 - 1
+              , n = -e.offsetY / this.dom.height /  this.dpr * 2 + 1;
             this.up.next({
                 x: t,
                 y: n

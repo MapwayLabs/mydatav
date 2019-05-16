@@ -1,4 +1,5 @@
  // layoutWorker.worker.js 36214
+ // https://github.com/ggeoffrey/d3.layout.force3D
  var r = d3;
  if (!r)
      throw "force3D: Unable to inject d3.layout.force3D into d3.js . Be sure to load D3js beforehand.";

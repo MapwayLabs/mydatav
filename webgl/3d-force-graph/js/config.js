@@ -34,12 +34,14 @@ var Config = {
         edge_alpha: .8
         // mouseoverHighlightNode: .85
     },
+    // https://blog.csdn.net/gdp12315_gu/article/details/48351589
+    // 弹簧+库仑力
     layoutControllerOptions: {
         linkStrength: 1,
         linkDistance: 0.5,
         charge: -0.01,
         gravity: 0.2,
-        friction: 0.3,
+        friction: 0.3, // 阻尼衰减
         heightCompress: 1
     },
     graphLayout: {

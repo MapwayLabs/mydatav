@@ -14,8 +14,9 @@ var u = {
 	    return new Promise(function(t) {
 	        var n = document.createElement("canvas")
 	          , r = n.getContext("2d");
-	        n.width = 200,
-	        n.height = 200;
+            var dpr = window.devicePixelRatio || 1;
+	        n.width = 200 * dpr,
+	        n.height = 200 * dpr;
 	        var i = new THREE.Texture(n);
 	        i.minFilter = THREE.LinearFilter,
 	        i.magFilter = THREE.LinearFilter,
@@ -30,9 +31,11 @@ var u = {
 	        s.scale.set(.001, .001, .001),
 	        (new THREE.ImageLoader).load(e, function(e) {
 	            var o = e.width < e.height ? e.width : e.height;
-	            n.width = o,
-	            n.height = o;
+	            n.width = o * dpr,
+	            n.height = o * dpr;
 	            var a = o / 2;
+                r.save(),
+                r.scale(dpr, dpr),
 	            r.beginPath(),
 	            r.arc(o / 2, o / 2, o / 2, 0, 2 * Math.PI, !0),
 	            r.closePath(),
@@ -43,6 +46,7 @@ var u = {
 	            r.beginPath(),
 	            r.arc(a, a, a - 2, 0, 2 * Math.PI, !0),
 	            r.stroke(),
+                r.restore(),
 	            i.needsUpdate = !0,
 	            t(s)
 	        });
@@ -169,7 +173,7 @@ ImageCloud.prototype = Object.assign( Object.create(THREE.Group.prototype), {
                     // console.log(n);
                     // var url = n.data.style['background-image'];
                     // var r = url && url.substring(4, url.length-1)
-                    var r = 'img/kg1.png'
+                    var r = 'img/kg2.png'
                       , i = null;
                     r && (i = (0,
                     u.createHexagonSpriteFromUrl)(r)),

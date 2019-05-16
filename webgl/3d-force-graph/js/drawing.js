@@ -105,7 +105,9 @@ Drawing.prototype = {
             antialias: true
         });
         // this.renderer.setSize(window.innerWidth, window.innerHeight);
-        this.renderer.setSize(this.size[0], this.size[1]);
+        this.renderer.setPixelRatio(window.devicePixelRatio || 1);
+        this.renderer.setSize(this.size[0], this.size[1], true);
+        // this.renderer.setSize(this.size[0], this.size[1]);
         // document.getElementById("canvas-renderContainer").appendChild(this.renderer.domElement);
         this.dom.appendChild(this.renderer.domElement);
         this.renderer.domElement.id = "renderer";
@@ -304,8 +306,10 @@ Drawing.prototype = {
         return t.clone().add(n.multiplyScalar(r))  
     },
     convertCloudPoint: function(e) {
-        var t = .5 * this.renderer.context.canvas.width
-          , n = .5 * this.renderer.context.canvas.height
+        // var t = .5 * this.renderer.context.canvas.width
+        //   , n = .5 * this.renderer.context.canvas.height
+        var t = .5 * this.size[0]
+          , n = .5 * this.size[1]
           , r = this.cloudScene.localToWorld(e.clone());
         return this.camera.updateMatrixWorld(),
         r.project(this.camera),
