@@ -74,10 +74,11 @@ var layout = {
                 // strength 表示力的大小，负数为斥力，正数为引力；
                 // theta 表示密集程度，值越小，body之间的空隙越大；值越大，body之间的空隙越小。
                 // Whether a node is or isn't sufficiently far away from a body, depends on the quotient {\displaystyle s/d} s/d, where s is the width of the region represented by the internal node, and d is the distance between the body and the node's center of mass. The node is sufficiently far away when this ratio is smaller than a threshold value θ. The parameter θ determines the accuracy of the simulation; larger values of θ increase the speed of the simulation but decreases its accuracy. If θ = 0, no internal node is treated as a single body and the algorithm degenerates to a direct-sum algorithm.
-                // .force("charge", d3.forceManyBody().strength(-0.01).theta(0.2))
-                .force("charge", d3.forceManyBody().strength(-0.02).theta(0.2))
-                // .force("collide", d3.forceCollide(0.02).strength(1).iterations(3))
+                .force("charge", d3.forceManyBody().strength(-0.01).theta(0.2))
+                // .force("charge", d3.forceManyBody().strength(-0.02).theta(0.2))
+                .force("collide", d3.forceCollide(0.02).strength(1).iterations(3))
                 .force("center", d3.forceCenter(0, 0, 0))
+                .force("radius", d3.forceRadial(1, 0, 0, 0))
                 .force("x", d3.forceX(0))
                 .force("y", d3.forceY(0))
                 .force("z", d3.forceZ(0)); 

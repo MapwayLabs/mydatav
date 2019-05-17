@@ -1,526 +1,693 @@
- // layoutWorker.worker.js 36214
- // https://github.com/ggeoffrey/d3.layout.force3D
- var r = d3;
- if (!r)
-     throw "force3D: Unable to inject d3.layout.force3D into d3.js . Be sure to load D3js beforehand.";
- r.layout || r.geom || (r.layout = {},
-     r.geom = {});
- var i = Math.abs,
-     o = 0;
+(function() {
 
- function a(t) {
-     return t[0]
- }
+    if (!d3) {
+    // if (!(d3 && d3.layout && d3.geom)) {
+        throw "force3D: Unable to inject d3.layout.force3D" +
+            " into d3.js . Be sure to load D3js beforehand.";
+    }
 
- function s(t) {
-     return t[1]
- }
+    d3.layout || d3.geom || (d3.layout = {}, d3.geom = {});
 
- function u(t) {
-     return t[2]
- }
+    var abs = Math.abs;
 
- function c(t) {
-     return "function" == typeof t ? t : function() {
-         return t
-     }
- }
+    function d3_geom_pointX(d) {
+        return d[0];
+    }
 
- function f(t) {
-     return t.x
- }
+    function d3_geom_pointY(d) {
+        return d[1];
+    }
 
- function l(t) {
-     return t.y
- }
+    function d3_geom_pointZ(d) {
+        return d[2];
+    }
 
- function h(t) {
-     return t.z
- }
- // 八叉树
- r.geom.octree = function(t, e, n, r, d, p, m) {
-     var v, g = a,
-         y = s,
-         b = u;
-     if (v = arguments.length)
-         return g = f,
-             y = l,
-             b = h,
-             4 === v && (p = n,
-                 d = e,
-                 m = r,
-                 r = n = e = 0),
-             _(t);
+    function d3_functor(v) {
+        return typeof v === "function" ? v : function() {
+            return v;
+        };
+    }
+    //d3.functor = d3_functor;
 
-     function _(t) {
-         var a, s, u, f, l, h, _, x, w, M, E, T, S = c(g),
-             O = c(y),
-             A = c(b);
-         if (null != e)
-             _ = e,
-             x = n,
-             w = r,
-             M = d,
-             E = p,
-             T = m;
-         else if (M = E = T = -(_ = x = w = 1 / 0),
-             f = [],
-             l = [],
-             h = [],
-             u = t.length,
-             v)
-             for (s = 0; s < u; ++s)
-                 (a = t[s]).x < _ && (_ = a.x),
-                 a.y < x && (x = a.y),
-                 a.z < w && (w = a.z),
-                 a.x > M && (M = a.x),
-                 a.y > E && (E = a.y),
-                 a.z > T && (T = a.z),
-                 f.push(a.x),
-                 l.push(a.y),
-                 h.push(a.z);
-         else
-             for (s = 0; s < u; ++s) {
-                 var L = +S(a = t[s], s),
-                     R = +O(a, s),
-                     C = +A(a, s);
-                 L < _ && (_ = L),
-                     R < x && (x = R),
-                     C < w && (w = C),
-                     L > M && (M = L),
-                     R > E && (E = R),
-                     C > T && (T = C),
-                     f.push(L),
-                     l.push(R),
-                     h.push(C)
-             }
-         var j = M - _,
-             P = E - x,
-             N = T - w;
+    function d3_identity(d) {
+        return d;
+    }
 
-         function I(t, e, n, r, o, a, s, u, c, f, l) {
-             if (!(isNaN(n) || isNaN(r) || isNaN(o)))
-                 if (t.leaf) {
-                     var h = t.x,
-                         d = t.y,
-                         p = t.z;
-                     if (null != h)
-                         if (i(h - n) + i(d - r) + i(p - o) < .01)
-                             D(t, e, n, r, o, a, s, u, c, f, l);
-                         else {
-                             var m = t.point;
-                             t.x = t.y = t.z = t.point = null,
-                                 D(t, m, h, d, p, a, s, u, c, f, l),
-                                 D(t, e, n, r, o, a, s, u, c, f, l)
-                         }
-                     else
-                         t.x = n,
-                         t.y = r,
-                         t.z = o,
-                         t.point = e
-                 } else
-                     D(t, e, n, r, o, a, s, u, c, f, l)
-         }
+    function d3_layout_forceDragstart(d) {
+        d.fixed |= 2;
+    }
 
-         function D(t, e, n, r, i, a, s, u, c, f, l) {
-             var h = .5 * (a + c),
-                 d = .5 * (s + f),
-                 p = .5 * (u + l),
-                 m = n >= h,
-                 v = r >= d,
-                 g = i >= p,
-                 y = g << 2 | v << 1 | m;
-             t.leaf = !1,
-                 t = t.nodes[y] || (t.nodes[y] = {
-                     leaf: !0,
-                     nodes: [],
-                     point: null,
-                     x: null,
-                     y: null,
-                     z: null,
-                     add: function(t) {
-                         I(U, t, +S(t, ++s), +O(t, s), +A(t, s), _, x, w, M, E, T)
-                     }
-                 }),
-                 m ? a = h : c = h,
-                 v ? s = d : f = d,
-                 g ? u = p : l = p,
-                 ++o > 500 ? (o = 0,
-                     setTimeout(function() {
-                         I(t, e, n, r, i, a, s, u, c, f, l)
-                     }, 5)) : I(t, e, n, r, i, a, s, u, c, f, l)
-         }
-         j >= P && j >= N ? (E = x + j,
-             T = w + j) : P >= N && P >= j ? (M = _ + P,
-             T = w + P) : (M = _ + N,
-             E = x + N);
-         var U = {
-             leaf: !0,
-             nodes: [],
-             point: null,
-             x: null,
-             y: null,
-             z: null,
-             add: function(t) {
-                 I(U, t, +S(t, ++s), +O(t, s), +A(t, s), _, x, w, M, E, T)
-             }
-         };
-         if (U.visit = function(t) {
-                 ! function t(e, n, r, i, o, a, s, u) {
-                     if (!e(n, r, i, o, a, s, u)) {
-                         var c = .5 * (r + a),
-                             f = .5 * (i + s),
-                             l = .5 * (o + u),
-                             h = n.nodes;
-                         h[0] && t(e, h[0], r, i, o, c, f, l),
-                             h[1] && t(e, h[1], c, i, o, a, f, l),
-                             h[2] && t(e, h[2], r, f, o, c, s, l),
-                             h[3] && t(e, h[3], c, f, o, a, s, l),
-                             h[4] && t(e, h[4], r, i, l, c, f, u),
-                             h[5] && t(e, h[5], c, i, l, a, f, u),
-                             h[6] && t(e, h[6], r, f, l, c, s, u),
-                             h[7] && t(e, h[7], c, f, l, a, s, u)
-                     }
-                 }(t, U, _, x, w, M, E, T)
-             },
-             U.find = function(t) {
-                 return function(t, e, n, r, i, o, a, s, u, c) {
-                     var f, l = 1 / 0;
-                     return function t(h, d, p, m, v, g, y) {
-                             if (!(d > s || p > u || m > c || v < i || g < o || y < a)) {
-                                 if (b = h.point) {
-                                     var b, _ = e - h.x,
-                                         x = n - h.y,
-                                         w = r - h.z,
-                                         M = _ * _ + x * x + w * w;
-                                     if (M < l) {
-                                         var E = Math.sqrt(l = M);
-                                         i = e - E,
-                                             o = n - E,
-                                             a = r - E,
-                                             s = e + E,
-                                             u = n + E,
-                                             c = r + E,
-                                             f = b
-                                     }
-                                 }
-                                 for (var T = h.nodes, S = .5 * (d + v), O = .5 * (p + g), A = .5 * (m + y), L = (r >= A) << 2 | (n >= O) << 1 | e >= S, R = L + 8; L < R; ++L)
-                                     if (h = T[7 & L])
-                                         switch (7 & L) {
-                                             case 0:
-                                                 t(h, d, p, m, S, O, A);
-                                                 break;
-                                             case 1:
-                                                 t(h, S, p, m, v, O, A);
-                                                 break;
-                                             case 2:
-                                                 t(h, d, O, m, S, g, A);
-                                                 break;
-                                             case 3:
-                                                 t(h, S, O, m, v, g, A);
-                                                 break;
-                                             case 4:
-                                                 t(h, d, p, A, S, O, y);
-                                                 break;
-                                             case 5:
-                                                 t(h, S, p, A, v, O, y);
-                                                 break;
-                                             case 6:
-                                                 t(h, d, O, A, S, g, y);
-                                                 break;
-                                             case 7:
-                                                 t(h, S, O, A, v, g, y)
-                                         }
-                             }
-                         }(t, i, o, a, s, u, c),
-                         f
-                 }(U, t[0], t[1], t[2], _, x, w, M, E, T)
-             },
-             s = -1,
-             null == e) {
-             for (; ++s < u;)
-                 I(U, t[s], f[s], l[s], h[s], _, x, w, M, E, T);
-             --s
-         } else
-             t.forEach(U.add);
-         return f = l = h = t = a = null,
-             U
-     }
-     return _.x = function(t) {
-             return arguments.length ? (g = t,
-                 _) : g
-         },
-         _.y = function(t) {
-             return arguments.length ? (y = t,
-                 _) : y
-         },
-         _.z = function(t) {
-             return arguments.length ? (b = t,
-                 _) : b
-         },
-         _.extent = function(t) {
-             return arguments.length ? (null == t ? e = n = r = d = p = m = null : (e = +t[0][0],
-                     n = +t[0][1],
-                     r = +t[0][2],
-                     d = +t[1][0],
-                     p = +t[1][1],
-                     m = +t[1][2]),
-                 _) : null == e ? null : [
-                 [e, n, r],
-                 [d, p, m]
-             ]
-         },
-         _.size = function(t) {
-             return arguments.length ? (null == t ? e = n = r = d = p = m = null : (e = n = r = 0,
-                     d = +t[0],
-                     p = +t[1],
-                     m = +t[1]),
-                 _) : null == e ? null : [d - e, p - n, m - r]
-         },
-         _
- };
- r.layout.force3D = function() {
-     var t, e, n, i, a = {},
-         s = r.dispatch("start", "tick", "end"),
-         u = [1, 1, 1],
-         c = .9,
-         f = 20,
-         l = 1,
-         h = -30,
-         d = 1 / 0,
-         p = .1,
-         m = 1,
-         v = .64,
-         g = [],
-         y = [];
+    function d3_layout_forceDragend(d) {
+        d.fixed &= ~6;
+    }
 
-     function b(t) {
-         return function(e, n, r, i, o) {
-             if (e.point !== t) {
-                 var a = e.cx - t.x,
-                     s = e.cy - t.y,
-                     u = e.cz - t.z,
-                     c = o - n,
-                     f = a * a + s * s + u * u;
-                 if (c * c / v < f) {
-                     if (f < d) {
-                         var l = e.charge / f;
-                         t.px -= a * l,
-                             t.py -= s * l,
-                             t.pz -= u * l
-                     }
-                     return !0
-                 }
-                 if (e.point && f && f < d) {
-                     l = e.pointCharge / f;
-                     t.px -= a * l,
-                         t.py -= s * l,
-                         t.pz -= u * l
-                 }
-             }
-             return !e.charge
-         }
-     }
-     return a.tick = function() {
-             if (0 === t)
-                 return !0;
-             if ((t *= .99) < .005)
-                 return s.call("end", {
-                         type: "end",
-                         alpha: t = 0
-                     }),
-                     o = 0,
-                     !0;
-             var a, f, l, d, v, _, x, w, M, E, T = g.length,
-                 S = y.length;
-             for (f = 0; f < S; ++f)
-                 d = (l = y[f]).source,
-                 (_ = (w = (v = l.target).x - d.x) * w + (M = v.y - d.y) * M + (E = v.z - d.z) * E) && (w *= _ = t * n[f] * ((_ = Math.sqrt(_)) - e[f]) / _,
-                     M *= _,
-                     E *= _,
-                     v.x -= w * (x = d.weight / (v.weight + d.weight)),
-                     v.y -= M * x,
-                     v.z -= E * x,
-                     d.x += w * (x = 1 - x),
-                     d.y += M * x,
-                     d.z += E * x);
-             if ((x = t * p) && (w = u[0] / 2,
-                     M = u[1] / 2,
-                     E = u[2] / 2,
-                     f = -1,
-                     x))
-                 for (; ++f < T;)
-                     (l = g[f]).x += (w - l.x) * x,
-                     l.y += (M - l.y) * x,
-                     l.z += (E - l.z) * x * m;
-             if (h)
-                 for (! function t(e, n, r) {
-                         var i = 0,
-                             o = 0,
-                             a = 0;
-                         if (e.charge = 0,
-                             !e.leaf)
-                             for (var s, u = e.nodes, c = u.length, f = -1; ++f < c;)
-                                 null != (s = u[f]) && (t(s, n, r),
-                                     e.charge += s.charge,
-                                     i += s.charge * s.cx,
-                                     o += s.charge * s.cy,
-                                     a += s.charge * s.cz);
-                         if (e.point) {
-                             e.leaf || (e.point.x += Math.random() - .5,
-                                 e.point.y += Math.random() - .5,
-                                 e.point.z += Math.random() - .5);
-                             var l = n * r[e.point.index];
-                             e.charge += e.pointCharge = l,
-                                 i += l * e.point.x,
-                                 o += l * e.point.y,
-                                 a += l * e.point.z
-                         }
-                         e.cx = i / e.charge,
-                             e.cy = o / e.charge,
-                             e.cz = a / e.charge
-                     }(a = r.geom.octree(g), t, i),
-                     f = -1; ++f < T;)
-                     (l = g[f]).fixed || a.visit(b(l));
-             for (f = -1; ++f < T;)
-                 (l = g[f]).fixed ? (l.x = l.px,
-                     l.y = l.py,
-                     l.z = l.pz) : (l.x -= (l.px - (l.px = l.x)) * c,
-                     l.y -= (l.py - (l.py = l.y)) * c,
-                     l.z -= (l.pz - (l.pz = l.z)) * c);
-             s.call("tick", {
-                 type: "tick",
-                 alpha: t
-             })
-         },
-         a.nodes = function(t) {
-             return arguments.length ? (g = t,
-                 a) : g
-         },
-         a.links = function(t) {
-             return arguments.length ? (y = t,
-                 a) : y
-         },
-         a.size = function(t) {
-             return arguments.length ? (u = t,
-                 a) : u
-         },
-         a.on = function(t, e) {
-             return "function" == typeof e ? s.on(t, function(t) {
+    function d3_layout_forceMouseover(d) {
+        d.fixed |= 4;
+        d.px = d.x, d.py = d.y;
+    }
+
+    function d3_layout_forceMouseout(d) {
+        d.fixed &= ~4;
+    }
+
+    d3.geom.octree = function(points, x1, y1, z1, x2, y2, z2) {
+        var x = d3_geom_pointX,
+            y = d3_geom_pointY,
+            z = d3_geom_pointZ,
+            compat;
+        if (compat = arguments.length) {
+            x = d3_geom_octreeCompatX;
+            y = d3_geom_octreeCompatY;
+            z = d3_geom_octreeCompatZ;
+            if (compat === 4) {
+                y2 = y1;
+                x2 = x1;
+                z2 = z1;
+                z1 = y1 = x1 = 0;
+            }
+            return octree(points);
+        }
+
+        function octree(data) {
+            var d, i, n, fx = d3_functor(x),
+                fy = d3_functor(y),
+                fz = d3_functor(z),
+                xs, ys, zs, x1_, y1_, z1_, x2_, y2_, z2_;
+            if (x1 != null) {
+                x1_ = x1, y1_ = y1, z1_ = z1, x2_ = x2, y2_ = y2, z2_ = z2;
+            } else {
+                x2_ = y2_ = z2_ = -(x1_ = y1_ = z1_ = Infinity);
+                xs = [], ys = [], zs = [];
+                n = data.length;
+                if (compat)
+                    for (i = 0; i < n; ++i) {
+                        d = data[i];
+                        if (d.x < x1_) x1_ = d.x;
+                        if (d.y < y1_) y1_ = d.y;
+                        if (d.z < z1_) z1_ = d.z;
+                        if (d.x > x2_) x2_ = d.x;
+                        if (d.y > y2_) y2_ = d.y;
+                        if (d.z > z2_) z2_ = d.z;
+                        xs.push(d.x);
+                        ys.push(d.y);
+                        zs.push(d.z);
+                    } else
+                        for (i = 0; i < n; ++i) {
+                            var x_ = +fx(d = data[i], i),
+                                y_ = +fy(d, i),
+                                z_ = +fz(d, i);
+                            if (x_ < x1_) x1_ = x_;
+                            if (y_ < y1_) y1_ = y_;
+                            if (z_ < z1_) z1_ = z_;
+                            if (x_ > x2_) x2_ = x_;
+                            if (y_ > y2_) y2_ = y_;
+                            if (z_ > z2_) z2_ = z_;
+                            xs.push(x_);
+                            ys.push(y_);
+                            zs.push(z_);
+                        }
+            }
+            var dx = x2_ - x1_,
+                dy = y2_ - y1_,
+                dz = z2_ - z1_;
+            if (dx >= dy && dx >= dz) {
+                y2_ = y1_ + dx;
+                z2_ = z1_ + dx;
+            } else if (dy >= dz && dy >= dx) {
+                x2_ = x1_ + dy;
+                z2_ = z1_ + dy;
+            } else {
+                x2_ = x1_ + dz;
+                y2_ = y1_ + dz;
+            }
+
+            function insert(n, d, x, y, z, x1, y1, z1, x2, y2, z2) {
+                if (isNaN(x) || isNaN(y) || isNaN(z)) return;
+                if (n.leaf) {
+                    var nx = n.x,
+                        ny = n.y,
+                        nz = n.z;
+                    if (nx != null) {
+                        if (abs(nx - x) + abs(ny - y) + abs(nz - z) < .01) {
+                            insertChild(n, d, x, y, z, x1, y1, z1, x2, y2, z2);
+                        } else {
+                            var nPoint = n.point;
+                            n.x = n.y = n.z = n.point = null;
+                            insertChild(n, nPoint, nx, ny, nz, x1, y1, z1, x2, y2, z2);
+                            insertChild(n, d, x, y, z, x1, y1, z1, x2, y2, z2);
+                        }
+                    } else {
+                        n.x = x, n.y = y, n.z = z, n.point = d;
+                    }
+                } else {
+                    insertChild(n, d, x, y, z, x1, y1, z1, x2, y2, z2);
+                }
+            }
+
+            function insertChild(n, d, x, y, z, x1, y1, z1, x2, y2, z2) {
+                var xm = (x1 + x2) * .5,
+                    ym = (y1 + y2) * .5,
+                    zm = (z1 + z2) * .5,
+                    right = x >= xm,
+                    below = y >= ym,
+                    deep = z >= zm,
+                    i = deep << 2 | below << 1 | right;
+                n.leaf = false;
+                n = n.nodes[i] || (n.nodes[i] = d3_geom_octreeNode());
+                if (right) x1 = xm;
+                else x2 = xm;
+                if (below) y1 = ym;
+                else y2 = ym;
+                if (deep) z1 = zm;
+                else z2 = zm;
+                insert(n, d, x, y, z, x1, y1, z1, x2, y2, z2);
+            }
+            var root = d3_geom_octreeNode();
+            root.add = function(d) {
+                insert(root, d, +fx(d, ++i), +fy(d, i), +fz(d, i), x1_, y1_, z1_, x2_, y2_, z2_);
+            };
+            root.visit = function(f) {
+                d3_geom_octreeVisit(f, root, x1_, y1_, z1_, x2_, y2_, z2_);
+            };
+            root.find = function(point) {
+                return d3_geom_octreeFind(root, point[0], point[1], point[2], x1_, y1_, z1_, x2_, y2_, z2_);
+            };
+            i = -1;
+            if (x1 == null) {
+                while (++i < n) {
+                    insert(root, data[i], xs[i], ys[i], zs[i], x1_, y1_, z1_, x2_, y2_, z2_);
+                }
+                --i;
+            } else data.forEach(root.add);
+            xs = ys = zs = data = d = null;
+            return root;
+        }
+        octree.x = function(_) {
+            return arguments.length ? (x = _, octree) : x;
+        };
+        octree.y = function(_) {
+            return arguments.length ? (y = _, octree) : y;
+        };
+        octree.z = function(_) {
+            return arguments.length ? (z = _, octree) : z;
+        };
+        octree.extent = function(_) {
+            if (!arguments.length) return x1 == null ? null : [
+                [x1, y1, z1],
+                [x2, y2, z2]
+            ];
+            if (_ == null) x1 = y1 = z1 = x2 = y2 = z2 = null;
+            else x1 = +_[0][0], y1 = +_[0][1],
+                z1 = +_[0][2], x2 = +_[1][0], y2 = +_[1][1], z2 = +_[1][2];
+            return octree;
+        };
+        octree.size = function(_) {
+            if (!arguments.length) return x1 == null ? null : [x2 - x1, y2 - y1, z2 - z1];
+            if (_ == null) x1 = y1 = z1 = x2 = y2 = z2 = null;
+            else x1 = y1 = z1 = 0, x2 = +_[0],
+                y2 = +_[1], z2 = +_[1];
+            return octree;
+        };
+        return octree;
+    };
+
+    function d3_geom_octreeCompatX(d) {
+        return d.x;
+    }
+
+    function d3_geom_octreeCompatY(d) {
+        return d.y;
+    }
+
+    function d3_geom_octreeCompatZ(d) {
+        return d.z;
+    }
+
+    function d3_geom_octreeNode() {
+        return {
+            leaf: true,
+            nodes: [],
+            point: null,
+            x: null,
+            y: null,
+            z: null
+        };
+    }
+
+    function d3_geom_octreeVisit(f, node, x1, y1, z1, x2, y2, z2) {
+        if (!f(node, x1, y1, z1, x2, y2, z2)) {
+            var sx = (x1 + x2) * .5,
+                sy = (y1 + y2) * .5,
+                sz = (z1 + z2) * .5,
+                children = node.nodes;
+            if (children[0]) d3_geom_octreeVisit(f, children[0], x1, y1, z1, sx, sy, sz);
+            if (children[1]) d3_geom_octreeVisit(f, children[1], sx, y1, z1, x2, sy, sz);
+            if (children[2]) d3_geom_octreeVisit(f, children[2], x1, sy, z1, sx, y2, sz);
+            if (children[3]) d3_geom_octreeVisit(f, children[3], sx, sy, z1, x2, y2, sz);
+            if (children[4]) d3_geom_octreeVisit(f, children[4], x1, y1, sz, sx, sy, z2);
+            if (children[5]) d3_geom_octreeVisit(f, children[5], sx, y1, sz, x2, sy, z2);
+            if (children[6]) d3_geom_octreeVisit(f, children[6], x1, sy, sz, sx, y2, z2);
+            if (children[7]) d3_geom_octreeVisit(f, children[7], sx, sy, sz, x2, y2, z2);
+        }
+    }
+
+    function d3_geom_octreeFind(root, x, y, z, x0, y0, z0, x3, y3, z3) {
+        var minDistance2 = Infinity,
+            closestPoint;
+        (function find(node, x1, y1, z1, x2, y2, z2) {
+            if (x1 > x3 || y1 > y3 || z1 > z3 || x2 < x0 || y2 < y0 || z2 < z0) return;
+            if (point = node.point) {
+                var point, dx = x - node.x,
+                    dy = y - node.y,
+                    dz = z - node.z,
+                    distance2 = dx * dx + dy * dy + dz * dz;
+                if (distance2 < minDistance2) {
+                    var distance = Math.sqrt(minDistance2 = distance2);
+                    x0 = x - distance, y0 = y - distance, z0 = z - distance;
+                    x3 = x + distance, y3 = y + distance, z3 = z + distance;
+                    closestPoint = point;
+                }
+            }
+            var children = node.nodes,
+                xm = (x1 + x2) * .5,
+                ym = (y1 + y2) * .5,
+                zm = (z1 + z2) * .5,
+                right = x >= xm,
+                below = y >= ym,
+                deep = z >= zm;
+            for (var i = deep << 2 | below << 1 | right, j = i + 8; i < j; ++i) {
+                if (node = children[i & 7]) switch (i & 7) {
+                    case 0:
+                        find(node, x1, y1, z1, xm, ym, zm);
+                        break;
+
+                    case 1:
+                        find(node, xm, y1, z1, x2, ym, zm);
+                        break;
+
+                    case 2:
+                        find(node, x1, ym, z1, xm, y2, zm);
+                        break;
+
+                    case 3:
+                        find(node, xm, ym, z1, x2, y2, zm);
+                        break;
+
+                    case 4:
+                        find(node, x1, y1, zm, xm, ym, z2);
+                        break;
+
+                    case 5:
+                        find(node, xm, y1, zm, x2, ym, z2);
+                        break;
+
+                    case 6:
+                        find(node, x1, ym, zm, xm, y2, z2);
+                        break;
+
+                    case 7:
+                        find(node, xm, ym, zm, x2, y2, z2);
+                        break;
+                }
+            }
+        })(root, x0, y0, z0, x3, y3, z3);
+        return closestPoint;
+    }
+
+    var d3_layout_forceLinkDistance = 20,
+        d3_layout_forceLinkStrength = 1,
+        d3_layout_forceChargeDistance2 = Infinity;
+
+    function d3_layout_force3dAccumulate(oct, alpha, charges) {
+        var cx = 0,
+            cy = 0,
+            cz = 0;
+        oct.charge = 0;
+        if (!oct.leaf) {
+            var nodes = oct.nodes,
+                n = nodes.length,
+                i = -1,
+                c;
+            while (++i < n) {
+                c = nodes[i];
+                if (c == null) continue;
+                d3_layout_force3dAccumulate(c, alpha, charges);
+                oct.charge += c.charge;
+                cx += c.charge * c.cx;
+                cy += c.charge * c.cy;
+                cz += c.charge * c.cz;
+            }
+        }
+        if (oct.point) {
+            if (!oct.leaf) {
+                oct.point.x += Math.random() - .5;
+                oct.point.y += Math.random() - .5;
+                oct.point.z += Math.random() - .5;
+            }
+            var k = alpha * charges[oct.point.index];
+            oct.charge += oct.pointCharge = k;
+            cx += k * oct.point.x;
+            cy += k * oct.point.y;
+            cz += k * oct.point.z;
+        }
+        oct.cx = cx / oct.charge;
+        oct.cy = cy / oct.charge;
+        oct.cz = cz / oct.charge;
+    }
+
+
+    d3.layout.force3D = function() {
+        var force = {},
+            event = d3.dispatch("start", "tick", "end"),
+            size = [1, 1, 1],
+            alpha,
+            friction = .9,
+            linkDistance = d3_layout_forceLinkDistance,
+            linkStrength = d3_layout_forceLinkStrength,
+            charge = -30,
+            chargeDistance2 = d3_layout_forceChargeDistance2,
+            gravity = .1,
+            heightCompress = 1,
+            theta2 = .64,
+            nodes = [],
+            links = [],
+            distances,
+            strengths,
+            charges;
+
+        function repulse(node) {
+            return function(oct, x1, _0, _1, x2) {
+                if (oct.point !== node) {
+                    var dx = oct.cx - node.x,
+                        dy = oct.cy - node.y,
+                        dz = oct.cz - node.z,
+                        dw = x2 - x1,
+                        dn = dx * dx + dy * dy + dz * dz;
+
+                    if (dw * dw / theta2 < dn) {
+                        if (dn < chargeDistance2) {
+                            var k = oct.charge / dn;
+                            node.px -= dx * k;
+                            node.py -= dy * k;
+                            node.pz -= dz * k;
+                        }
+                        return true;
+                    }
+                    if (oct.point && dn && dn < chargeDistance2) {
+                        var k = oct.pointCharge / dn;
+                        node.px -= dx * k;
+                        node.py -= dy * k;
+                        node.pz -= dz * k;
+                    }
+                }
+                return !oct.charge;
+            };
+        }
+        force.tick = function() {
+            if ((alpha *= .99) < .005) {
+                event.call('end', {
+                  type: 'end',
+                  alpha: alpha = 0
+                });
+                // event.end({
+                //     type: "end",
+                //     alpha: alpha = 0
+                // });
+                return true;
+            }
+            var n = nodes.length,
+                m = links.length,
+                q, i, o, s, t, l, k, x, y, z;
+
+            for (i = 0; i < m; ++i) {
+                o = links[i];
+                s = o.source;
+                t = o.target;
+                x = t.x - s.x;
+                y = t.y - s.y;
+                z = t.z - s.z;
+
+                if (l = x * x + y * y + z * z) {
+                    l = alpha * strengths[i] * ((l = Math.sqrt(l)) - distances[i]) / l;
+                    x *= l;
+                    y *= l;
+                    z *= l;
+                    t.x -= x * (k = s.weight / (t.weight + s.weight));
+                    t.y -= y * k;
+                    t.z -= z * k;
+                    s.x += x * (k = 1 - k);
+                    s.y += y * k;
+                    s.z += z * k;
+                }
+            }
+            if (k = alpha * gravity) {
+                x = size[0] / 2;
+                y = size[1] / 2;
+                z = size[2] / 2;
+                i = -1;
+                if (k)
+                    while (++i < n) {
+                        o = nodes[i];
+                        o.x += (x - o.x) * k;
+                        o.y += (y - o.y) * k;
+                        o.z += (z - o.z) * k;
+                    }
+            }
+            if (charge) {
+                d3_layout_force3dAccumulate(q = d3.geom.octree(nodes), alpha, charges);
+                i = -1;
+                while (++i < n) {
+                    if (!(o = nodes[i]).fixed) {
+                        q.visit(repulse(o));
+                    }
+                }
+            }
+            i = -1;
+            while (++i < n) {
+                o = nodes[i];
+                if (o.fixed) {
+                    o.x = o.px;
+                    o.y = o.py;
+                    o.z = o.pz;
+                } else {
+                    o.x -= (o.px - (o.px = o.x)) * friction;
+                    o.y -= (o.py - (o.py = o.y)) * friction;
+                    o.z -= (o.pz - (o.pz = o.z)) * friction;
+                }
+            }
+            event.call('tick', {
+                type: "tick",
+                alpha: alpha
+            });
+            // event.tick({
+            //     type: "tick",
+            //     alpha: alpha
+            // });
+        };
+
+        force.nodes = function(x) {
+            if (!arguments.length) return nodes;
+            nodes = x;
+            return force;
+        };
+
+        force.links = function(x) {
+            if (!arguments.length) return links;
+            links = x;
+            return force;
+        };
+
+        force.size = function(x) {
+            if (!arguments.length) return size;
+            size = x;
+            return force;
+        };
+
+        force.on = function(t, e) {
+             return "function" == typeof e ? event.on(t, function(t) {
                      e(t)
-                 }) : s.on(t, null),
-                 a
-         },
-         a.linkDistance = function(t) {
-             return arguments.length ? (f = "function" == typeof t ? t : +t,
-                 a) : f
-         },
-         a.distance = a.linkDistance,
-         a.linkStrength = function(t) {
-             return arguments.length ? (l = "function" == typeof t ? t : +t,
-                 a) : l
-         },
-         a.friction = function(t) {
-             return arguments.length ? (c = +t,
-                 a) : c
-         },
-         a.charge = function(t) {
-             return arguments.length ? (h = "function" == typeof t ? t : +t,
-                 a) : h
-         },
-         a.chargeDistance = function(t) {
-             return arguments.length ? (d = t * t,
-                 a) : Math.sqrt(d)
-         },
-         a.gravity = function(t) {
-             return arguments.length ? (p = +t,
-                 a) : p
-         },
-         a.heightCompress = function(t) {
-             return arguments.length ? (m = +t,
-                 a) : m
-         },
-         a.theta = function(t) {
-             return arguments.length ? (v = t * t,
-                 a) : Math.sqrt(v)
-         },
-         a.alpha = function(e) {
-             return arguments.length ? (e = +e,
-                 t ? t = e > 0 ? e : 0 : e > 0 && (s.call("start", {
-                         type: "start",
-                         alpha: t = e
-                     }),
-                     r.timer(a.tick)),
-                 a) : t
-         },
-         a.start = function() {
-             o = 0;
-             var t, r, s, c = g.length,
-                 d = y.length,
-                 p = u[0],
-                 m = u[1],
-                 v = u[2];
-             for (t = 0; t < c; ++t)
-                 (s = g[t]).index = t,
-                 s.weight = 0;
-             for (t = 0; t < d; ++t)
-                 "number" == typeof(s = y[t]).source && (s.source = g[s.source]),
-                 "number" == typeof s.target && (s.target = g[s.target]),
-                 ++s.source.weight,
-                 ++s.target.weight;
-             for (t = 0; t < c; ++t)
-                 s = g[t],
-                 isNaN(s.x) && (s.x = b("x", p)),
-                 isNaN(s.y) && (s.y = b("y", m)),
-                 isNaN(s.z) && (s.z = b("z", v)),
-                 isNaN(s.px) && (s.px = s.x),
-                 isNaN(s.py) && (s.py = s.y),
-                 isNaN(s.pz) && (s.pz = s.z);
-             if (e = [],
-                 "function" == typeof f)
-                 for (t = 0; t < d; ++t)
-                     e[t] = +f.call(this, y[t], t);
-             else
-                 for (t = 0; t < d; ++t)
-                     e[t] = f;
-             if (n = [],
-                 "function" == typeof l)
-                 for (t = 0; t < d; ++t)
-                     n[t] = +l.call(this, y[t], t);
-             else
-                 for (t = 0; t < d; ++t)
-                     n[t] = l;
-             if (i = [],
-                 "function" == typeof h)
-                 for (t = 0; t < c; ++t)
-                     i[t] = +h.call(this, g[t], t);
-             else
-                 for (t = 0; t < c; ++t)
-                     i[t] = h;
+                 }) : event.on(t, null),
+                 force
+        };
 
-             function b(e, n) {
-                 if (!r) {
-                     for (r = new Array(c),
-                         s = 0; s < c; ++s)
-                         r[s] = [];
-                     for (s = 0; s < d; ++s) {
-                         var i = y[s];
-                         r[i.source.index].push(i.target),
-                             r[i.target.index].push(i.source)
-                     }
-                 }
-                 for (var o, a = r[t], s = -1, u = a.length; ++s < u;)
-                     if (!isNaN(o = a[s][e]))
-                         return o;
-                 return Math.random() * n
-             }
-             return a.resume()
-         },
-         a.resume = function() {
-             return a.alpha(.1)
-         },
-         a.stop = function() {
-             return a.alpha(0)
-         },
-         a
- };
+        force.linkDistance = function(x) {
+            if (!arguments.length) return linkDistance;
+            linkDistance = typeof x === "function" ? x : +x;
+            return force;
+        };
+
+        force.distance = force.linkDistance;
+
+        force.linkStrength = function(x) {
+            if (!arguments.length) return linkStrength;
+            linkStrength = typeof x === "function" ? x : +x;
+            return force;
+        };
+
+        force.friction = function(x) {
+            if (!arguments.length) return friction;
+            friction = +x;
+            return force;
+        };
+
+        force.charge = function(x) {
+            if (!arguments.length) return charge;
+            charge = typeof x === "function" ? x : +x;
+            return force;
+        };
+
+        force.chargeDistance = function(x) {
+            if (!arguments.length)
+                return Math.sqrt(chargeDistance2);
+            chargeDistance2 = x * x;
+            return force;
+        };
+
+        force.gravity = function(x) {
+            if (!arguments.length)
+                return gravity;
+            gravity = +x;
+            return force;
+        };
+
+        force.heightCompress = function(t) {
+             return arguments.length ? (heightCompress = +t,
+                 force) : heightCompress
+        };
+
+        force.theta = function(x) {
+            if (!arguments.length)
+                return Math.sqrt(theta2);
+            theta2 = x * x;
+            return force;
+        };
+
+        force.alpha = function(x) {
+            if (!arguments.length)
+                return alpha;
+            x = +x;
+            if (alpha) {
+                if (x > 0)
+                    alpha = x;
+                else
+                    alpha = 0;
+            } else if (x > 0) {
+                event.call('start', {
+                    type: "start",
+                    alpha: alpha = x
+                });
+                // event.start({
+                //     type: "start",
+                //     alpha: alpha = x
+                // });
+                d3.timer(force.tick);
+            }
+            return force;
+        };
+
+        force.start = function() {
+            var i,
+                n = nodes.length,
+                m = links.length,
+                w = size[0],
+                h = size[1],
+                d = size[2],
+                neighbors,
+                o;
+            for (i = 0; i < n; ++i) {
+                (o = nodes[i]).index = i;
+                o.weight = 0;
+            }
+            for (i = 0; i < m; ++i) {
+                o = links[i];
+                if (typeof o.source == "number")
+                    o.source = nodes[o.source];
+                if (typeof o.target == "number")
+                    o.target = nodes[o.target];
+                ++o.source.weight;
+                ++o.target.weight;
+            }
+            for (i = 0; i < n; ++i) {
+                o = nodes[i];
+                if (isNaN(o.x)) o.x = position("x", w);
+                if (isNaN(o.y)) o.y = position("y", h);
+                if (isNaN(o.z)) o.z = position("z", d);
+                if (isNaN(o.px)) o.px = o.x;
+                if (isNaN(o.py)) o.py = o.y;
+                if (isNaN(o.pz)) o.pz = o.z;
+            }
+
+            distances = [];
+            if (typeof linkDistance === "function")
+                for (i = 0; i < m; ++i) distances[i] = +linkDistance.call(this, links[i], i);
+            else
+                for (i = 0; i < m; ++i) distances[i] = linkDistance;
+
+            strengths = [];
+            if (typeof linkStrength === "function")
+                for (i = 0; i < m; ++i) strengths[i] = +linkStrength.call(this, links[i], i);
+            else
+                for (i = 0; i < m; ++i) strengths[i] = linkStrength;
+
+            charges = [];
+            if (typeof charge === "function")
+                for (i = 0; i < n; ++i) charges[i] = +charge.call(this, nodes[i], i);
+            else
+                for (i = 0; i < n; ++i) charges[i] = charge;
+
+            function position(dimension, size) {
+                if (!neighbors) {
+                    neighbors = new Array(n);
+                    for (j = 0; j < n; ++j) {
+                        neighbors[j] = [];
+                    }
+                    for (j = 0; j < m; ++j) {
+                        var o = links[j];
+                        neighbors[o.source.index].push(o.target);
+                        neighbors[o.target.index].push(o.source);
+                    }
+                }
+                var candidates = neighbors[i],
+                    j = -1,
+                    l = candidates.length,
+                    x;
+                while (++j < l)
+                    if (!isNaN(x = candidates[j][dimension]))
+                        return x;
+                return Math.random() * size;
+            }
+            return force.resume();
+        };
+        force.resume = function() {
+            return force.alpha(.1);
+        };
+        force.stop = function() {
+            return force.alpha(0);
+        };
+
+        // force.drag = function() {
+        //     var drag;
+        //     if (!drag) {
+        //         drag = d3.behavior.drag()
+        //             .origin(d3_identity)
+        //             .on("dragstart.force", d3_layout_forceDragstart)
+        //             .on("drag.force", dragmove)
+        //             .on("dragend.force", d3_layout_forceDragend);
+        //     }
+        //     if (!arguments.length) { return drag; }
+        //     this.on("mouseover.force", d3_layout_forceMouseover)
+        //         .on("mouseout.force", d3_layout_forceMouseout)
+        //         .call(drag);
+        // };
+
+        // function dragmove(d) {
+        //     d.px = d3.event.x, d.py = d3.event.y;
+        //     force.resume();
+        // }
+
+        // return d3.rebind(force, event, "on");
+
+        return force;
+    };
+
+})();
