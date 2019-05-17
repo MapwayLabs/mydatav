@@ -450,7 +450,7 @@
                         o = nodes[i];
                         o.x += (x - o.x) * k;
                         o.y += (y - o.y) * k;
-                        o.z += (z - o.z) * k;
+                        o.z += (z - o.z) * k * heightCompress;
                     }
             }
             if (charge) {

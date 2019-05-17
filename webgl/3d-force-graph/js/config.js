@@ -39,10 +39,10 @@ var Config = {
     layoutControllerOptions: {
         linkStrength: 1,
         linkDistance: 0.5,
-        charge: -0.01,
-        gravity: 0.2,
+        charge: -0.01, // 斥力
+        gravity: 0.2, // 引力
         friction: 0.3, // 阻尼衰减
-        heightCompress: 1
+        heightCompress: 1 //扁平度
     },
     graphLayout: {
         // force2d: true,
