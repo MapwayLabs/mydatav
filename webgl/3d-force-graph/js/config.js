@@ -38,7 +38,7 @@ var Config = {
     // 弹簧+库仑力
     layoutControllerOptions: {
         linkStrength: 1,
-        linkDistance: 0.5,
+        linkDistance: 0.25,
         charge: -0.01, // 斥力
         gravity: 0.2, // 引力
         friction: 0.3, // 阻尼衰减

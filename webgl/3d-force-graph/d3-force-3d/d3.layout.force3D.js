@@ -404,6 +404,9 @@
             };
         }
         force.tick = function() {
+            // alpha 是从 0.1 渐变到 0 的变量，代表了布局的次数或时间
+            if (0 === alpha)
+                return true;
             if ((alpha *= .99) < .005) {
                 event.call('end', {
                   type: 'end',
@@ -418,7 +421,7 @@
             var n = nodes.length,
                 m = links.length,
                 q, i, o, s, t, l, k, x, y, z;
-
+            // 边的聚合，将相邻边的节点聚合到一起
             for (i = 0; i < m; ++i) {
                 o = links[i];
                 s = o.source;
@@ -440,6 +443,7 @@
                     s.z += z * k;
                 }
             }
+            // 限制节点在 size 空间内
             if (k = alpha * gravity) {
                 x = size[0] / 2;
                 y = size[1] / 2;
@@ -594,10 +598,12 @@
                 d = size[2],
                 neighbors,
                 o;
+            // 遍历节点，初始化 weight 和 index
             for (i = 0; i < n; ++i) {
                 (o = nodes[i]).index = i;
                 o.weight = 0;
             }
+            // 遍历边，并根据与节点相连的边累加 weight
             for (i = 0; i < m; ++i) {
                 o = links[i];
                 if (typeof o.source == "number")
@@ -607,6 +613,7 @@
                 ++o.source.weight;
                 ++o.target.weight;
             }
+            // 初始化位置
             for (i = 0; i < n; ++i) {
                 o = nodes[i];
                 if (isNaN(o.x)) o.x = position("x", w);
@@ -616,7 +623,8 @@
                 if (isNaN(o.py)) o.py = o.y;
                 if (isNaN(o.pz)) o.pz = o.z;
             }
-
+             
+            // 边的距离数组
             distances = [];
             if (typeof linkDistance === "function")
                 for (i = 0; i < m; ++i) distances[i] = +linkDistance.call(this, links[i], i);
@@ -634,7 +642,8 @@
                 for (i = 0; i < n; ++i) charges[i] = +charge.call(this, nodes[i], i);
             else
                 for (i = 0; i < n; ++i) charges[i] = charge;
-
+            
+            // 生成初始随机位置
             function position(dimension, size) {
                 if (!neighbors) {
                     neighbors = new Array(n);

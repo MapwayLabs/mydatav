@@ -9,6 +9,7 @@ importScripts(
     './d3-timer.js', 
     './d3-force-3d.js',
     './d3.layout.force3D.js',
+    // './d3.layout.force3D.min.js',
     './graph.js', 
     './layout.js');
 
