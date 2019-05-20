@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>animate1</title>
+    <link rel="stylesheet" href="./animate.min.css">
+    <style>
+        html,
+        body {
+            user-select: none;
+        }
+
+        .contanier {
+            width: 300px;
+            height: 200px;
+            position: relative;
+        }
+
+        .contanier .page {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: none;
+            line-height: 200px;
+            text-align: center;
+        }
+
+        .contanier .page.active {
+            display: block;
+        }
+
+        .page1 {
+            background: red;
+        }
+
+        .page2 {
+            background: green;
+        }
+
+        .page3 {
+            background: blue;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="contanier">
+        <div class="page page1 active animated flipInX">page1</div>
+        <div class="page page2 animated slideInLeft">page2</div>
+        <div class="page page3 animated zoomIn">page3</div>
+    </div>
+    <div class="menu">
+        <button onclick="toggle(-1)">&larr;</button>
+        <button onclick="toggle(1)">&rarr;</button>
+    </div>
+    <script>
+        var arr = [1, 2, 3];
+        var active = 1;
+
+        function toggle(type) {
+            var index = arr.indexOf(active);
+            switch (type) {
+                case -1:
+                    active = arr[index ? (index - 1) : (arr.length - 1)];
+                    break;
+                case 1:
+                    active = arr[index === (arr.length - 1) ? 0 : (index + 1)];
+                    break;
+            }
+            var pagesEles = document.querySelectorAll('.page');
+            pagesEles.forEach(p => p.classList.contains('page' + active) ? p.classList.add('active') : p.classList
+                .remove('active'));
+        }
+    </script>
+</body>
+
+</html>
