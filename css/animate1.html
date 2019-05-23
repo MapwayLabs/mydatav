@@ -14,9 +14,12 @@
         }
 
         .contanier {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
             width: 300px;
             height: 200px;
-            position: relative;
         }
 
         .menu {
@@ -54,9 +57,9 @@
 
 <body>
     <div class="contanier">
-        <div class="page page1 active animated flipInX">flipInX</div>
-        <div class="page page2 animated slideInLeft">slideInLeft</div>
-        <div class="page page3 animated flash infinite">flash</div>
+        <div class="page page1 active animated flip">flip</div>
+        <div class="page page2 animated flipInX">flipInX</div>
+        <div class="page page3 animated flipInY">flipInY</div>
         <div class="page page4 animated fadeIn slower">fadeIn</div>
         <div class="page page5 animated fadeInDown">fadeInDown</div>
         <div class="page page6 animated fadeInLeft">fadeInLeft</div>
@@ -73,7 +76,10 @@
         <div class="page page17 animated zoomOutDown">zoomOutDown</div>
         <div class="page page18 animated rollerDown">rollerDown</div>
         <div class="page page19 animated rollerDownLeft">rollerDownLeft</div>
-        <div class="page page20 animated rotate3dX slow">rotate3dX</div>
+        <div class="page page20 animated rotate3dX">rotate3dX</div>
+        <div class="page page21 animated rotate3dY">rotate3dY</div>
+        <div class="page page22 animated rotate3dZ slower">rotate3dZ</div>
+        <div class="page page23 animated rotate3dXYZ">rotate3dXYZ</div>
     </div>
     <div class="menu">
         <button onclick="toggle(-1)">&larr;</button>
