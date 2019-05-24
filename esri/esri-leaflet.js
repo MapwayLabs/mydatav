@@ -2,9 +2,9 @@
  * Copyright (c) 2019 Environmental Systems Research Institute, Inc.
  * Apache-2.0 */
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('leaflet')) :
-  typeof define === 'function' && define.amd ? define(['exports', 'leaflet'], factory) :
-  (factory((global.L = global.L || {}, global.L.esri = {}),global.L));
+	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('leaflet')) :
+	typeof define === 'function' && define.amd ? define(['exports', 'leaflet'], factory) :
+	(factory((global.L = global.L || {}, global.L.esri = {}),global.L));
 }(this, (function (exports,leaflet) { 'use strict';
 
 var version = "2.2.4";
