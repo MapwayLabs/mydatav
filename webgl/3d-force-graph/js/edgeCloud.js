@@ -2,13 +2,66 @@
 
 // 104711
 const edgeShader = {
-	vertexShader:"attribute vec3 color; attribute float opacity; varying vec3 vColor; varying float vOpacity; void main() {vec3 newPosition = position; vColor = color; vOpacity = opacity; gl_Position = projectionMatrix * modelViewMatrix * vec4( newPosition,1.0 ); } ",
-	fragmentShader: "varying vec3 vColor; varying float vOpacity; void main() {gl_FragColor = vec4(vColor,vOpacity); }"
+    vertexShader:`
+        attribute vec3 color; 
+        attribute float opacity; 
+        varying vec3 vColor; 
+        varying float vOpacity; 
+        void main() {
+            vec3 newPosition = position; 
+            vColor = color; 
+            vOpacity = opacity; 
+            gl_Position = projectionMatrix * modelViewMatrix * vec4( newPosition,1.0 ); 
+        } `,
+    fragmentShader: `
+        varying vec3 vColor; 
+        varying float vOpacity; 
+        void main() {
+            gl_FragColor = vec4(vColor,vOpacity); 
+        }`
 };
 
 const arrowShader = {
-	vertexShader: "precision highp float; uniform mat4 modelViewMatrix; uniform mat4 projectionMatrix; uniform mat3 normalMatrix; attribute vec3 position; attribute vec3 translation; attribute vec4 rotation; attribute vec3 scale; attribute vec3 color; attribute float alpha; varying vec3 vColor; varying float vAlpha; vec3 transform( inout vec3 position, vec3 T, vec4 R, vec3 S ) {position *= S; position += vec3(0,-0.06,0); position += 2.0 * cross( R.xyz, cross( R.xyz, position ) + R.w * position ); position += T; return position; } vec3 rotate(inout vec3 position, const vec4 q) {vec3 t = 2.0 * cross(q.xyz, position); return position + q.w * t + cross(q.xyz, t); } varying vec3 vPos; void main() {vec3 pos = position; vColor = color; vAlpha = alpha; transform( pos, translation, rotation, scale ); gl_Position = projectionMatrix * modelViewMatrix * vec4( pos, 1.0 ); vPos = pos; }",
-	fragmentShader: "precision highp float; varying vec3 vColor; varying float vAlpha; void main() {gl_FragColor = vec4(vColor, vAlpha ); if ( gl_FragColor.a < 0.01 ) discard; }"
+    vertexShader: `
+        precision highp float; 
+        uniform mat4 modelViewMatrix; 
+        uniform mat4 projectionMatrix; 
+        uniform mat3 normalMatrix; 
+        attribute vec3 position; 
+        attribute vec3 translation; 
+        attribute vec4 rotation; 
+        attribute vec3 scale; 
+        attribute vec3 color; 
+        attribute float alpha; 
+        varying vec3 vColor; 
+        varying float vAlpha; 
+        vec3 transform( inout vec3 position, vec3 T, vec4 R, vec3 S ) {
+            position *= S; 
+            position += vec3(0,-0.06,0); 
+            position += 2.0 * cross( R.xyz, cross( R.xyz, position ) + R.w * position ); 
+            position += T; 
+            return position; 
+        } 
+        vec3 rotate(inout vec3 position, const vec4 q) {
+            vec3 t = 2.0 * cross(q.xyz, position); 
+            return position + q.w * t + cross(q.xyz, t); 
+        } 
+        varying vec3 vPos; 
+        void main() {
+            vec3 pos = position; 
+            vColor = color; 
+            vAlpha = alpha; 
+            transform( pos, translation, rotation, scale ); 
+            gl_Position = projectionMatrix * modelViewMatrix * vec4( pos, 1.0 ); vPos = pos; 
+        }`,
+    fragmentShader: `
+        precision highp float; 
+        varying vec3 vColor; 
+        varying float vAlpha; 
+        void main() {
+            gl_FragColor = vec4(vColor, vAlpha ); 
+            if ( gl_FragColor.a < 0.01 ) discard; 
+        }`
 };
 
 function EdgeCloud(t, n) {
