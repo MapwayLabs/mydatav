@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="../lib/tween.js-master/src/Tween.js"></script>
+    <title>circle</title>
+</head>
+
+<body>
+    <script>
+        var canvas, ctx;
+        function initCanvas(width, height) {
+            canvas = document.createElement('canvas');
+            canvas.width = width || 300;
+            canvas.height = height || 150;
+            document.body.appendChild(canvas);
+            canvas.style.backgroundColor = "#ccc";
+            ctx = canvas.getContext('2d');
+        }
+        initCanvas(512, 512);
+
+        // https://blog.csdn.net/menjiawan/article/details/43021507
+        var Circle  = function(x, y, z, radius, nx, ny, nz) {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+            this.radius = radius;
+            this.nx = nx;
+            this.ny = ny;
+            this.nz = nz;
+            
+            var n = { x: nx, y: ny, z: nz };
+            var u = ( n.x !== 0 || n.y !== 0 ) ? { x: n.y, y: -n.x, z: 0 } : { x: 1, y: 1, z: 0 };
+            var v = { x: n.y * u.z - n.z * u.y, y: n.z * u.x - n.x * u.z, z: n.x * u.y - n.y * u.x };
+            var m_u = Math.sqrt(u.x * u.x + u.y * u.y + u.z * u.z);
+            var m_v = Math.sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+            var unit_u = { x: u.x / m_u, y: u.y / m_u, z: u.z / m_u };
+            var unit_v = { x: v.x / m_v, y: v.y / m_v, z: v.z / m_v };
+
+            this.getPoint = function(e) {
+                e = e * ( Math.PI / 180 ); // deg to rad
+                return {
+                    x: this.x + this.radius * ( unit_u.x * Math.cos(e) + unit_v.x * Math.sin(e) ),
+                    y: this.y + this.radius * ( unit_u.y * Math.cos(e) + unit_v.y * Math.sin(e) ),
+                    z: this.z + this.radius * ( unit_u.z * Math.cos(e) + unit_v.z * Math.sin(e) )
+                }
+            }
+        }
+        var circle = new Circle(256, 256, 0, 100, 0, 0, 1);
+
+        function tweenCallback(e) {
+           var p =  circle.getPoint(e.time);
+           if (e.time === 360) ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+           ctx.beginPath();
+           ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+           ctx.fill();
+        }
+        var tween = new TWEEN.Tween({time: 0})
+            .to({time: 360}, 6000)
+            .onUpdate(tweenCallback)
+            .repeat(Infinity)
+            .start();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            TWEEN.update();
+        }
+        animate();
+    </script>
+</body>
+
+</html>
