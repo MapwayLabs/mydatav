@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>ringMenu</title>
+    <style>
+        .menu {
+            position: absolute;
+            left: 100px;
+            top: 100px;
+            width: 200px;
+            height: 200px;
+            background: silver;
+        }
+        .menu-item {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            margin-top: -25px;
+            margin-left: -25px;
+            width: 50px;
+            height: 50px;
+            transform-origin: center center;
+        }
+        .button {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: blue;
+            color: white;            
+            font-size: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .menu-item2 {
+            width: 240px;
+            height: 240px;
+            margin-top: -120px;
+            margin-left: -120px;
+            transform: rotate(45deg);
+        }
+        .menu-item2-child {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            margin-top: -25px;
+            margin-left: -25px;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="menu">
+        <div class="menu-item" style="transform: rotate(0deg);">
+            <div class="button" style="transform: translateY(-100px) rotate(-0deg);">关系扩展</div>
+        </div>
+        <div class="menu-item" style="transform: rotate(45deg);">
+            <div class="button" style="transform: translateY(-100px) rotate(-45deg);">关系收回</div>
+        </div>
+        <div class="menu-item" style="transform: rotate(90deg);">
+            <div class="button" style="transform: translateY(-100px) rotate(-90deg);">关联实体</div>
+        </div>
+        <div class="menu-item" style="transform: rotate(135deg);">
+            <div class="button" style="transform: translateY(-100px) rotate(-135deg);">查看GIS</div>
+        </div>
+        <div class="menu-item" style="transform: rotate(180deg);">
+            <div class="button" style="transform: translateY(-100px) rotate(-180deg);">删除已选</div>
+        </div>
+        <div class="menu-item" style="transform: rotate(225deg);">
+            <div class="button" style="transform: translateY(-100px) rotate(-225deg);">保留</div>
+        </div>
+        <div class="menu-item" style="transform: rotate(270deg);">
+            <div class="button" style="transform: translateY(-100px) rotate(-270deg);">选择</div>
+        </div>
+        <div class="menu-item" style="transform: rotate(315deg);">
+            <div class="button" style="transform: translateY(-100px) rotate(-315deg);">删除</div>
+        </div>
+        <div class="menu-item menu-item2">
+            <div class="menu-item2-child">二级1</div>
+            <div class="menu-item2-child">二级2</div>
+            <div class="menu-item2-child">二级3</div>
+        </div>
+    </div>
+</body>
+</html>
