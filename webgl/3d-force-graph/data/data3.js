@@ -5,5 +5,5 @@
 
 const GraphData = {
 	nodes: [{"id":"35"},{"id":"1532"}],
-	links: [{"source":"1532","target":"35"}, {"source":"35","target":"1532"}]
+	links: [{"source":"1532","target":"35"}, {"source":"35","target":"1532"},{"source":"1532","target":"35"}, {"source":"35","target":"1532"},{"source":"1532","target":"35"}, {"source":"35","target":"1532"},{"source":"35","target":"1532"}]
 };

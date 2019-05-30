@@ -74,7 +74,6 @@ function EdgeCloud(t, n) {
     this.geometry = null,
     this.numEdge = 0,
     this.points = [],
-    this.curvePointCount = 50,
     this.init();
 }
 
@@ -82,9 +81,9 @@ EdgeCloud.prototype = {
 	constructor: EdgeCloud,
 	createEdgeAttributesToGeometry: function(e, t) {
         var n = {
-            position: new Float32Array(t * 3),
-            color: new Float32Array(t * 3),
-            opacity: new Float32Array(t)
+            position: new Float32Array(2 * t * 3),
+            color: new Float32Array(2 * t * 3),
+            opacity: new Float32Array(2 * t)
         };
         return e.addAttribute("position", new THREE.Float32BufferAttribute(n.position,3)),
         e.addAttribute("color", new THREE.Float32BufferAttribute(n.color,3)),
@@ -117,15 +116,14 @@ EdgeCloud.prototype = {
         e.computeBoundingSphere(),
         e.name = "edge-geometry",
         e.boundingSphere.radius = 1,
-        this.geometry = e;
-        // this.lineSegments = new THREE.LineSegments(e,t),
-        this.lineSegments = new THREE.Line(e, t);
-        this.lineSegments.frustumCulled = false;
-        this.lineSegments.visible = true;
-        this.lineSegments.name = "edge";
-        this.lineSegments.userData.isGPU = true;
-        this.group.add(this.lineSegments);
-        this.initArrow();
+        this.geometry = e,
+        this.lineSegments = new THREE.LineSegments(e,t),
+        this.lineSegments.frustumCulled = !1,
+        this.lineSegments.visible = !0,
+        this.lineSegments.name = "edge",
+        this.lineSegments.userData.isGPU = !0,
+        this.group.add(this.lineSegments),
+        this.initArrow()
     },
 	initArrow: function() {
         var e = new THREE.ConeBufferGeometry(4,20,10)
@@ -159,112 +157,55 @@ EdgeCloud.prototype = {
         this.updateFromGraph([])
     },
 	updateFromGraph: function(e) {
-        var n = this.numEdge;
-        this.numEdge = e.length;
-        if (this.numEdge > this.maxNumEdge) {
-            console.log("!!!!!Max num edge exceeded");
-            this.numEdge = this.maxNumEdge;
-        }
-        if (this.numEdge !== n) {
-            this.createEdgeAttributesToGeometry(this.geometry, this.numEdge * this.curvePointCount);
-            this.createArrowAttributesToGeometry(this.arrows.geometry, this.numEdge);
-        }
-        this.geometry.clearGroups();
+        var t = this
+          , n = this.numEdge;
+        this.numEdge = e.length,
+        this.numEdge > this.maxNumEdge && (console.log("!!!!!Max num edge exceeded"),
+        this.numEdge = this.maxNumEdge),
+        this.numEdge != n && (this.createEdgeAttributesToGeometry(this.geometry, this.numEdge),
+        this.createArrowAttributesToGeometry(this.arrows.geometry, this.numEdge));
         var r = this.geometry.attributes;
-        var group = {};
-        e.forEach(n => {
-            var key1 = n.sourceId + ':' + n.targetId;
-            var key2 = n.targetId + ':' + n.sourceId;
-            if (Object.keys(group).includes(key1)) {
-                group[key1].push(n);
-            } else if (Object.keys(group).includes(key2)) {
-                group[key2].push(n);
-            } else {
-                group[key1] = [];
-                group[key1].push(n);
-            }
-        });
-        var index = 0;
-        Object.values(group).forEach((g,i) => {
-            var isOdd = g.length % 2 !== 0;
-            g.forEach((edge, n) => {
-                var type = n % 2;
-                var center = new THREE.Vector3().addVectors(edge.source.position, edge.target.position).divideScalar(2);
-                var radius = 0.1;
-                var st = new THREE.Vector3().subVectors(edge.source.position, edge.target.position);
-                var circle = new Circle(center.x, center.y, center.z, radius, st.x, st.y, st.z);
-                var cp, controlPoint;
-                if (isOdd && n === 0) {
-                    controlPoint = center;
-                } else {
-                    if (type === 0) {
-                        cp = circle.getPoint(180 / this.numEdge * n);
-                        controlPoint = new THREE.Vector3(cp.x, cp.y, cp.z);
-                    } else {
-                        cp = circle.getPoint(360 - (180 / this.numEdge * (n-1)) );
-                        controlPoint = new THREE.Vector3(cp.x, cp.y, cp.z);
-                    }
-                }
-                var curve = new THREE.QuadraticBezierCurve3(
-                    edge.source.position.clone(),
-                    controlPoint,
-                    edge.target.position.clone()
-                );
-                var v1 = edge.target.position.clone();
-                var v2 = controlPoint.clone();
-                edge.arrowVector = v1.sub(v2);
-
-                var points = curve.getPoints( this.curvePointCount - 1 );
-                points.forEach((p, i) => {
-                    p.toArray(r.position.array, 3 * index * this.curvePointCount + 3 * i);
-                    edge.color.toArray(r.color.array, 3 * index * this.curvePointCount + 3 * i);
-                    r.opacity.array[index * this.curvePointCount + i] = edge.alpha;
-                });
-                this.geometry.addGroup( index * this.curvePointCount, this.curvePointCount, 0);
-                index ++;
-            });
-        });
-        r.position.needsUpdate = !0;
-        r.color.needsUpdate = !0;
-        r.opacity.needsUpdate = !0;
-        this.updateArrowAttribute(e);
+        e.forEach(function(e, n) {
+            var i = 2 * n
+              , o = 2 * n + 1;
+            t.points[i] = e.source.position,
+            t.points[o] = e.target.position,
+            e.source.position.toArray(r.position.array, 3 * i),
+            e.target.position.toArray(r.position.array, 3 * o),
+            e.color.toArray(r.color.array, 3 * i),
+            e.color.toArray(r.color.array, 3 * o),
+            r.opacity.array[i] = e.alpha,
+            r.opacity.array[o] = e.alpha
+        }),
+        r.position.needsUpdate = !0,
+        r.color.needsUpdate = !0,
+        r.opacity.needsUpdate = !0,
+        this.updateArrowAttribute(e)
     },
 	updateArrowAttribute: function(e) {
         if (0 != e.length && this.arrows) {
-            var t = e.length,
-                n = 0,
-                r = 0,
-                i = 0,
-                o = 0,
-                a = 0,
-                s = this.arrows.geometry.attributes.translation.array,
-                u = this.arrows.geometry.attributes.rotation.array,
-                l = this.arrows.geometry.attributes.scale.array,
-                c = this.arrows.geometry.attributes.color.array,
-                d = this.arrows.geometry.attributes.alpha.array;
-            for (var f = 0; f < t; f++) {
+            for (var t = e.length, n = 0, r = 0, i = 0, o = 0, a = 0, s = this.arrows.geometry.attributes.translation.array, u = this.arrows.geometry.attributes.rotation.array, l = this.arrows.geometry.attributes.scale.array, c = this.arrows.geometry.attributes.color.array, d = this.arrows.geometry.attributes.alpha.array, f = 0; f < t; f++) {
                 var h = e[f]
                   , p = h.source.position
-                //   , m = h.target.position.clone().sub(p)
-                  , m = h.arrowVector || h.target.position.clone().sub(p)
+                  , m = h.target.position.clone().sub(p)
                   , g = this.getDirection(m.normalize())
                   , y = h.target.position.x
                   , v = h.target.position.y
                   , b = h.target.position.z;
-                s[n++] = y;
-                s[n++] = v;
-                s[n++] = b;
-                u[r++] = g.x;
-                u[r++] = g.y;
-                u[r++] = g.z;
-                u[r++] = g.w;
-                l[i++] = .002;
-                l[i++] = .002;
-                l[i++] = .002;
-                c[o++] = h.color.r;
-                c[o++] = h.color.g;
-                c[o++] = h.color.b;
-                d[a++] = h.alpha;
+                s[n++] = y,
+                s[n++] = v,
+                s[n++] = b,
+                u[r++] = g.x,
+                u[r++] = g.y,
+                u[r++] = g.z,
+                u[r++] = g.w,
+                l[i++] = .002,
+                l[i++] = .002,
+                l[i++] = .002,
+                c[o++] = h.color.r,
+                c[o++] = h.color.g,
+                c[o++] = h.color.b,
+                d[a++] = h.alpha
             }
             var _ = this.arrows.geometry.attributes;
             this.arrows.geometry.maxInstancedCount = this._hideArrow ? 0 : t,

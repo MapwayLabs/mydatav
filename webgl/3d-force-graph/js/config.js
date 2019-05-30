@@ -31,7 +31,7 @@ var Config = {
         // receive_only: new THREE.Color(0xd0000f),
         // send_and_receive: new THREE.Color(0x225500),
         edge: new THREE.Color(0x1F3D7A),
-        edge_alpha: .8
+        edge_alpha: 1
         // mouseoverHighlightNode: .85
     },
     // https://blog.csdn.net/gdp12315_gu/article/details/48351589
