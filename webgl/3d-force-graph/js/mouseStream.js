@@ -128,7 +128,9 @@ MouseStream.prototype = {
               , n = -e.offsetY / this.dom.height /  this.dpr * 2 + 1;
             this.up.next({
                 x: t,
-                y: n
+                y: n,
+                offsetX: e.offsetX,
+                offsetY: e.offsetY
             })
         }
     },

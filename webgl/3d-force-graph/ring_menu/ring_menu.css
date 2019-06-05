@@ -2,8 +2,6 @@
     position: absolute;
     left: 0;
     top: 0;
-    width: 240px;
-    height: 240px;
     user-select: none;
     transform: scale(1);
     transition: transform .5s;
@@ -155,7 +153,7 @@
     height: 50px;
 }
 
-/* .menu-item-contanier .menu-item .menu-sub-container .sub-menu-item .button {
+.menu-item-contanier .menu-item .menu-sub-container .sub-menu-item .button {
     width: 100%;
     height: 100%;
     font-size: 12px;
@@ -166,4 +164,4 @@
 }
 .menu-item-contanier .menu-item .menu-sub-container .sub-menu-item .button span {
     color: #fff;
-} */
+}

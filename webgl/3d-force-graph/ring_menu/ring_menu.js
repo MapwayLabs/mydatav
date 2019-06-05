@@ -104,7 +104,7 @@ RingMenu.prototype = {
             itemEle.style.transform = `rotate(${ angle }deg)`;
             itemEle.innerHTML = `
                 <div class="button" style="transform: translateY(${ -this.options.mainMenuRadius }px) rotate(${ -angle }deg);">
-                    <i><img src="./地图定位.svg" alt=""></i>
+                    <i><img src="./ring_menu/test.svg" alt=""></i>
                     <span>${ e.name }</span>
                 </div>
             `;
@@ -145,7 +145,7 @@ RingMenu.prototype = {
             itemEle.style.transform = `rotate(${ angel }deg) rotate(-${ deg }deg)`;
             itemEle.innerHTML = `
             <div class="button" style="transform: translateY(${ -this.options.subMenuRadius-30 }px) rotate(${ -angel }deg);">
-                <i><img src="./地图定位.svg" alt=""></i>
+                <i><img src="./ring_menu/test.svg" alt=""></i>
                 <span>${ e.name }</span>
             </div>
             `;
@@ -173,6 +173,10 @@ RingMenu.prototype = {
                 e.stopPropagation();
             }, false);
         });
+
+        this._container.addEventListener('contextmenu', e => {
+            e.preventDefault();
+        }, false);
     },
     _toggleEvtHandler: function(e) {
         e.stopPropagation();

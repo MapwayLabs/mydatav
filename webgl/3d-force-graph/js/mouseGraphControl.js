@@ -23,6 +23,7 @@ function MouseGraphControl(t) {
     this.relationshipCloud = t.relationshipCloud;
     this.dragSelection = t.dragSelection;
     this.tooltip = t.tooltip;
+    this.drawing = t;
     this.newRelationshipNodes = [];
     this.init();
     this.initGUPPicker();
@@ -101,6 +102,7 @@ MouseGraphControl.prototype = {
         }),
         this.mouseStream.up.subscribe(function(t) {
             if (window.isRightClick) {
+                // 鼠标右键事件
                 var n = new THREE.Vector2(t.x,t.y);
                 e.raycaster.setFromCamera(n, e.camera);
                 var r = e.raycaster.intersectObject(e.nodeCloud.points)
@@ -111,6 +113,13 @@ MouseGraphControl.prototype = {
                 //     y: t.y,
                 //     nodes: a
                 // })),
+                // var sp = e.drawing.convertCloudPoint(new THREE.Vector3(t.x, t.y, 1));
+                
+                if (Object.keys(a).length) {
+                    e.graphShareInstance.selectWithNodeIds([a.id]);
+                    window.ringMenuInstance.open(t.offsetX, t.offsetY);
+                }
+                
                 window.isRightClick = !1
             }
             Helper.UpdateMoveCursor(false),
