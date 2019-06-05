@@ -1,7 +1,7 @@
 .ring-menu-container {
     position: absolute;
-    left: 106px;
-    top: 106px;
+    left: 0;
+    top: 0;
     width: 240px;
     height: 240px;
     user-select: none;
@@ -10,6 +10,7 @@
     background: #082d6a;
     opacity: 0.9;
     border-radius: 50%;
+    cursor: pointer;
 }
 
 .ring-menu-container.collapse {
@@ -37,17 +38,19 @@
 
 .menu-rotate-bg .bg-item.bg-item-out {
     background: url(./graph_bg_b.png) no-repeat;
+    background-position: 50%;
+    background-size: 100% 100%;
     animation: rotateClockwise 30s linear infinite;
 }
 
 .menu-rotate-bg .bg-item.bg-item-in {
-    left: 50%;
-    top: 50%;
-    margin-left: -106px;
-    margin-top: -106px;
-    width: 212px;
-    height: 212px;
+    left: 13px;
+    top: 13px;
+    width: 90%;
+    height: 90%;
     background: url(./graph_bg_w.png) no-repeat;
+    background-position: 50%;
+    background-size: 100% 100%;
     animation: rotateAntiClockwise 10s linear infinite;
 }
 
@@ -105,6 +108,11 @@
     flex-flow: column nowrap;
     justify-content: center;
     align-items: center;
+    opacity: 0.7;
+}
+
+.menu-item-contanier .menu-item .button:hover {
+    opacity: 1;
 }
 
 .menu-item-contanier .menu-item .button span {
@@ -118,7 +126,7 @@
     top: 0;
     width: 100%;
     height: 100%;
-    z-index: -1;
+    z-index: -999;
     display: none;
 }
 
@@ -145,8 +153,6 @@
     margin-left: -25px;
     width: 50px;
     height: 50px;
-    opacity: 0.7;
-    font-size: 12px;
 }
 
 .menu-item-contanier .menu-item .menu-sub-container .sub-menu-item .button {

@@ -1,37 +1,12 @@
 function RingMenu(el, data, options) {
     this._el = el;
-    // this.menus = data;
-    this.menus = [
-        { id: '0', icon: '', name: '关系扩展', submenus: [
-            { id: '0-1', icon: '', name: '相关人' },
-            { id: '0-2', icon: '', name: '组合扩展' },
-            { id: '0-3', icon: '', name: '相关物' }
-        ] },
-        { id: '1', icon: '', name: '关系收回', submenus: [
-            { id: '1-1', icon: '', name: '一键收回' },
-            { id: '1-2', icon: '', name: '相关人' },
-            { id: '1-3', icon: '', name: '相关物' }
-        ] },
-        { id: '2', icon: '', name: '关联实体', submenus: [
-            { id: '2-1', icon: '', name: '人物' },
-            { id: '2-2', icon: '', name: '物品' },
-            { id: '2-3', icon: '', name: '地点' },
-            { id: '2-4', icon: '', name: '虚拟身份' },
-            { id: '2-5', icon: '', name: '机构' }
-        ] },
-        { id: '3', icon: '', name: '查看gis', submenus: null },
-        { id: '4', icon: '', name: '删除已选', submenus: null },
-        { id: '5', icon: '', name: '保留已选', submenus: null },
-        { id: '6', icon: '', name: '节点选择', submenus: [
-            { id: '6-1', icon: '', name: '一层节点' },
-            { id: '6-2', icon: '', name: '两层节点' },
-            { id: '6-3', icon: '', name: '全部节点' }
-        ] },
-        { id: '7', icon: '', name: '一键扩展', submenus: null },
-    ];
+    this.menus = data || [];
     this.options = Object.assign({
         mainMenuRadius: 80, // px
-        subMenuRadius: 150
+        subMenuRadius: 130,
+        width: 256,
+        height: 256,
+        menuClickCallback: function() {}
     }, options || {});
     this.isCollapse = true;
     this.init();
@@ -44,8 +19,56 @@ RingMenu.prototype = {
         this._initRotateBg();
         this._initCenterEle();
         this._initMenuItem();
-        document.body.appendChild(this._container);
+        this._el.appendChild(this._container);
         this._initEvents();
+    },
+    destory: function() {
+        this._container.parentElement.removeChild(this._container);
+        this._centerEle.removeEventListener('click', this._toggleEvtHandler.bind(this), false);
+
+        var menuEles = this._menuItemContainer.querySelectorAll('.menu-item');
+        menuEles.forEach(e => {
+            e.removeEventListener('click', this._menuItemEvtHandler.bind(this), false);
+        });
+
+        var subEles = this._menuItemContainer.querySelectorAll('.sub-menu-item');
+        subEles.forEach(e => {
+            e.removeEventListener('click', this._subMenuItemEvtHandler.bind(this), false);
+        });
+    },
+    open: function(x, y) {
+        if (x != null && y != null) {
+            this._container.style.left = `${ x - this.options.width / 2 }px`;
+            this._container.style.top = `${ y - this.options.height / 2 }px`;
+        }
+        this._container.classList.remove('collapse');
+        this.isCollapse = false;
+    },
+    close: function() {
+        this._container.classList.add('collapse');
+        this.isCollapse = true;
+        this.closeSubMenu();
+    },
+    closeSubMenu: function() {
+        var mainMenuEles = this._menuItemContainer.querySelectorAll('.menu-item');
+        mainMenuEles.forEach(e => {
+            e.classList.remove('active');
+        });
+    },
+    getMenuItemById: function(id) {
+        // 广度优先遍历
+        var root = { id: 'root', submenus: this.menus };
+        var queue = [];
+        queue.push(root);
+        while(queue.length) {
+            var current = queue.shift();
+            if (current.id === id) {
+                return current;
+            }
+            if (current.submenus && current.submenus.length) {
+                queue.push(...current.submenus);
+            }
+        } 
     },
     _initContainer: function() {
         this._container = document.createElement('div');
@@ -53,6 +76,7 @@ RingMenu.prototype = {
         if(this.isCollapse) {
             this._container.classList.add('collapse');
         }
+        this._container.style = `width:${this.options.width}px;height:${this.options.height}px;`;
     },
     _initRotateBg: function() {
         this._bgEle = document.createElement('div');
@@ -98,7 +122,7 @@ RingMenu.prototype = {
 
         var subBgEle = document.createElement('div');
         subBgEle.classList.add('sub-menu-bg');
-        subBgEle.style.transform = "translateY(-120px)";
+        subBgEle.style.transform = `translateY(${ -this.options.subMenuRadius }px)`;
         subMenuContainer.appendChild(subBgEle);
 
         var start = -45 + deg;
@@ -120,7 +144,7 @@ RingMenu.prototype = {
             var angel = i===0 ? ( start + type * (stepHead * (i+1)) ) : ( start + type * (step * i + stepHead) );
             itemEle.style.transform = `rotate(${ angel }deg) rotate(-${ deg }deg)`;
             itemEle.innerHTML = `
-            <div class="button" style="transform: translateY(${ -this.options.subMenuRadius }px) rotate(${ -angel }deg);">
+            <div class="button" style="transform: translateY(${ -this.options.subMenuRadius-30 }px) rotate(${ -angel }deg);">
                 <i><img src="./地图定位.svg" alt=""></i>
                 <span>${ e.name }</span>
             </div>
@@ -152,12 +176,13 @@ RingMenu.prototype = {
     },
     _toggleEvtHandler: function(e) {
         e.stopPropagation();
-        this.isCollapse = !this.isCollapse;
-        if (this.isCollapse) {
-            this._container.classList.add('collapse');
-        } else {
-            this._container.classList.remove('collapse');
-        }
+        this.close();
+        // this.isCollapse = !this.isCollapse;
+        // if (this.isCollapse) {
+        //     this._container.classList.add('collapse');
+        // } else {
+        //     this._container.classList.remove('collapse');
+        // }
     },
     _menuItemEvtHandler: function(e) {
         e.stopPropagation();
@@ -166,6 +191,11 @@ RingMenu.prototype = {
         var id = ele.dataset.id;
         var currentItem = this.getMenuItemById(id);
         console.log(currentItem);
+        this.options.menuClickCallback.call(this, {
+            type: 'level-1',
+            target: ele,
+            item: currentItem
+        });
 
         eles.forEach(e => {
             if (e !== ele) e.classList.remove('active');
@@ -177,28 +207,10 @@ RingMenu.prototype = {
         var id = e.currentTarget.dataset.id;
         var currentItem = this.getMenuItemById(id);
         console.log(currentItem);
-    },
-    getMenuItemById: function(id) {
-        // 广度优先遍历
-        var root = { id: 'root', submenus: this.menus };
-        var queue = [];
-        queue.push(root);
-        while(queue.length) {
-            var current = queue.shift();
-            if (current.id === id) {
-                return current;
-            }
-            if (current.submenus && current.submenus.length) {
-                queue.push(...current.submenus);
-            }
-        } 
-    },
-    open: function() {
-        this._container.classList.remove('collapse');
-        this.isCollapse = false;
-    },
-    close: function() {
-        this._container.classList.add('collapse');
-        this.isCollapse = true;
+        this.options.menuClickCallback.call(this, {
+            type: 'level-2',
+            target: e.currentTarget,
+            item: currentItem
+        });
     }
 };
