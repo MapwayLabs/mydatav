@@ -186,7 +186,6 @@ RingMenu.prototype = {
     },
     _menuItemEvtHandler: function(e) {
         e.stopPropagation();
-        var eles = this._menuItemContainer.querySelectorAll('.menu-item');
         var ele = e.currentTarget;
         var id = ele.dataset.id;
         var currentItem = this.getMenuItemById(id);
@@ -197,10 +196,8 @@ RingMenu.prototype = {
             item: currentItem
         });
 
-        eles.forEach(e => {
-            if (e !== ele) e.classList.remove('active');
-        });
-        ele.classList.contains('active') ? ele.classList.remove('active') : ele.classList.add('active');
+        [...ele.parentNode.children].filter(e => e !== ele).forEach(e => e.classList.remove('active'));
+        ele.classList.toggle('active');
     },
     _subMenuItemEvtHandler: function(e) {
         e.stopPropagation();
