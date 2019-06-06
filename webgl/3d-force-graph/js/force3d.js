@@ -159,9 +159,9 @@ Force3D.prototype = {
         });
         this.graphShareInstance.selectWithNodeIds([], this.graphShareInstance.selectTypes.new);
         this.layoutShareInstance.pinNodeIds(e, !0);
-        // this.graphController.historyLine.add();
+        this.graphController.historyLine.add();
         this.graph.removeNodesByIds(e);
-        // this.graphController.historyLine.add();
+        this.graphController.historyLine.add();
         this.drawing.forceStartLayout();
     },
     expandSelectedNodesAction: function() {

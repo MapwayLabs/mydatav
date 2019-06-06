@@ -117,7 +117,7 @@ MouseGraphControl.prototype = {
                 
                 if (Object.keys(a).length) {
                     e.graphShareInstance.selectWithNodeIds([a.id]);
-                    window.ringMenuInstance.open(t.offsetX, t.offsetY);
+                    // window.ringMenuInstance.open(t.offsetX, t.offsetY);
                 }
                 
                 window.isRightClick = !1

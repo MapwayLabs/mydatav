@@ -61,7 +61,7 @@ var menuData = [
     // ] },
     { id: '8', icon: 'p8', name: '一键扩展', submenus: null },
 ];
-window.ringMenuInstance = new RingMenu(document.getElementById('canvas-renderContainer'), menuData);
+// window.ringMenuInstance = new RingMenu(document.getElementById('canvas-renderContainer'), menuData);
 // document.addEventListener('contextmenu', e => {
 //     e.preventDefault();
 //     m.open(e.clientX, e.clientY);
