@@ -57,7 +57,7 @@ MouseStream.prototype = {
         window.document.removeEventListener("mousedown", this.mouseDown.bind(this), !1),
         window.document.removeEventListener("mouseout", this.mouseOut.bind(this), !1),
         window.document.removeEventListener("mouseup", this.mouseUp.bind(this), !1),
-        window.document.addEventListener("mouseenter", this.mouseEnter.bind(this), !1),
+        window.document.removeEventListener("mouseenter", this.mouseEnter.bind(this), !1),
         window.document.removeEventListener("dblclick", this.mouseDBClick.bind(this), !1),
         window.document.removeEventListener("wheel", this.mouseWheel.bind(this), !1)
     },
