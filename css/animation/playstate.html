@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>playstate</title>
+    <link rel="stylesheet" href="../lib/animate.min.css">
+    <style>
+        html,
+        body {
+            user-select: none;
+        }
+
+        .contanier {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            height: 200px;
+        }
+
+        .menu {
+            position: relative;
+            z-index: 999;
+        }
+
+        .page {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            justify-content: center;
+            align-items: center;
+            background: silver;
+        }
+
+        .page.active {
+            display: flex;
+        }
+
+        .page1 {
+            background: red;
+        }
+
+        .page2 {
+            background: green;
+        }
+
+        .page3 {
+            background: blue;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="contanier">
+        <div class="page page1 animated">flip</div>
+    </div>
+    <div class="menu">
+        <p id="output"></p>
+        <button onclick="toggle(this, 1)">入场</button>
+        <button onclick="toggle(this, -1)">出场</button>
+    </div>
+    <script>
+        var element = document.querySelector('.page1');
+        element.style.display = "none";
+        function toggle(btn, type) {
+            if (type === 1) {
+                element.style.display = "flex";
+                element.classList.remove('rotateOut');
+                element.classList.add('rotateIn');
+                // element.style.display = "flex";
+            } else {
+                element.classList.remove('rotateIn');
+                element.classList.add('rotateOut');
+                // element.style.display = "none";
+            }
+        }
+
+        element.addEventListener("animationstart", listener, false);
+        element.addEventListener("animationend", listener, false);
+        element.addEventListener("animationiteration", listener, false);
+
+        function listener(event) {
+            var l = document.createElement("li");
+            switch (event.type) {
+                case "animationstart":
+                    l.innerHTML = "Started: elapsed time is " + event.elapsedTime;
+                    break;
+                case "animationend":
+                    l.innerHTML = "Ended: elapsed time is " + event.elapsedTime;
+                    break;
+                case "animationiteration":
+                    l.innerHTML = "New loop started at time " + event.elapsedTime;
+                    break;
+            }
+            document.getElementById("output").appendChild(l);
+        }
+    </script>
+</body>
+
+</html>
