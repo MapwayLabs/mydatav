@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>element.animate</title>
+    <style>
+        #ele {
+            width: 200px;
+            height: 200px;
+            background: #f00;
+        }
+
+        #ele2 {
+            width: 200px;
+            height: 200px;
+            background: #ff0;
+        }
+    </style>
+    <script src="../lib/web-animations.min.js"></script>
+    <script src="../../lib/tween.js-master/src/Tween.js"></script>
+    <script>
+        var Animations = [{
+                name: 'zoomIn',
+                keyframes: [{
+                        opacity: 0,
+                        transform: 'scale3d(0, 0, 0)'
+                    },
+                    {
+                        opacity: 1,
+                        transform: 'scale3d(1, 1, 1)'
+                    }
+                ]
+            },
+            {
+                name: 'rotateIn',
+                keyframes: [{
+                        transformOrigin: 'center',
+                        transform: 'rotate3d(0, 0, 1, -200deg)',
+                        opacity: 0
+                    },
+                    {
+                        transformOrigin: 'center',
+                        transform: 'translate3d(0, 0, 0)',
+                        opacity: 1
+                    }
+                ]
+            },
+            {
+                name: 'fadeIn',
+                keyframes: [{
+                        opacity: 0
+                    },
+                    {
+                        opacity: 1
+                    }
+                ]
+            }
+        ];
+    </script>
+</head>
+
+<body>
+    <div>
+        <select name="" id="animateType">
+            <option value="zoomIn">zoomIn</option>
+            <option value="rotateIn">rotateIn</option>
+            <option value="fadeIn">fadeIn</option>
+        </select>
+    </div>
+    <div id="ele"></div>
+    <div id="ele2"></div>
+    <script>
+        var DURATION = 2000;
+        var selectEle = document.getElementById("animateType");
+        var animateEle = document.getElementById("ele");
+
+        // var animate = document.getElementById("ele").animate([
+        //     {
+        //         opacity: 0,
+        //         transform: 'scale3d(0, 0, 0)'
+        //     },
+        //     {   opacity: 1,
+        //         transform: 'scale3d(1, 1, 1)'
+        //     }
+        // ], {
+        //     duration: DURATION,
+        //     fill: 'both'
+        // });
+        var animate2 = document.getElementById("ele2").animate([{
+                opacity: 0,
+                transform: 'scale3d(0, 0, 0)'
+            },
+            {
+                opacity: 1,
+                transform: 'scale3d(1, 1, 1)'
+            }
+        ], {
+            duration: DURATION,
+            fill: 'both'
+        });
+        // animate.pause();
+        animate2.pause();
+
+        var tween = new TWEEN.Tween({
+                time: 0
+            })
+            .to({
+                time: 1
+            }, DURATION)
+            .onUpdate(e => {
+                // animate.currentTime = e.time * DURATION;
+                // animate2.currentTime = (1-e.time) * DURATION;
+                animate2.currentTime = (e.time) * DURATION;
+            }).onComplete(e => {}).repeat(Infinity).start();
+
+        function animateCallback() {
+            TWEEN.update();
+            requestAnimationFrame(animateCallback);
+        }
+        requestAnimationFrame(animateCallback);
+
+        selectEle.addEventListener('change', e => {
+            e.stopPropagation();
+            var value = e.currentTarget.value;
+            var currentAnimate = Animations.find(e => e.name === value);
+            var animate = animateEle.animate(currentAnimate.keyframes, {
+                duration: DURATION,
+                fill: 'forwards'
+            });
+        }, false);
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>css-parse</title>
+    <script src="./lib/css.js"></script>
+</head>
+<body>
+        <script type="text/javascript">
+            var cssString = ' .someSelector { margin:40px 10px; padding:5px} ';
+            //initialize parser object
+            var parser = new cssjs();
+            //parse css string
+            var parsed = parser.parseCSS(cssString);
+        
+            console.log(parsed);
+        </script>
+</body>
+</html>
