@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>barChart</title>
+    <script src="https://cesiumjs.org/releases/1.58/Build/Cesium/Cesium.js"></script>
+    <link href="https://cesiumjs.org/releases/1.58/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+</head>
+
+<body style="margin: 0;">
+    <div id="cesiumContainer" style="position:absolute;width:100%;height:100%;"></div>
+    <script>
+        var barData = [{"id":"650000","name":"新疆","xname":"650000","ylabelName":"销售额","index":3,"center":[84.9023,41.748],"value":70607.74,"formattedVal":"70,607.74"},{"id":"540000","name":"西藏","xname":"540000","ylabelName":"销售额","index":0,"center":[88.7695,31.6846],"value":10015.18,"formattedVal":"10,015.18"},{"id":"150000","name":"内蒙古","xname":"150000","ylabelName":"销售额","index":7,"center":[117.5977,44.3408],"value":193311.384,"formattedVal":"193,311.38"},{"id":"630000","name":"青海","xname":"630000","ylabelName":"销售额","index":2,"center":[96.2402,35.4199],"value":49863.38,"formattedVal":"49,863.38"},{"id":"510000","name":"四川","xname":"510000","ylabelName":"销售额","index":13,"center":[102.9199,30.1904],"value":382809.84,"formattedVal":"382,809.84"},{"id":"230000","name":"黑龙江","xname":"230000","ylabelName":"销售额","index":28,"center":[128.1445,48.5156],"value":1219390.984,"formattedVal":"1,219,390.98"},{"id":"620000","name":"甘肃","xname":"620000","ylabelName":"销售额","index":6,"center":[95.7129,40.166],"value":184311.288,"formattedVal":"184,311.29"},{"id":"530000","name":"云南","xname":"530000","ylabelName":"销售额","index":8,"center":[101.8652,25.1807],"value":250785.808,"formattedVal":"250,785.81"},{"id":"450000","name":"广西","xname":"450000","ylabelName":"销售额","index":10,"center":[108.2813,23.6426],"value":340505.473,"formattedVal":"340,505.47"},{"id":"430000","name":"湖南","xname":"430000","ylabelName":"销售额","index":22,"center":[111.5332,27.3779],"value":606081.091,"formattedVal":"606,081.09"},{"id":"610000","name":"陕西","xname":"610000","ylabelName":"销售额","index":15,"center":[109.5996,35.6396],"value":456103.508,"formattedVal":"456,103.51"},{"id":"440000","name":"广东","xname":"440000","ylabelName":"销售额","index":29,"center":[113.4668,22.8076],"value":1227538.62,"formattedVal":"1,227,538.62"},{"id":"220000","name":"吉林","xname":"220000","ylabelName":"销售额","index":24,"center":[126.4746,43.5938],"value":645069.439,"formattedVal":"645,069.44"},{"id":"130000","name":"河北","xname":"130000","ylabelName":"销售额","index":25,"center":[115.4004,37.9688],"value":735203.28,"formattedVal":"735,203.28"},{"id":"420000","name":"湖北","xname":"420000","ylabelName":"销售额","index":18,"center":[112.2363,31.1572],"value":529981.746,"formattedVal":"529,981.75"},{"id":"520000","name":"贵州","xname":"520000","ylabelName":"销售额","index":4,"center":[106.6113,26.9385],"value":98006.188,"formattedVal":"98,006.19"},{"id":"370000","name":"山东","xname":"370000","ylabelName":"销售额","index":30,"center":[118.7402,36.4307],"value":1472853.088,"formattedVal":"1,472,853.09"},{"id":"360000","name":"江西","xname":"360000","ylabelName":"销售额","index":9,"center":[116.0156,27.29],"value":337014.048,"formattedVal":"337,014.05"},{"id":"410000","name":"河南","xname":"410000","ylabelName":"销售额","index":27,"center":[113.4668,33.8818],"value":979831.699,"formattedVal":"979,831.70"},{"id":"210000","name":"辽宁","xname":"210000","ylabelName":"销售额","index":26,"center":[122.3438,41.0889],"value":791454.356,"formattedVal":"791,454.36"},{"id":"140000","name":"山西","xname":"140000","ylabelName":"销售额","index":11,"center":[112.4121,37.6611],"value":367486.154,"formattedVal":"367,486.15"},{"id":"340000","name":"安徽","xname":"340000","ylabelName":"销售额","index":19,"center":[117.2461,32.0361],"value":549408.699,"formattedVal":"549,408.70"},{"id":"350000","name":"福建","xname":"350000","ylabelName":"销售额","index":17,"center":[118.3008,25.9277],"value":479544.107,"formattedVal":"479,544.11"},{"id":"330000","name":"浙江","xname":"330000","ylabelName":"销售额","index":20,"center":[120.498,29.0918],"value":588691.824,"formattedVal":"588,691.82"},{"id":"320000","name":"江苏","xname":"320000","ylabelName":"销售额","index":23,"center":[120.0586,32.915],"value":606288.284,"formattedVal":"606,288.28"},{"id":"500000","name":"重庆","xname":"500000","ylabelName":"销售额","index":12,"center":[107.7539,30.1904],"value":369251.036,"formattedVal":"369,251.04"},{"id":"640000","name":"宁夏","xname":"640000","ylabelName":"销售额","index":1,"center":[105.9961,37.3096],"value":47147.94,"formattedVal":"47,147.94"},{"id":"460000","name":"海南","xname":"460000","ylabelName":"销售额","index":5,"center":[109.9512,19.2041],"value":144851.084,"formattedVal":"144,851.08"},{"id":"110000","name":"北京","xname":"110000","ylabelName":"销售额","index":14,"center":[116.4551,40.2539],"value":405825.14,"formattedVal":"405,825.14"},{"id":"120000","name":"天津","xname":"120000","ylabelName":"销售额","index":16,"center":[117.4219,39.4189],"value":471183.51,"formattedVal":"471,183.51"},{"id":"310000","name":"上海","xname":"310000","ylabelName":"销售额","index":21,"center":[121.4648,31.2891],"value":596430.632,"formattedVal":"596,430.63"}];
+    </script>
+    <script>
+        Cesium.Ion.defaultAccessToken =
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI0OThjMjBiZi1kMTAzLTQ1NTAtYTQ1MC00NWQ4OTA4NmQ0NDIiLCJpZCI6MTIxNzMsInNjb3BlcyI6WyJhc3IiLCJnYyJdLCJpYXQiOjE1NjA0NzgwODh9.WU2jO_rSe3PJdfX2vtvqsoZ3Bu4spldJiYAw7kEsIWY';
+        var viewer = new Cesium.Viewer('cesiumContainer');
+        
+        var layers = viewer.scene.imageryLayers;
+        var google = new Cesium.UrlTemplateImageryProvider({
+            url: 'http://mt2.google.cn/vt/lyrs=m&hl=zh-CN&gl=cn&s=Gal&z={z}&x={x}&y={y}',
+        });
+        layers.addImageryProvider(google);
+        
+        barData.forEach(d => {
+            viewer.entities.add({
+                name : 'Red box with black outline' + d.name,
+                position: Cesium.Cartesian3.fromDegrees(d.center[0], d.center[1], 0),
+                box : {
+                    dimensions : new Cesium.Cartesian3(30000.0, 30000.0, 500000.0 * Math.random()),
+                    material : Cesium.Color.RED.withAlpha(0.85),
+                    outline : true,
+                    outlineColor : Cesium.Color.BLACK
+                }
+            });
+        });
+
+        viewer.zoomTo(viewer.entities);
+    </script>
+</body>
+
+</html>
