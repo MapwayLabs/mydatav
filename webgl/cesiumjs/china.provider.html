@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>chinaProvider</title>
+    <script src="https://cesiumjs.org/releases/1.58/Build/Cesium/Cesium.js"></script>
+    <link href="https://cesiumjs.org/releases/1.58/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+</head>
+
+<body style="margin: 0;">
+    <div id="cesiumContainer" style="position:absolute;width:100%;height:100%;"></div>
+    <script>
+        Cesium.Ion.defaultAccessToken =
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI0OThjMjBiZi1kMTAzLTQ1NTAtYTQ1MC00NWQ4OTA4NmQ0NDIiLCJpZCI6MTIxNzMsInNjb3BlcyI6WyJhc3IiLCJnYyJdLCJpYXQiOjE1NjA0NzgwODh9.WU2jO_rSe3PJdfX2vtvqsoZ3Bu4spldJiYAw7kEsIWY';
+        var viewer = new Cesium.Viewer('cesiumContainer', {
+            imageryProvider : Cesium.createWorldImagery({
+                style : Cesium.IonWorldImageryStyle.AERIAL_WITH_LABELS
+            }),
+            baseLayerPicker : false
+        });
+        
+        var layers = viewer.scene.imageryLayers;
+        var google = new Cesium.UrlTemplateImageryProvider({
+            url: 'http://mt2.google.cn/vt/lyrs=m&hl=zh-CN&gl=cn&s=Gal&z={z}&x={x}&y={y}',
+        });
+        layers.addImageryProvider(google);
+
+        // var layers = viewer.scene.imageryLayers;
+        // var baidu = new Cesium.UrlTemplateImageryProvider({
+        //     url: 'http://online{s}.map.bdimg.com/onlinelabel/?qt=tile&x={x}&y={y}&z={z}&styles=pl&scaler=1&p=1',
+        //     subdomains: '0123456789'
+        // });
+        // layers.addImageryProvider(baidu);
+
+        // var layers = viewer.scene.imageryLayers;
+        // var gaode = new Cesium.UrlTemplateImageryProvider({
+        //     url: "https://webst02.is.autonavi.com/appmaptile?style=6&x={x}&y={y}&z={z}",
+        //     //'http://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}',
+        //     // subdomains: '1234'
+        // });
+        // var gaodeAnnotation = new Cesium.UrlTemplateImageryProvider({
+        //     url: "http://webst02.is.autonavi.com/appmaptile?x={x}&y={y}&z={z}&lang=zh_cn&size=1&scale=1&style=8"
+        // });
+        // layers.addImageryProvider(gaode);
+        // layers.addImageryProvider(gaodeAnnotation);
+
+        // var layers = viewer.scene.imageryLayers;
+        // var tianDiTu = new Cesium.UrlTemplateImageryProvider({
+        //     url: "http://t{s}.tianditu.com/DataServer?T=vec_w&X={x}&Y={y}&L={z}&tk={key}",
+        //     subdomains: '01234567',
+        //     customTags: {
+        //         key: function() {
+        //             return "174705aebfe31b79b3587279e211cb9a";
+        //         }
+        //     }
+        // });
+        // var tianDiTuAnnotation = new Cesium.UrlTemplateImageryProvider({
+        //     url: "http://t{s}.tianditu.com/DataServer?T=cva_w&X={x}&Y={y}&L={z}&tk={key}",
+        //     subdomains: '01234567',
+        //     customTags: {
+        //         key: function() {
+        //             return "174705aebfe31b79b3587279e211cb9a";
+        //         }
+        //     }
+        // });
+        // layers.addImageryProvider(tianDiTu);
+        // layers.addImageryProvider(tianDiTuAnnotation);
+    </script>
+</body>
+
+</html>
