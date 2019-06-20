@@ -14,7 +14,7 @@ function getCenter(g) {
     }
 }
 
-export default {
+var cityCenter =  {
     getProvinceNameByCityName: function(name) {
         var provinces  = citycenter.provinces;
         for (var i = 0; i < provinces.length; i++) {
