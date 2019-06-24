@@ -1,0 +1,489 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8' />
+    <title>加载百度地图测试</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.44.1/mapbox-gl.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.44.1/mapbox-gl.css' rel='stylesheet' />
+    <!-- <script src='../js/turf.min.js'></script> -->
+    <script type="text/javascript" src="./coordtransform.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            position: absolute;
+            top: 20px;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <script>
+
+        function SetOpacity() {
+            var opacitySelect = document.getElementById("opacitySelect");
+            mapboxBaidu.setOpacity(opacitySelect.value);
+            //map.setPaintProperty('chicago', 'raster-opacity', parseInt(e.target.value, 10) / 100);
+        }
+
+        function SetLevel() {
+
+        }
+    </script>
+    <div>
+        <select onchange="SetOpacity()" style="width:100px;height:20px;z-index:100000" id="opacitySelect">
+            <option value="0.1">0.1</option>
+            <option value="0.2">0.2</option>
+            <option value="0.3">0.3</option>
+            <option value="0.4">0.4</option>
+            <option value="0.5">0.5</option>
+            <option value="0.6">0.6</option>
+            <option value="0.7">0.7</option>
+            <option value="0.8">0.8</option>
+            <option value="0.9">0.9</option>
+            <option value="1">1</option>
+        </select>
+        <select onchange="SetLevel()" style="width:100px;height:20px;z-index:100000" id="LevelSelecty">
+            <option value="19">19</option>
+            <option value="18">18</option>
+            <option value="17">17</option>
+            <option value="16">16</option>
+            <option value="15">15</option>
+            <option value="14">14</option>
+            <option value="13">13</option>
+            <option value="12">12</option>
+            <option value="11">11</option>
+            <option value="10">10</option>
+            <option value="9">9</option>
+
+            <option value="19">19</option>
+
+        </select>
+        <div id="zoom" style=" position: absolute; top: 0px; left: 100px; width: 100px; height: 20px;"></div>
+    </div>
+    <div id='map'></div>
+
+
+
+    <script>
+        function Xa(a) {
+            return "function" === typeof a
+        }
+        function Wa(a) {
+            return "number" === typeof a
+        }
+        function Za(a) {
+            return "string" == typeof a
+        }
+        function Db(a) {
+            return "undefined" != typeof a
+        }
+        function Eb(a) {
+            return "object" == typeof a
+        }
+        function H(a, b) {
+            isNaN(a) && (a = Hb(a), a = isNaN(a) ? 0 : a);
+            Za(a) && (a = parseFloat(a));
+            isNaN(b) && (b = Hb(b), b = isNaN(b) ? 0 : b);
+            Za(b) && (b = parseFloat(b));
+            this.lng = a;
+            this.lat = b
+        }
+        H.eM = function (a) {
+            return a && 180 >= a.lng && -180 <= a.lng && 74 >= a.lat && -74 <= a.lat
+        };
+        H.prototype.nb = function (a) {
+            return a && this.lat == a.lat && this.lng == a.lng
+        };
+        var p = null;
+        var j = undefined;
+        function S() {
+
+            this.lP = 6370996.81;
+            this.tG = [1.289059486E7, 8362377.87, 5591021, 3481989.83, 1678043.12, 0];
+            this.Eu = [75, 60, 45, 30, 15, 0];
+            this.rP = [
+                  [1.410526172116255E-8, 8.98305509648872E-6, -1.9939833816331, 200.9824383106796, -187.2403703815547, 91.6087516669843, -23.38765649603339, 2.57121317296198, -0.03801003308653, 1.73379812E7],
+                  [-7.435856389565537E-9, 8.983055097726239E-6, -0.78625201886289, 96.32687599759846, -1.85204757529826, -59.36935905485877, 47.40033549296737, -16.50741931063887, 2.28786674699375, 1.026014486E7],
+                  [-3.030883460898826E-8, 8.98305509983578E-6, 0.30071316287616, 59.74293618442277, 7.357984074871, -25.38371002664745, 13.45380521110908, -3.29883767235584, 0.32710905363475, 6856817.37],
+                  [-1.981981304930552E-8, 8.983055099779535E-6, 0.03278182852591, 40.31678527705744, 0.65659298677277, -4.44255534477492, 0.85341911805263, 0.12923347998204, -0.04625736007561, 4482777.06],
+                  [3.09191371068437E-9, 8.983055096812155E-6, 6.995724062E-5, 23.10934304144901, -2.3663490511E-4, -0.6321817810242, -0.00663494467273, 0.03430082397953, -0.00466043876332, 2555164.4],
+                  [2.890871144776878E-9, 8.983055095805407E-6, -3.068298E-8, 7.47137025468032, -3.53937994E-6, -0.02145144861037, -1.234426596E-5, 1.0322952773E-4, -3.23890364E-6, 826088.5]
+            ];
+            this.qG = [
+                  [-0.0015702102444, 111320.7020616939, 1704480524535203, -10338987376042340, 26112667856603880, -35149669176653700, 26595700718403920, -10725012454188240, 1800819912950474, 82.5],
+                  [8.277824516172526E-4, 111320.7020463578, 6.477955746671607E8, -4.082003173641316E9, 1.077490566351142E10, -1.517187553151559E10, 1.205306533862167E10, -5.124939663577472E9, 9.133119359512032E8, 67.5],
+                  [0.00337398766765, 111320.7020202162, 4481351.045890365, -2.339375119931662E7, 7.968221547186455E7, -1.159649932797253E8, 9.723671115602145E7, -4.366194633752821E7, 8477230.501135234, 52.5],
+                  [0.00220636496208, 111320.7020209128, 51751.86112841131, 3796837.749470245, 992013.7397791013, -1221952.21711287, 1340652.697009075, -620943.6990984312, 144416.9293806241, 37.5],
+                  [-3.441963504368392E-4, 111320.7020576856, 278.2353980772752, 2485758.690035394, 6070.750963243378, 54821.18345352118, 9540.606633304236, -2710.55326746645, 1405.483844121726, 22.5],
+                  [-3.218135878613132E-4, 111320.7020701615, 0.00369383431289, 823725.6402795718, 0.46104986909093, 2351.343141331292, 1.58060784298199, 8.77738589078284, 0.37238884252424, 7.45]
+            ];
+            this.w2 = function (a, b) {
+                if (!a || !b) return 0;
+                var c, d, a = this.Ab(a);
+                if (!a) return 0;
+                c = this.Tk(a.lng);
+                d = this.Tk(a.lat);
+                b = this.Ab(b);
+                return !b ? 0 : this.Re(c, this.Tk(b.lng), d, this.Tk(b.lat))
+            };
+            this.Zo = function (a, b) {
+                if (!a || !b) return 0;
+                a.lng = this.OD(a.lng, -180, 180);
+                a.lat = this.SD(a.lat, -74, 74);
+                b.lng = this.OD(b.lng, -180, 180);
+                b.lat = this.SD(b.lat, -74, 74);
+                return this.Re(this.Tk(a.lng), this.Tk(b.lng), this.Tk(a.lat), this.Tk(b.lat))
+            };
+            this.Ab = function (a) {
+                if (a === p || a === j) return new H(0, 0);
+                var b, c;
+                b = new H(Math.abs(a.lng), Math.abs(a.lat));
+                for (var d = 0; d < this.tG.length; d++) if (b.lat >= this.tG[d]) {
+                    c = this.rP[d];
+                    break
+                }
+                a = this.qK(a, c);
+                return a = new H(a.lng.toFixed(6), a.lat.toFixed(6))
+            };
+            this.zb = function (a) {
+                if (a === p || a === j || 180 < a.lng || -180 > a.lng || 90 < a.lat || -90 > a.lat) return new H(0, 0);
+                var b, c;
+                a.lng = this.OD(a.lng, -180, 180);
+                a.lat = this.SD(a.lat, -74, 74);
+                b = new H(a.lng, a.lat);
+                for (var d = 0; d < this.Eu.length; d++) if (b.lat >= this.Eu[d]) {
+                    c = this.qG[d];
+                    break
+                }
+                if (!c) for (d = 0; d < this.Eu.length; d++) if (b.lat <= -this.Eu[d]) {
+                    c = this.qG[d];
+                    break
+                }
+                a = this.qK(a, c);
+                return a = new H(a.lng.toFixed(2), a.lat.toFixed(2))
+            };
+            this.qK = function (a, b) {//百度坐标便宜
+                if (a && b) {
+                    var c = b[0] + b[1] * Math.abs(a.lng),
+                        d = Math.abs(a.lat) / b[9],
+                        d = b[2] + b[3] * d + b[4] * d * d + b[5] * d * d * d + b[6] * d * d * d * d + b[7] * d * d * d * d * d + b[8] * d * d * d * d * d * d,
+                        c = c * (0 > a.lng ? -1 : 1),
+                        d = d * (0 > a.lat ? -1 : 1);
+                    return new H(c, d)
+                }
+            };
+            this.Re = function (a, b, c, d) {
+                return this.lP * Math.acos(Math.sin(c) * Math.sin(d) + Math.cos(c) * Math.cos(d) * Math.cos(b - a))
+            };
+            this.Tk = function (a) {
+                return Math.PI * a / 180
+            };
+            this.v4 = function (a) {
+                return 180 * a / Math.PI
+            };
+            this.SD = function (a, b, c) {
+                b != p && (a = Math.max(a, b));
+                c != p && (a = Math.min(a, c));
+                return a
+            };
+            this.OD = function (a, b, c) {
+                for (; a > c;) a -= c - b;
+                for (; a < b;) a += c - b;
+                return a
+            }
+        }
+
+        mapboxgl.accessToken = 'pk.eyJ1IjoibW55YyIsImEiOiJjamM1bGlnM3kwbWZtMnp0Nm9pNGg5NHJ5In0.NVuKlk5cbolWzOEop5ClJg';
+        var map = new mapboxgl.Map({
+            container: 'map',
+            style: 'mapbox://styles/mapbox/light-v9',
+            //style: {
+            //    'version': 8,
+            //    'sources': {},
+            //    'layers': []
+            //},
+            zoom: 19,
+            center: [116.405419, 39.913828]
+
+        });
+        function MapboxBaiduLayer() {
+            this._tileSize = 256;
+            this._zoom = undefined;
+            this._opacity = 1;
+            this._alreadTiles = {};
+            this._tileOnlineArr = ["http://online0.map.bdimg.com/tile/", "http://online1.map.bdimg.com/tile/", "http://online2.map.bdimg.com/tile/", "http://online3.map.bdimg.com/tile/", "http://online4.map.bdimg.com/tile/"];
+
+            this.setMap = function (map) {
+                this._map = map;
+                var _this = this;
+                this._map.on("moveend", function () { _this._mapMoveend(); });
+            }
+            //地图范围改变后触发获获取切片数据
+            this._mapMoveend = function () {
+                var baiduBoundsM = this.getBdBoundsM();
+                var level = this.getZoomLevelByBoundM(baiduBoundsM);
+                var tileInfos = this.getTilesUrlByBoundM(level, baiduBoundsM);
+                this.addImgLayer(tileInfos);
+                this.updateImageByZoom(level);
+            }
+            //根据地图缩放级别设置那个照片显示那个不显示
+            this.updateImageByZoom = function (level) {
+                if (this._zoom && level != this._zoom) {
+                    var visibleLayer = [];
+                    var noneLayer = [];
+                    for (var index in this._alreadTiles) {
+                        var layerZoom = parseInt(index.split("_")[0]);
+                        if (layerZoom == level) {
+                            visibleLayer.push(index);
+                        } else {
+                            noneLayer.push(index);
+                        }
+                    }
+                    for (var i in visibleLayer) {
+                        this._map.setLayoutProperty(visibleLayer[i], 'visibility', "visible");
+                    }
+                    for (var i in noneLayer) {
+                        this._map.setLayoutProperty(noneLayer[i], 'visibility', "none");
+                    }
+                    document.getElementById("zoom").innerText = level;
+                }
+                this._zoom = level;
+            }
+            this.getZoomLevel = function () {
+                var boundsM = this.getBdBoundsM();
+                return this.getZoomLevelByBoundM(boundsM);
+            };
+            //得到百度的bound
+            this.getBdBounds = function () {
+                var bounds = this._map.getBounds();//Wgs84
+                //TODO： 这个地方后面要进行坐标转换
+                var baiduSw = this.toBaidu(bounds._sw);
+                var baiduNe = this.toBaidu(bounds._ne);
+                var baiduBound = {
+                    sw: baiduSw,
+                    ne: baiduNe
+                }
+                return baiduBound;
+            };
+            this.toWgs84 = function (baiduP) {
+                var guojiaP = coordtransform.bd09togcj02(baiduP.lng, baiduP.lat);
+                var wgs84P = coordtransform.gcj02towgs84(guojiaP[0], guojiaP[1]);
+                wgs84P = {
+                    lng: wgs84P[0],
+                    lat: wgs84P[1]
+                };
+                return wgs84P;
+            };
+            this.toBaidu = function (wgs84P) {
+                var guojiaP = coordtransform.wgs84togcj02(wgs84P.lng, wgs84P.lat);
+                var baiduP = coordtransform.gcj02tobd09(guojiaP[0], guojiaP[1]);
+                baiduP = {
+                    lng: baiduP[0],
+                    lat: baiduP[1]
+                };
+                return baiduP;
+            };
+            //得到百度的bound 投影后
+            this.getBdBoundsM = function () {
+                var bounds = this.getBdBounds();
+                var newS = new S();
+                var baiduBound = {
+                    sw: newS.zb(bounds.sw),
+                    ne: newS.zb(bounds.ne)
+                }
+                return baiduBound;
+            }
+            this.getZoomLevelByBoundM = function (boundM) {//根据一个范围计算地图的zoom级别
+                var bound = {
+                    Ge: boundM.sw.lng,// maxx
+                    Le: boundM.ne.lng, //minx
+                    Ke: boundM.sw.lat,// miny
+                    Fe: boundM.ne.lat //maxy
+                }
+                var minZoom = 3;
+                var maxZoom = 19;
+                var c = maxZoom;
+                var d = [10, 10, 10, 10];
+                var e = 0;
+                var f = 20;
+                var d = 20;
+                var g = minZoom;
+
+                var container = this._map._container;
+                for (var i = c ; i >= g; i--) {
+                    var k = Math.pow(2, 18 - i);
+                    var Lf = new H(Math.abs(bound.Ge - bound.Le), Math.abs(bound.Fe - bound.Ke));
+                    if (Lf.lng / k < container.clientWidth - f && Lf.lat / k < container.clientHeight - d) break
+                }
+                i += e;
+                i < g && (i = g);
+                i > c && (i = c);
+                return i
+            };
+            ///通过一个经纬度得到行列号
+            this.getRowColByXY = function (level, lng, lat) {
+                var t = Math.pow(2, 18 - level);//最顶层的一张照片是当前层级的多少张照片
+                var k = Math.pow(2, 18 - level) * this._tileSize;//计算每一个图片表示墨卡托坐标系的大小
+                var col = Math.floor(lng / k);//地图切片的行号
+                var row = Math.floor(lat / k);//地图切片的列号 纬度
+                return {
+                    row: row,
+                    col: col,
+                    level: level
+                };
+            };
+            //删除原有的照片
+            this.removeLayers = function () {
+                //var curZoom = this._map.getZoom();
+                //for (var index in this._alreadTiles) {
+                //    var layer = this._alreadTiles[index];
+                //    this._map.removeLayer(index);
+                //}
+                //this._alreadTiles = [];
+            }
+            //设置图层透明度
+            this.setOpacity = function (opacity) {
+                this._opacity = parseFloat(opacity);
+                for (var index in this._alreadTiles) {
+                    this._map.setPaintProperty(index, 'raster-opacity', this._opacity);
+                }
+            };
+            //将计算好的切片加到地图上
+            this.addImgLayer = function (tileInfos) {
+                //this.removeLayers();
+                for (var i in tileInfos) {
+                    var index = i;
+                    var tileInfo = tileInfos[index];
+                    if (!this._alreadTiles[index]) {
+                        var layer = {
+                            id: index,
+                            source: {
+                                type: 'image',
+                                url: this.getTileUrl(tileInfo.row, tileInfo.col, tileInfo.level),
+                                coordinates: tileInfo.coordinates
+                            },
+                            type: 'raster',
+                            paint: {
+                                'raster-opacity': this._opacity,
+                                'raster-opacity-transition': {
+                                    duration: 0
+                                }
+                            }
+                        };
+                        this._map.addLayer(layer);
+                        this._alreadTiles[index] = layer;
+                    }
+                }
+            };
+            this.getTilesUrlByBoundM = function (level, baiduBoundM) {
+                var minRC = this.getRowColByXY(level, baiduBoundM.sw.lng, baiduBoundM.sw.lat);
+                var maxRC = this.getRowColByXY(level, baiduBoundM.ne.lng, baiduBoundM.ne.lat);
+                var tileM = Math.pow(2, 18 - level) * this._tileSize;//计算每一个图片表示墨卡托坐标系的大小
+
+                //计算第一张图片的坐标
+                var startX = (minRC.col) * tileM;
+                var startY = (minRC.row) * tileM;
+                var tileInfos = {}
+                var newS = new S();
+                for (var temRow = minRC.row; temRow <= maxRC.row; temRow++) {
+                    for (var temCol = minRC.col; temCol <= maxRC.col; temCol++) {
+                        var infoStr = level + "_" + temRow + "_" + temCol;
+                      
+                        var minx = startX + (temCol - minRC.col) * tileM;
+                        var miny = startY + (temRow - minRC.row) * tileM;
+                        var maxx = minx + tileM;
+                        var maxy = miny + tileM;
+
+                        var baiduLTM = {
+                            lng: minx,
+                            lat: maxy
+                        };
+                        var baiduLBM = {
+                            lng: minx,
+                            lat: miny
+                        };
+                        var baiduRTM = {
+                            lng: maxx,
+                            lat: maxy
+                        };
+                        var baiduRBM = {
+                            lng: maxx,
+                            lat: miny
+                        };
+
+                        var baiduLT = newS.Ab(baiduLTM);
+                        var baiduLB = newS.Ab(baiduLBM);
+                        var baiduRT = newS.Ab(baiduRTM);
+                        var baiduRB = newS.Ab(baiduRBM);
+
+                        var wgs84LT = this.toWgs84(baiduLT);
+                        var wgs84LB = this.toWgs84(baiduLB);
+                        var wgs84RT = this.toWgs84(baiduRT);
+                        var wgs84RB = this.toWgs84(baiduRB);
+
+
+
+                        tileInfos[infoStr] = {
+                            row: temRow,
+                            col: temCol,
+                            level: level,
+                            coordinates: [
+                                [wgs84LT.lng, wgs84LT.lat],
+                                [wgs84RT.lng, wgs84RT.lat],
+                                [wgs84RB.lng, wgs84RB.lat],
+                                [wgs84LB.lng, wgs84LB.lat]
+                            ]
+                        };
+                    }
+                }
+                return tileInfos;
+            }
+            this.getTitleBoundM = function (level, tileRC) {
+                var tileM = Math.pow(2, 18 - level) * this._tileSize;//计算每一个图片表示墨卡托坐标系的大小
+                //计算第一张图片的坐标
+                var startX = (tileRC.col) * tileM;
+                var startY = (tileRC.row) * tileM;
+                var temCol = tileRC.col;
+                var temRow = tileRC.row;
+
+                var tileBound = {
+                    minX: startX + (temCol - tileRC.col) * tileM,
+                    minY: startY + (temRow - tileRC.row) * tileM,
+                    maxX: startX + (temCol - tileRC.col) * tileM + tileM,
+                    maxY: startY + (temRow - tileRC.row) * tileM + tileM
+                }
+                return tileBound;
+            }
+            //通过行列号得到切片的地址
+            this.getTileUrl = function (row, col, level) {
+                var udt = "20180426";
+                var style = "pl";
+                var baseUrl = this._tileOnlineArr[Math.abs(col + row) % this._tileOnlineArr.length];
+                var url = baseUrl + "?qt=tile&x=" + col + "&y=" + row + "&z=" + level + "&styles=" + style + "&scaler=1&color_dep=32&colors=50&udt=" + udt;
+                return url;
+            };
+        };
+        function text(x, y, z) {
+            console.log("sdddddddddd");
+        }
+        var mapboxBaidu = new MapboxBaiduLayer();
+
+
+        map.on('load', function () {
+            var ll = new S().zb({
+                lng: 116.403963,
+                lat: 39.915119
+            }) 
+            mapboxBaidu.setMap(map);
+        });
+
+    </script>
+
+</body>
+</html>
