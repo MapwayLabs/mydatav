@@ -3,8 +3,8 @@
 ## 基础组件
 
 * 放大\缩小
-* 比例尺
-* 定位
+* 比例尺 ??
+* 定位 ??
 * 测量量算
 * 绘制
 * 空间分析
@@ -16,6 +16,9 @@
 * 自定义地图，可以应用自己的样式到地图
 * 对移动端比较友好
 * 直接用gl原生接口绘图：[customlayerinterface](https://docs.mapbox.com/mapbox-gl-js/api/#customlayerinterface)
+* 空间分析功能强，支持路径分析、turf空间分析
+* 可结合echarts\threejs\react\angular使用
+* [awesome-vector-tiles](https://github.com/mapbox/awesome-vector-tiles)
 
 缺点：
 
