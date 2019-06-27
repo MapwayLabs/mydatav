@@ -1,25 +1,144 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-    <meta charset='utf-8' />
-    <title>OpenMapTiles OSM Bright style</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>test</title>
     <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
-    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.29.0/mapbox-gl.js'></script>
-    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.29.0/mapbox-gl.css' rel='stylesheet' />
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v1.0.0/mapbox-gl.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.0.0/mapbox-gl.css' rel='stylesheet' />
     <style>
-        body { margin:0; padding:0; }
-        #map { position:absolute; top:0; bottom:0; width:100%; }
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            position: absolute;
+            top: 40px;
+            bottom: 0;
+            width: 100%;
+        }
     </style>
 </head>
+
 <body>
-    <div id='map'></div>
+    <button id="btn">add Layer</button>
+    <div id="map"></div>
     <script>
+        mapboxgl.accessToken =
+            'pk.eyJ1IjoibGluZ2h1YW0iLCJhIjoiY2o1dWYzYzlqMDQ4OTJxbzRiZWl5OHdtcyJ9._Ae66CF7CGUIoJlVdrXjqA';
+        var layer = 'tiger-ny'; //'tiger:giant_polygon';  //'my_space:opengeo:countries';
+        var projection_epsg_no = '900913';
+        var style = {
+            "version": 8,
+            "name": "China Provides",
+            "sprite": "mapbox://sprites/mapbox/streets-v8",
+            "glyphs": "mapbox://fonts/mapbox/{fontstack}/{range}.pbf",
+            "sources": {
+                "osm-tiles": {
+                    type: 'vector',
+                    scheme: 'tms',
+                    tiles: ['http://localhost:8080/geoserver/gwc/service/tms/1.0.0/' + layer +
+                        '@EPSG%3A' + projection_epsg_no + '@pbf/{z}/{x}/{y}.pbf']
+                    // "type": "raster",
+                    // 'tiles': [
+                    //     "http://c.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    // ],
+                    // 'tileSize': 256
+                }
+            },
+            "layers": [{
+                "id": "simple-tiles",
+                "source": "osm-tiles",
+                "source-layer": "my_space:opengeo:countries",
+                "type": "fill",
+                "paint": {
+                    "fill-color": "#00ff00"
+                }
+            }]
+        };
+
         var map = new mapboxgl.Map({
-            container: 'map',
-            style: 'https://openmaptiles.github.io/osm-bright-gl-style/style-cdn.json',
-            center: [8.5456, 47.3739],
-            zoom: 11
+            container: 'map', // container id
+            // https://docs.mapbox.com/mapbox-gl-js/style-spec/
+            style: 'mapbox://styles/mapbox/streets-v11', // stylesheet location
+            // style: 'mapbox://styles/linghuam/cjxe33alq0b721cln8uft356a',
+            center: [0, 0], // starting position [lng, lat]
+            zoom: 2, // starting zoom,
+            bearing: 0, // 方位角，以正北方的逆时针转动度数计量。
+            pitch: 0, // 地图的初始倾斜度，按偏离屏幕水平面的度数计量（0-60）。
+            renderWorldCopies: false,
+            attributionControl: false,
+            preserveDrawingBuffer: false, // 如果为  true ，即可使用  map.getCanvas().toDataURL() 将地图画布输出到 PNG。
+            trackResize: true
+        });
+
+        // map.on('load', function() {
+        //     map.addLayer({
+        //         'id': 'wms-test-layer',
+        //         'type': 'raster',
+        //         'source': {
+        //             'type': 'raster',
+        //             'tiles': [
+        //                 'http://localhost:8080/geoserver/nurc/wms?service=WMS&version=1.1.0&request=GetMap&layers=nurc%3AArc_Sample&bbox=-180.0%2C-90.0%2C180.0%2C90.0&width=768&height=384&srs=EPSG%3A4326&format=image%2Fpng'
+        //             ],
+        //             // 'tileSize': 256
+        //         },
+        //         'paint': {}
+        //         });
+        // });
+
+
+        map.on('load', function() {
+            document.getElementById('btn').addEventListener('click', function() {
+                map.addSource('test', {
+                    type: 'vector',
+                    scheme: 'tms',
+                    tiles: ['http://192.168.8.159:8080/geoserver/gwc/service/tms/1.0.0/' + layer + '@EPSG%3A' + projection_epsg_no + '@pbf/{z}/{x}/{y}.pbf']
+                });
+                
+                // map.addLayer({
+                //     "id": 'layer1',
+                //     "source": 'test',
+                //     "source-layer":'giant_polygon',  //'giant_polygon', //'tiger_roads',
+                //     "type": "fill",
+                //     "layout": {},
+                //     "paint": {
+                //         // "line-color": "#ff0000"
+                //         "fill-color": "#ff0000"
+                //     },
+                //     "maxzoom": 19
+                // });
+                map.addLayer({
+                    "id": 'layer2',
+                    "source": 'test',
+                    "source-layer":'tiger_roads',  //'giant_polygon', //'tiger_roads',
+                    "type": "line",
+                    "layout": {},
+                    "paint": {
+                        "line-width": 10,
+                        "line-color": "#000000"
+                    },
+                    "maxzoom": 19
+                });
+                map.addLayer({
+                    "id": 'layer3',
+                    "source": 'test',
+                    "source-layer":'poi',  //'giant_polygon', //'tiger_roads',
+                    "type": "circle",
+                    "layout": {},
+                    "paint": {
+                        "circle-radius": 3,
+                        "circle-color": "#00ff00"
+                    },
+                    "maxzoom": 19
+                });
+            }, false);
         });
     </script>
 </body>
+
 </html>
