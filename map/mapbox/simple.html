@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>mapbox-gl</title>
+    <title>mapbox-gl-simple</title>
     <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
     <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v1.0.0/mapbox-gl.js'></script>
     <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.0.0/mapbox-gl.css' rel='stylesheet' />
@@ -29,17 +29,35 @@
     <script>
         mapboxgl.accessToken =
             'pk.eyJ1IjoibGluZ2h1YW0iLCJhIjoiY2o1dWYzYzlqMDQ4OTJxbzRiZWl5OHdtcyJ9._Ae66CF7CGUIoJlVdrXjqA';
+        
+        // 中文地图
+        // var map = new mapboxgl.Map({
+        //     container: 'map', // container id
+        //     // style: 'mapbox://styles/mapbox/streets-v11', // stylesheet location
+        //     style: 'mapbox://styles/linghuam/cjc7nwxxk1j722snvn6biyaa8',
+        //     center: [116, 40], // starting position [lng, lat]
+        //     zoom: 6, // starting zoom,
+        //     bearing: 0, // 方位角，以正北方的逆时针转动度数计量。
+        //     pitch: 0, // 地图的初始倾斜度，按偏离屏幕水平面的度数计量（0-60）。
+        //     renderWorldCopies: false,
+        //     attributionControl: false,
+        //     preserveDrawingBuffer: true, // 如果为  true ，即可使用  map.getCanvas().toDataURL() 将地图画布输出到 PNG。
+        //     trackResize: true,
+        // });
+        
+        // 中文卫星图
         var map = new mapboxgl.Map({
             container: 'map', // container id
-            style: 'mapbox://styles/mapbox/streets-v11', // stylesheet location
+            // style: 'mapbox://styles/mapbox/streets-v11', // stylesheet location
+            style: 'mapbox://styles/linghuam/cjxlh5bfw0vgi1cn19s9nu2o4',
             center: [116, 40], // starting position [lng, lat]
             zoom: 6, // starting zoom,
             bearing: 0, // 方位角，以正北方的逆时针转动度数计量。
-            pitch: 60, // 地图的初始倾斜度，按偏离屏幕水平面的度数计量（0-60）。
+            pitch: 0, // 地图的初始倾斜度，按偏离屏幕水平面的度数计量（0-60）。
             renderWorldCopies: false,
             attributionControl: false,
             preserveDrawingBuffer: true, // 如果为  true ，即可使用  map.getCanvas().toDataURL() 将地图画布输出到 PNG。
-            trackResize: true
+            trackResize: true,
         });
     </script>
 </body>
