@@ -7,8 +7,8 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>china</title>
     <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
-    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v1.0.0/mapbox-gl.js'></script>
-    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.0.0/mapbox-gl.css' rel='stylesheet' />
+    <script src='../../lib/mapbox-gl.js'></script>
+    <link href='../../lib/mapbox-gl.css' rel='stylesheet' />
     <style>
         body {
             margin: 0;
@@ -38,7 +38,7 @@
             style: {
                 "version": 8,
                 //我使用的这个版本sprite要写全路径
-                "sprite": "http://192.168.8.159:8081/map/mapbox/sprites/sprite",
+                "sprite": "http://127.0.0.1:8081/map/mapbox/sprites/sprite",
                 //字体.pbf文件获取
                 // "glyphs":"mapbox://fonts/mapbox/{fontstack}/{range}.pbf",
                 "glyphs": "./fonts/{fontstack}/{range}.pbf",
@@ -49,7 +49,7 @@
                         //服务类型 tms，要使用wmts服务请换成wmts
                         "scheme": "tms",
                         "tiles": [
-                            'http://192.168.8.159:8080/geoserver/gwc/service/tms/1.0.0/' + layer + '@EPSG%3A' + projection_epsg_no + '@pbf/{z}/{x}/{y}.pbf'
+                            'http://127.0.0.1:8080/geoserver/gwc/service/tms/1.0.0/' + layer + '@EPSG%3A' + projection_epsg_no + '@pbf/{z}/{x}/{y}.pbf'
                             //获取GeoServer 矢量切片服务,可以是一下几种方式
                             //"http://localhost:8080/geoserver/gwc/service/tms/1.0.0/china:china_map@EPSG:900913@pbf/{z}/{x}/{y}.pbf",
                             // "http://localhost:61477/maptile/{z}/{x}/{y}.pbf"
@@ -299,13 +299,13 @@
                                     [
                                         7,
                                         [
-                                            "Microsoft YaHei",
+                                            "SourceHanSerifSC-Regular",
                                         ]
                                     ],
                                     [
                                         8,
                                         [
-                                            "Microsoft YaHei",
+                                            "SourceHanSerifSC-Regular",
                                         ]
                                     ]
                                 ]
@@ -640,13 +640,13 @@
                                     [
                                         7,
                                         [
-                                            "Microsoft YaHei"
+                                            "SourceHanSerifSC-Regular"
                                         ]
                                     ],
                                     [
                                         8,
                                         [
-                                            "Microsoft YaHei"
+                                            "SourceHanSerifSC-Regular"
                                         ]
                                     ]
                                 ]
