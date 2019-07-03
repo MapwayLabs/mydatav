@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>z_canvas</title>
+    <style>
+        #container {
+            border: 1px solid #000;
+            position: absolute;
+            width: 300px;
+            height: 150px;
+        }
+    </style>
+</head>
+<body>
+    <div class="operate">
+        <button onclick="handleClick('zoomIn')">放大</button>
+        <button onclick="handleClick('zoomOut')">缩小</button>
+        <button onclick="handleClick('moveLeft')">左移</button>
+        <button onclick="handleClick('moveRight')">右移</button>
+        <button onclick="handleClick('moveUp')">上移</button>
+        <button onclick="handleClick('moveDown')">下移</button>
+        <button onclick="handleClick('rotate')">旋转</button>
+    </div>
+    <div id="container"><canvas id="canvas"></canvas></div>
+    <script>
+        var canvas = document.getElementById('canvas');
+        var ctx = canvas.getContext('2d');
+
+        function drawCircle(x, y, r) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.strokeStyle = "#00f";
+            ctx.fillStyle = "#0f0";
+            ctx.lineWidth = 4;
+            ctx.stroke();
+            ctx.fill();
+            ctx.restore();
+        }
+        
+        var zoom = 1;
+        var rotate = 0;
+        var leftRight = 0;
+        var upDown = 0;
+        var x = 150;
+        var y = 75;
+        var r = 1;
+        function handleClick(type) {
+            // ctx.save();
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            switch(type) {
+                case 'zoomIn':  
+                // zoom += 1;
+                x = x / zoom;
+                y = y / zoom;
+                r = r / zoom;
+                ctx.scale(zoom, zoom);
+                ;break;
+                case 'zoomOut': 
+                // zoom -= 1;
+                zoom = Math.max(1, zoom);
+                x = x / zoom;
+                y = y / zoom;
+                r = r / zoom;
+                ctx.scale(zoom, zoom);
+                ;break;
+                case 'moveLeft': ;break;
+                case 'moveRight': ;break;
+                case 'moveUp': ;break;
+                case 'moveDown': ;break;
+                case 'rotate': ;break;
+            }
+            drawCircle(x, y, r);
+            // ctx.restore();
+        }
+        drawCircle(x, y, r);
+    </script>
+</body>
+</html>
