@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>draw&edit</title>
+    <title>customDraw</title>
     <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
     <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v1.0.0/mapbox-gl.js'></script>
     <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.0.0/mapbox-gl.css' rel='stylesheet' />
@@ -29,43 +29,6 @@
 
 <body>
     <div id="map"></div>
-    <script>
-        var geojson = {
-            "geometry": {
-                "coordinates": [
-                    [
-                        [
-                            108.46283343923625,
-                            34.67336398346099
-                        ],
-                        [
-                            112.3094571264536,
-                            31.066024891945247
-                        ],
-                        [
-                            108.71261419814806,
-                            28.420552146972696
-                        ],
-                        [
-                            105.56537663588387,
-                            30.980404202662584
-                        ],
-                        [
-                            105.26563972518966,
-                            32.97190869842696
-                        ],
-                        [
-                            108.46283343923625,
-                            34.67336398346099
-                        ]
-                    ]
-                ],
-                "type": "Polygon"
-            },
-            "type": "Feature",
-            "properties": {}
-        }
-    </script>
     <script>
         // mapboxgl.accessToken =
         //     'pk.eyJ1IjoibGluZ2h1YW0iLCJhIjoiY2o1dWYzYzlqMDQ4OTJxbzRiZWl5OHdtcyJ9._Ae66CF7CGUIoJlVdrXjqA';
@@ -818,112 +781,19 @@
         });
         map.addControl(new mapboxgl.NavigationControl());
     </script>
+    
+    <script src="./lots_of_points_mode.js"></script>
     <script>
         var draw = new MapboxDraw({
-            keybindings: true,
-            touchEnabled: true,
-            boxSelect: true,
-            clickBuffer: 2,
-            touchBuffer: 25,
-            // displayControlsDefault: false,
-            // styles: [
-            //     {
-            //         'id': 'highlight-active-points',
-            //         'type': 'circle',
-            //         'filter': ['all',
-            //             ['==', '$type', 'Point'],
-            //             ['==', 'meta', 'feature'],
-            //             ['==', 'active', 'true']
-            //         ],
-            //         'paint': {
-            //             'circle-radius': 7,
-            //             'circle-color': '#000000'
-            //         }
-            //     },
-            //     {
-            //         'id': 'points-are-blue',
-            //         'type': 'circle',
-            //         'filter': ['all',
-            //             ['==', '$type', 'Point'],
-            //             ['==', 'meta', 'feature'],
-            //             ['==', 'active', 'false']
-            //         ],
-            //         'paint': {
-            //             'circle-radius': 5,
-            //             'circle-color': '#000088'
-            //         }
-            //     },
-                // {
-                //     'id': 'points-text-active',
-                //     'type': 'symbol',
-                //     'filter': ['all',
-                //         ['==', '$type', 'Point'],
-                //         ['==', 'meta', 'feature'],
-                //         ['==', 'active', 'true']
-                //     ],
-                //     layout: {
-                //         "text-field": 'pt',
-                //         "text-font": ['Microsoft YaHei'],
-                //         "text-size": 16
-                //     }
-                // },
-                // {
-                //     'id': 'points-text',
-                //     'type': 'symbol',
-                //     'filter': ['all',
-                //         ['==', '$type', 'Point'],
-                //         ['==', 'meta', 'feature'],
-                //         ['==', 'active', 'false']
-                //     ],
-                //     layout: {
-                //         "text-field": 'pt',
-                //         "text-font": ['Microsoft YaHei'],
-                //         "text-size": 16
-                //     }
-                // }
-            // ]
+            defaultMode: 'lots_of_points',
+            // Adds the LotsOfPointsMode to the built-in set of modes
+            modes: Object.assign({
+                lots_of_points: LotsOfPointsMode,
+            }, MapboxDraw.modes)
         });
         map.addControl(draw, 'top-left');
-        // draw.add(geojson);
-
-        //  double-clicked the last vertex or hit Enter
-        map.on('draw.create', function (e) {
-            console.log('draw.create');
-            console.log(e.features); // 当前创建的feature
-        });
-        // Hit the Backspace or Delete keys
-        // Invoke draw.trash() 
-        map.on('draw.delete', function (e) {
-            console.log('draw.delete');
-            console.log(e.features); // 当前删除的feature
-        });
-        // action: 'move'
-        // action: 'change_coordinates'
-        map.on('draw.update', function (e) {
-            console.log('draw.update');
-            console.log(e.features);
-        });
-        map.on('draw.selectionchange', function (e) {
-            console.log('draw.selectionchange');
-            console.log(e.features);
-        });
-        map.on('draw.modechange', function (e) {
-            console.log('draw.modechange');
-            console.log(e.mode);
-        });
-        map.on('draw.render', function (e) {
-            //   console.log('draw.render');
-        });
-        map.on('draw.actionable', function (e) {
-            console.log('draw.actionable');
-            console.log(e.actions);
-        });
-        // Map#addControl takes an optional second argument to set the position of the control.
-        // If no position is specified the control defaults to `top-right`. See the docs 
-        // for more details: https://www.mapbox.com/mapbox-gl-js/api/map#addcontrol
-
-        // map.addControl(draw, 'top-left');
     </script>
+    
 </body>
 
 </html>
