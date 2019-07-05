@@ -29,54 +29,66 @@
         var canvas = document.getElementById('canvas');
         var ctx = canvas.getContext('2d');
 
-        function drawCircle(x, y, r) {
+        function drawCircle(x, y, r, width) {
             ctx.save();
             ctx.beginPath();
             ctx.arc(x, y, r, 0, Math.PI * 2);
             ctx.strokeStyle = "#00f";
             ctx.fillStyle = "#0f0";
-            ctx.lineWidth = 4;
+            ctx.lineWidth = width;
             ctx.stroke();
-            ctx.fill();
+            // ctx.fill();
             ctx.restore();
         }
         
-        var zoom = 1;
-        var rotate = 0;
-        var leftRight = 0;
-        var upDown = 0;
+        var zoom = 2;
+        var rotate = 3;
+        var leftRight = 1;
+        var upDown = 1;
         var x = 150;
         var y = 75;
         var r = 1;
+        var width = 1;
         function handleClick(type) {
             // ctx.save();
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             switch(type) {
                 case 'zoomIn':  
                 // zoom += 1;
+                zoom = 2;
                 x = x / zoom;
                 y = y / zoom;
-                r = r / zoom;
+                width = width / zoom;
                 ctx.scale(zoom, zoom);
                 ;break;
                 case 'zoomOut': 
                 // zoom -= 1;
-                zoom = Math.max(1, zoom);
+                zoom = 1 / 2;
                 x = x / zoom;
                 y = y / zoom;
-                r = r / zoom;
+                width = width / zoom;
                 ctx.scale(zoom, zoom);
                 ;break;
-                case 'moveLeft': ;break;
-                case 'moveRight': ;break;
-                case 'moveUp': ;break;
-                case 'moveDown': ;break;
-                case 'rotate': ;break;
+                case 'moveLeft':
+                ctx.translate(-leftRight, 0);
+                ;break;
+                case 'moveRight':
+                ctx.translate(leftRight, 0);
+                ;break;
+                case 'moveUp': 
+                ctx.translate(0, -upDown);
+                ;break;
+                case 'moveDown': 
+                ctx.translate(0, upDown);
+                ;break;
+                case 'rotate': 
+                ctx.rotate(rotate * Math.PI / 180);
+                ;break;
             }
-            drawCircle(x, y, r);
+            drawCircle(x, y, r, width);
             // ctx.restore();
         }
-        drawCircle(x, y, r);
+        drawCircle(x, y, r, width);
     </script>
 </body>
 </html>
