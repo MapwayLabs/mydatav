@@ -1,16 +1,57 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>draw_curve</title>
 </head>
+
 <body>
-    <canvas id="canvas"></canvas>
+    <canvas id="canvas" width="500" height="400" style="width: 500px; height: 400px; border:1px solid black;"></canvas>
+    <script src="../lib/curve_calc.js"></script>
     <script>
         var canvas = document.getElementById('canvas');
-        var ctx = canvas.getContext('2d')
+        var ctx = canvas.getContext('2d');
+
+        function draw() {
+            canvas.onmousedown = function (ev) {
+                var ev = ev || window.event;
+                var points = [];
+                // ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.beginPath();
+                ctx.lineWidth = 2;
+                ctx.moveTo(ev.offsetX, ev.offsetY);
+                points.push([ev.offsetX, ev.offsetY]);
+                document.onmousemove = function (ev) {
+                    var ev = ev || window.event;
+                    ctx.lineTo(ev.offsetX, ev.offsetY);
+                    points.push([ev.offsetX, ev.offsetY]);
+                    ctx.stroke();
+                }
+                document.onmouseup = function (ev) {
+                    document.onmousemove = document.onmouseup = null;
+                    ctx.closePath();
+                    drawSmoothCurve(points);
+                }
+            }
+        }
+        draw();
+ 
+        function drawSmoothCurve(points) {
+            var splinePoints = getCurvePoints(points.flat());
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            ctx.beginPath();
+            ctx.strokeStyle = "#f00";
+            for(var i = 0; i < splinePoints.length; i+=2) {
+                ctx[ i===0 ? 'moveTo' : 'lineTo'](splinePoints[i], splinePoints[i+1]);
+            }
+            ctx.stroke();
+            ctx.restore();
+        }
     </script>
 </body>
+
 </html>
