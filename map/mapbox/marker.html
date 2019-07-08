@@ -43,7 +43,12 @@ var map = new mapboxgl.Map({
     zoom: 2
 });
 
+var div = document.createElement('div');
+var input = document.createElement('input');
+input.setAttribute('type', 'text');
+div.appendChild(input);
 var marker = new mapboxgl.Marker({
+    element: div,
     draggable: true
 })
     .setLngLat([0, 0])
