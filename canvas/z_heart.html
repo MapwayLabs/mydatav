@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>z_heart</title>
+    <script src="../lib/zrender/zrender.js"></script>
+</head>
+
+<body>
+    <div id="main" style="width:400px;height:300px;position: absolute;transform: translate3d(-50%, -50%, 0);left: 50%;top: 50%;"></div>
+    <script>
+        var zr = zrender.init(document.getElementById('main'));
+        var heart = new zrender.Heart({
+            shape: {
+                cx: 200,
+                cy: 100,
+                width: 100,
+                height: 150
+            },
+            style: {
+                fill: null,
+                stroke: '#f00',
+                lineWidth: 3
+            }
+        });
+        zr.add(heart);
+    </script>
+</body>
+
+</html>
