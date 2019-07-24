@@ -15,9 +15,3 @@ var customTileLayer = L.TileLayer.extend({
 		return L.Util.template(this._url, data);
     }
 });
-
-new customTileLayer('', {
-    zoomOffset: 4,
-    tms: true,
-    zoomReverse: false, // default
-}).addTo(map);
