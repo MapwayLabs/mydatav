@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>pencil_tool</title>
+    <script src="../lib/curve_calc.js"></script>
+</head>
+
+<body>
+    <canvas id="canvas" width="500" height="400" style="width: 500px; height: 400px; border:1px solid black;"></canvas>
+    
+    <script>
+        var smooth_value = 0.15;
+        // bezier插值
+        // https://blog.csdn.net/microchenhong/article/details/6316332
+        function caculateControlPoint(x0, y0, x1, y1, x2, y2, x3, y3) {
+            var xc1 = (x0 + x1) / 2;
+            var yc1 = (y0 + y1) / 2;
+            var xc2 = (x1 + x2) / 2;
+            var yc2 = (y1 + y2) / 2;
+            var xc3 = (x2 + x3) / 2;
+            var yc3 = (y2 + y3) / 2;
+
+            var len1 = Math.sqrt((x1 - x0) * (x1 - x0) + (y1 - y0)*(y1 - y0));
+            var len2 = Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1)*(y2 - y1));
+            var len3 = Math.sqrt((x3 - x2) * (x3 - x2) + (y3 - y2)*(y3 - y2));
+
+            var k1 = len1 / (len1 + len2);
+            var k2 = len2 / (len2 + len3);
+
+            var xm1 = xc1 + (xc2 - xc1) * k1;
+            var ym1 = yc1 + (yc2 - yc1) * k1;
+            var xm2 = xc2 + (xc3 - xc2) * k2;
+            var ym2 = yc2 + (yc3 - yc2) * k2;
+
+            var ctrl1_x = xm1 + (xc2 - xm1) * smooth_value + x1 - xm1;
+            var ctrl1_y = ym1 + (yc2 - ym2) * smooth_value + y1 - ym1;
+            var ctrl2_x = xm2 + (xc2 - xm2) * smooth_value + x2 - xm2;
+            var ctrl2_y = ym2 + (yc2 - ym2) * smooth_value + y2 - ym2;
+
+            return [ctrl1_x, ctrl1_y, ctrl2_x, ctrl2_y];
+        }
+    </script>
+
+    <script>
+        var canvas = document.getElementById('canvas');
+        var ctx = canvas.getContext('2d');
+
+        var points = [];
+        var oldPoints = null;
+        function draw() {
+            canvas.onclick = function(ev) {
+                var ev = ev || window.event;
+                drawPoint(ev.offsetX, ev.offsetY);
+                points.push([ev.offsetX, ev.offsetY]);
+            }
+            canvas.oncontextmenu = function(ev) {
+                ev.preventDefault();
+                ev.stopPropagation();
+                drawSmoothCurve(points);
+                oldPoints = points;
+                points = [];
+            }
+
+            // canvas.onmousedown = function (ev) {
+            //     var ev = ev || window.event;
+            //     // var points = [];
+            //     // ctx.clearRect(0, 0, canvas.width, canvas.height);
+            //     ctx.beginPath();
+            //     ctx.lineWidth = 2;
+            //     ctx.moveTo(ev.offsetX, ev.offsetY);
+            //     points.push([ev.offsetX, ev.offsetY]);
+            //     document.onmousemove = function (ev) {
+            //         var ev = ev || window.event;
+            //         ctx.lineTo(ev.offsetX, ev.offsetY);
+            //         points.push([ev.offsetX, ev.offsetY]);
+            //         ctx.stroke();
+            //     };
+            //     document.onmouseup = function (ev) {
+            //         document.onmousemove = document.onmouseup = null;
+            //         ctx.closePath();
+            //         drawSmoothCurve(points);
+            //         oldPoints = points;
+            //         points = [];
+            //     }
+            // }
+        }
+        draw();
+        
+        function drawCubicBezier(x0, y0, x1, y1, x2, y2, x3, y3) {
+            ctx.save();
+            ctx.strokeStyle = "#f00";
+            ctx.beginPath();
+            ctx.moveTo(x0, y0);
+            ctx.bezierCurveTo(x1, y1, x2, y2, x3, y3);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function drawPoint(x, y, color = '#000', r = 3) {
+            ctx.save();
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+
+        function drawControlPoints(points, color = '#000', r = 3) {
+            ctx.save();
+            for (var i = 0; i < points.length; i++) {
+                ctx.beginPath();
+                ctx.fillStyle = color;
+                ctx.arc(points[i][0], points[i][1], r, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        function drawSmoothCurve(points) {
+            // ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (var i = 0; i < points.length-1; i ++) {
+                var p0, p1, p2, p3;
+                if ( (i - 1) >=0 ) {
+                    p0 = points[i-1];
+                } else {
+                    p0 = points[i];
+                }
+                p1 = points[i];
+                p2 = points[i + 1];
+                if ((i+2) < points.length) {
+                    p3 = points[i+2];
+                } else {
+                    p3 = points[i+1];
+                }
+                var ctrlPoints = caculateControlPoint(p0[0], p0[1], p1[0], p1[1], p2[0], p2[1], p3[0], p3[1]);
+                // drawControlPoints([[ctrlPoints[0], ctrlPoints[1]], [ctrlPoints[2], ctrlPoints[3]]], '#0f0', 2);
+                drawCubicBezier(p1[0], p1[1], ctrlPoints[0], ctrlPoints[1], ctrlPoints[2], ctrlPoints[3], p2[0], p2[1]);
+            }
+            // drawControlPoints(points);
+            // var splinePoints = getCurvePoints(points.flat(), 0.5, 3);
+            // // var spline = new SplineCurve(points);
+            // // var splinePoints = spline.getPoints(points.length);
+            // ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // ctx.save();
+            // ctx.beginPath();
+            // ctx.strokeStyle = "#f00";
+            // for (var i = 0; i < splinePoints.length; i+=2) {
+            //     ctx[i === 0 ? 'moveTo' : 'lineTo'](splinePoints[i], splinePoints[i+1]);
+            // }
+            // ctx.stroke();
+            // ctx.restore();
+            // var sPoints = splinePoints.reduce((accumulate, current, i) => {
+            //     if (i % 2 === 0) accumulate.push([current, splinePoints[i+1]]);
+            //     return accumulate;
+            // }, []);
+            // drawControlPoints(points);
+            // drawControlPoints(sPoints, '#0f0', 1);
+        }
+    </script>
+</body>
+
+</html>
