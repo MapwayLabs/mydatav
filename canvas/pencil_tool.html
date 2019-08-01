@@ -6,12 +6,162 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>pencil_tool</title>
-    <script src="../lib/curve_calc.js"></script>
+    <script src="../lib/bezier.js"></script>
 </head>
 
 <body>
     <canvas id="canvas" width="600" height="400" style="width: 600px; height: 400px; border:1px solid black;"></canvas>
+   
+    <!-- 道格拉斯普客压缩算法 -->
+    <script>
+        function Point(x, y, round) {
+            // @property x: Number; The `x` coordinate of the point
+            this.x = (round ? Math.round(x) : x);
+            // @property y: Number; The `y` coordinate of the point
+            this.y = (round ? Math.round(y) : y);
+        }
+
+        /*
+        * @namespace LineUtil
+        *
+        * Various utility functions for polyline points processing, used by Leaflet internally to make polylines lightning-fast.
+        */
+
+        // Simplify polyline with vertex reduction and Douglas-Peucker simplification.
+        // Improves rendering performance dramatically by lessening the number of points to draw.
+
+        // @function simplify(points: Point[], tolerance: Number): Point[]
+        // Dramatically reduces the number of points in a polyline while retaining
+        // its shape and returns a new array of simplified points, using the
+        // [Douglas-Peucker algorithm](http://en.wikipedia.org/wiki/Douglas-Peucker_algorithm).
+        // Used for a huge performance boost when processing/displaying Leaflet polylines for
+        // each zoom level and also reducing visual noise. tolerance affects the amount of
+        // simplification (lesser value means higher quality but slower and with more points).
+        // Also released as a separated micro-library [Simplify.js](http://mourner.github.com/simplify-js/).
+        function simplify(points, tolerance) {
+            if (!tolerance || !points.length) {
+                return points.slice();
+            }
+
+            var sqTolerance = tolerance * tolerance;
+
+                // stage 1: vertex reduction
+                // 第一步将距离很近的点剔除出去
+                points = _reducePoints(points, sqTolerance);
+
+                // stage 2: Douglas-Peucker simplification
+                // 第二步执行道格拉斯普客算法压缩直线
+                // 算法思想：
+                /* 1. 连接曲线（多个直线段组成）首尾端点构成一条直线，计算中间各点与直线的距离
+                2. 取距离最大值与阈值比较
+                3. 如果大于阈值，则将线在此点出一分为二，递归执行以上步骤；否则舍弃中间所有点
+                */
+                points = _simplifyDP(points, sqTolerance);
+
+            return points;
+        }
+
+        // Douglas-Peucker simplification, see http://en.wikipedia.org/wiki/Douglas-Peucker_algorithm
+        // 道格拉斯普客算法 http://en.wikipedia.org/wiki/Douglas-Peucker_algorithm
+        function _simplifyDP(points, sqTolerance) {
+
+            var len = points.length,
+                ArrayConstructor = typeof Uint8Array !== undefined + '' ? Uint8Array : Array,
+                markers = new ArrayConstructor(len);
+                // 采用标记法来标记应该保留的点（提高效率）
+                markers[0] = markers[len - 1] = 1;
+
+            _simplifyDPStep(points, markers, sqTolerance, 0, len - 1);
+
+            var i,
+                newPoints = [];
+            // 将标记保留的点取出
+            for (i = 0; i < len; i++) {
+                if (markers[i]) {
+                    newPoints.push(points[i]);
+                }
+            }
+
+            return newPoints;
+        }
+
+        // 递归执行算法
+        function _simplifyDPStep(points, markers, sqTolerance, first, last) {
+
+            var maxSqDist = 0,
+            index, i, sqDist;
+
+            // 计算最大距离
+            for (i = first + 1; i <= last - 1; i++) {
+                sqDist = _sqClosestPointOnSegment(points[i], points[first], points[last], true);
+
+                if (sqDist > maxSqDist) {
+                    index = i;
+                    maxSqDist = sqDist;
+                }
+            }
+            // 如果最大距离大于阈值，则将曲线分成两段，递归执行
+            if (maxSqDist > sqTolerance) {
+                markers[index] = 1;
+
+                _simplifyDPStep(points, markers, sqTolerance, first, index);
+                _simplifyDPStep(points, markers, sqTolerance, index, last);
+            }
+        }
+
+        // reduce points that are too close to each other to a single point
+        // 距离很近的点剔除出去
+        function _reducePoints(points, sqTolerance) {
+            var reducedPoints = [points[0]];
+
+            for (var i = 1, prev = 0, len = points.length; i < len; i++) {
+                if (_sqDist(points[i], points[prev]) > sqTolerance) {
+                    reducedPoints.push(points[i]);
+                    prev = i;
+                }
+            }
+            if (prev < len - 1) {
+                reducedPoints.push(points[len - 1]);
+            }
+            return reducedPoints;
+        }
+
+        // square distance (to avoid unnecessary Math.sqrt calls)
+        function _sqDist(p1, p2) {
+            var dx = p2.x - p1.x,
+                dy = p2.y - p1.y;
+            return dx * dx + dy * dy;
+        }
+
+        // return closest point on segment or distance to that point
+        function _sqClosestPointOnSegment(p, p1, p2, sqDist) {
+            var x = p1.x,
+                y = p1.y,
+                dx = p2.x - x,
+                dy = p2.y - y,
+                dot = dx * dx + dy * dy,
+                t;
+
+            if (dot > 0) {
+                t = ((p.x - x) * dx + (p.y - y) * dy) / dot;
+
+                if (t > 1) {
+                    x = p2.x;
+                    y = p2.y;
+                } else if (t > 0) {
+                    x += dx * t;
+                    y += dy * t;
+                }
+            }
+
+            dx = p.x - x;
+            dy = p.y - y;
+
+            return sqDist ? dx * dx + dy * dy : new Point(x, y);
+        }
+    </script>
     
+    <!-- 三次bezier曲线控制点计算方法 -->
     <script>
         var smooth_value = 0.25;
         // bezier插值
@@ -65,41 +215,51 @@
         var points = [];
         var oldPoints = null;
         function draw() {
-            canvas.onclick = function(ev) {
-                var ev = ev || window.event;
-                drawPoint(ev.offsetX, ev.offsetY, '#000', 2);
-                points.push([ev.offsetX, ev.offsetY]);
-            }
-            canvas.oncontextmenu = function(ev) {
-                ev.preventDefault();
-                ev.stopPropagation();
-                drawSmoothCurve(points);
-                oldPoints = points;
-                points = [];
-            }
-
-            // canvas.onmousedown = function (ev) {
+            // canvas.onclick = function(ev) {
             //     var ev = ev || window.event;
-            //     // var points = [];
-            //     // ctx.clearRect(0, 0, canvas.width, canvas.height);
-            //     ctx.beginPath();
-            //     ctx.lineWidth = 2;
-            //     ctx.moveTo(ev.offsetX, ev.offsetY);
+            //     drawPoint(ev.offsetX, ev.offsetY, '#000', 2);
             //     points.push([ev.offsetX, ev.offsetY]);
-            //     document.onmousemove = function (ev) {
-            //         var ev = ev || window.event;
-            //         ctx.lineTo(ev.offsetX, ev.offsetY);
-            //         points.push([ev.offsetX, ev.offsetY]);
-            //         ctx.stroke();
-            //     };
-            //     document.onmouseup = function (ev) {
-            //         document.onmousemove = document.onmouseup = null;
-            //         ctx.closePath();
-            //         drawSmoothCurve(points);
-            //         oldPoints = points;
-            //         points = [];
-            //     }
             // }
+            // canvas.oncontextmenu = function(ev) {
+            //     ev.preventDefault();
+            //     ev.stopPropagation();
+            //     drawSmoothCurve(points);
+            //     oldPoints = points;
+            //     points = [];
+            // }
+
+            canvas.onmousedown = function (ev) {
+                var ev = ev || window.event;
+                // var points = [];
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.save();
+                ctx.beginPath();
+                ctx.lineWidth = 2;
+                ctx.moveTo(ev.offsetX, ev.offsetY);
+                // drawPoint(ev.offsetX, ev.offsetY);
+                points.push([ev.offsetX, ev.offsetY]);
+                document.onmousemove = function (ev) {
+                    var ev = ev || window.event;
+                    ctx.lineTo(ev.offsetX, ev.offsetY);
+                    // drawPoint(ev.offsetX, ev.offsetY);
+                    points.push([ev.offsetX, ev.offsetY]);
+                    ctx.stroke();
+                };
+                document.onmouseup = function (ev) {
+                    document.onmousemove = document.onmouseup = null;
+                    ctx.closePath();
+                    ctx.restore();
+                    // drawSmoothCurve(points);
+                    console.log('before simplify count:', points.length);
+                    const newPoints = points.map(e => ({x: e[0], y: e[1]}));
+                    const simplifyPoints = simplify(newPoints, 1);
+                    console.log('after simplify count:', simplifyPoints.length);
+                    simplifyPoints.forEach(s => drawPoint(s.x, s.y, '#0f0', 3));
+                    drawSmoothCurve(simplifyPoints.map(s => ([s.x, s.y])));
+                    oldPoints = points;
+                    points = [];
+                }
+            }
         }
         draw();
         
@@ -161,32 +321,21 @@
                 } else {
                     p3 = points[i+1];
                 }
+
                 var ctrlPoints = caculateControlPoint2(p0[0], p0[1], p1[0], p1[1], p2[0], p2[1], p3[0], p3[1]);
                 // drawControlPoints([[ctrlPoints[0], ctrlPoints[1]], [ctrlPoints[2], ctrlPoints[3]]], '#0f0', 2);
+
+                // const bezier = new Bezier(p1[0], p1[1], ctrlPoints[0], ctrlPoints[1], ctrlPoints[2], ctrlPoints[3], p2[0], p2[1]);
+                // const lut = bezier.getLUT(10);
+                // lut.forEach(e => {
+                //     drawPoint(e.x, e.y, '#0f0', 1);
+                // });
+
                 drawCubicBezier(p1[0], p1[1], ctrlPoints[0], ctrlPoints[1], ctrlPoints[2], ctrlPoints[3], p2[0], p2[1]);
 
-                drawLine(p1[0], p1[1], ctrlPoints[0], ctrlPoints[1]);
-                drawLine(p2[0], p2[1], ctrlPoints[2], ctrlPoints[3]);
+                // drawLine(p1[0], p1[1], ctrlPoints[0], ctrlPoints[1]);
+                // drawLine(p2[0], p2[1], ctrlPoints[2], ctrlPoints[3]);
             }
-            // drawControlPoints(points);
-            // var splinePoints = getCurvePoints(points.flat(), 0.5, 3);
-            // // var spline = new SplineCurve(points);
-            // // var splinePoints = spline.getPoints(points.length);
-            // ctx.clearRect(0, 0, canvas.width, canvas.height);
-            // ctx.save();
-            // ctx.beginPath();
-            // ctx.strokeStyle = "#f00";
-            // for (var i = 0; i < splinePoints.length; i+=2) {
-            //     ctx[i === 0 ? 'moveTo' : 'lineTo'](splinePoints[i], splinePoints[i+1]);
-            // }
-            // ctx.stroke();
-            // ctx.restore();
-            // var sPoints = splinePoints.reduce((accumulate, current, i) => {
-            //     if (i % 2 === 0) accumulate.push([current, splinePoints[i+1]]);
-            //     return accumulate;
-            // }, []);
-            // drawControlPoints(points);
-            // drawControlPoints(sPoints, '#0f0', 1);
         }
     </script>
 </body>
