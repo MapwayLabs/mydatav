@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>抛物线运动</title>
+    <style>
+        #ball {
+            animation: paraCurve_horizontal 3s linear;
+        }
+        .ball_inner {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            left: 0;
+            top: 0;
+            border-radius: 50%;
+            background: red;
+            animation: paraCurve_vertical 3s ease-in;
+        }
+        @keyframes paraCurve_horizontal {
+            from {
+                transform: translate3d(0, 0, 0);
+            }
+            to {
+                transform: translate3d(600px, 0, 0);
+            }
+        }
+        @keyframes paraCurve_vertical {
+            from {
+                transform: translate3d(0, 200px, 0);
+            }
+            50% {
+                transform: translate3d(0, 0px, 0);
+            }
+            to {
+                transform: translate3d(0, 200px, 0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="ball"><div class="ball_inner"></div></div>
+</body>
+</html>
