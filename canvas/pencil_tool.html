@@ -215,57 +215,57 @@
         var points = [];
         var oldPoints = null;
         function draw() {
-            // canvas.onclick = function(ev) {
-            //     var ev = ev || window.event;
-            //     drawPoint(ev.offsetX, ev.offsetY, '#000', 2);
-            //     points.push([ev.offsetX, ev.offsetY]);
-            // }
-            // canvas.oncontextmenu = function(ev) {
-            //     ev.preventDefault();
-            //     ev.stopPropagation();
-            //     drawSmoothCurve(points);
-            //     oldPoints = points;
-            //     points = [];
-            // }
-
-            canvas.onmousedown = function (ev) {
+            canvas.onclick = function(ev) {
                 var ev = ev || window.event;
-                // var points = [];
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.save();
-                ctx.beginPath();
-                ctx.lineWidth = 2;
-                ctx.moveTo(ev.offsetX, ev.offsetY);
-                // drawPoint(ev.offsetX, ev.offsetY);
+                drawPoint(ev.offsetX, ev.offsetY, '#000', 3);
                 points.push([ev.offsetX, ev.offsetY]);
-                document.onmousemove = function (ev) {
-                    var ev = ev || window.event;
-                    ctx.lineTo(ev.offsetX, ev.offsetY);
-                    // drawPoint(ev.offsetX, ev.offsetY);
-                    points.push([ev.offsetX, ev.offsetY]);
-                    ctx.stroke();
-                };
-                document.onmouseup = function (ev) {
-                    document.onmousemove = document.onmouseup = null;
-                    ctx.closePath();
-                    ctx.restore();
-                    // drawSmoothCurve(points);
-                    console.log('before simplify count:', points.length);
-                    const newPoints = points.map(e => ({x: e[0], y: e[1]}));
-                    const simplifyPoints = simplify(newPoints, 1);
-                    console.log('after simplify count:', simplifyPoints.length);
-                    simplifyPoints.forEach(s => drawPoint(s.x, s.y, '#0f0', 3));
-                    drawSmoothCurve(simplifyPoints.map(s => ([s.x, s.y])));
-                    oldPoints = points;
-                    points = [];
-                }
             }
+            canvas.oncontextmenu = function(ev) {
+                ev.preventDefault();
+                ev.stopPropagation();
+                drawSmoothCurve(points);
+                oldPoints = points;
+                points = [];
+            }
+
+            // canvas.onmousedown = function (ev) {
+            //     var ev = ev || window.event;
+            //     // var points = [];
+            //     ctx.clearRect(0, 0, canvas.width, canvas.height);
+            //     ctx.save();
+            //     ctx.beginPath();
+            //     ctx.lineWidth = 2;
+            //     ctx.moveTo(ev.offsetX, ev.offsetY);
+            //     // drawPoint(ev.offsetX, ev.offsetY);
+            //     points.push([ev.offsetX, ev.offsetY]);
+            //     document.onmousemove = function (ev) {
+            //         var ev = ev || window.event;
+            //         ctx.lineTo(ev.offsetX, ev.offsetY);
+            //         // drawPoint(ev.offsetX, ev.offsetY);
+            //         points.push([ev.offsetX, ev.offsetY]);
+            //         ctx.stroke();
+            //     };
+            //     document.onmouseup = function (ev) {
+            //         document.onmousemove = document.onmouseup = null;
+            //         ctx.closePath();
+            //         ctx.restore();
+            //         // drawSmoothCurve(points);
+            //         console.log('before simplify count:', points.length);
+            //         const newPoints = points.map(e => ({x: e[0], y: e[1]}));
+            //         const simplifyPoints = simplify(newPoints, 1);
+            //         console.log('after simplify count:', simplifyPoints.length);
+            //         simplifyPoints.forEach(s => drawPoint(s.x, s.y, '#0f0', 3));
+            //         drawSmoothCurve(simplifyPoints.map(s => ([s.x, s.y])));
+            //         oldPoints = points;
+            //         points = [];
+            //     }
+            // }
         }
         draw();
         
         function drawCubicBezier(x0, y0, x1, y1, x2, y2, x3, y3) {
             ctx.save();
-            ctx.strokeStyle = "#f00";
+            ctx.strokeStyle = "#ccc";
             ctx.beginPath();
             ctx.moveTo(x0, y0);
             ctx.bezierCurveTo(x1, y1, x2, y2, x3, y3);
@@ -305,7 +305,7 @@
         }
 
         function drawSmoothCurve(points) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             for (var i = 0; i < points.length-1; i ++) {
                 var p0, p1, p2, p3;
@@ -325,11 +325,11 @@
                 var ctrlPoints = caculateControlPoint2(p0[0], p0[1], p1[0], p1[1], p2[0], p2[1], p3[0], p3[1]);
                 // drawControlPoints([[ctrlPoints[0], ctrlPoints[1]], [ctrlPoints[2], ctrlPoints[3]]], '#0f0', 2);
 
-                // const bezier = new Bezier(p1[0], p1[1], ctrlPoints[0], ctrlPoints[1], ctrlPoints[2], ctrlPoints[3], p2[0], p2[1]);
-                // const lut = bezier.getLUT(10);
-                // lut.forEach(e => {
-                //     drawPoint(e.x, e.y, '#0f0', 1);
-                // });
+                const bezier = new Bezier(p1[0], p1[1], ctrlPoints[0], ctrlPoints[1], ctrlPoints[2], ctrlPoints[3], p2[0], p2[1]);
+                const lut = bezier.getLUT(10);
+                lut.forEach(e => {
+                    drawPoint(e.x, e.y, '#f00', 2);
+                });
 
                 drawCubicBezier(p1[0], p1[1], ctrlPoints[0], ctrlPoints[1], ctrlPoints[2], ctrlPoints[3], p2[0], p2[1]);
 
