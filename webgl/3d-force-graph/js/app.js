@@ -29,6 +29,8 @@ var clickHandler = function(type) {
         case 'delete': force3d.deleteSelectedNodes();break;
         case 'flyTo': force3d.flyTo();break;
         case 'inverse': force3d.inverseSelection();break;
+        case '2d': break;
+        case '3d': break;
     }
 }
 

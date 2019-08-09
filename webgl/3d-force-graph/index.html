@@ -61,6 +61,17 @@
         left: 40px;
         top: 20px;*/
     }
+    .mode {
+        user-select: none;
+        position: absolute;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        right: 10px;
+        top: 10px;
+    }
     .btns {
         user-select: none;
         position: absolute;
@@ -79,6 +90,12 @@
 </head>
 
 <body>
+    <div class="mode">
+        <div class="row">
+            <button onclick="clickHandler('2d')">2D模式</button>
+            <button onclick="clickHandler('3d')">3D模式</button>
+        </div>
+    </div>
     <div class="btns">
         <div class="row"><button onclick="clickHandler('top')">上</button></div>
         <div class="row"><button onclick="clickHandler('left')">左</button><button onclick="clickHandler('reset')">重置</button><button onclick="clickHandler('right')">右</button></div>
