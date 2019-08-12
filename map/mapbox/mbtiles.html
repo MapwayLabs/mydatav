@@ -162,7 +162,7 @@
             'pk.eyJ1IjoibGluZ2h1YW0iLCJhIjoiY2o1dWYzYzlqMDQ4OTJxbzRiZWl5OHdtcyJ9._Ae66CF7CGUIoJlVdrXjqA';
         var map = new mapboxgl.Map({
             container: 'map',
-            style: 'mapbox://styles/mapbox/dark-v9',
+            style: 'mapbox://styles/linghuam/cjxlossd012rv1ckcsbpsvrp1',
             center: center,
             zoom: 12,
             hash: true,
@@ -200,7 +200,7 @@
             map.addSource('asia_china.mbtiles', {
                 type: 'vector',
                 tiles: [
-                    'http://192.168.8.159:8081/map/mapbox/asia_china.mbtiles/{z}/{x}/{y}.pbf'
+                    'http://192.168.8.3:9000/asia_china.mbtiles/{z}/{x}/{y}.pbf'
                 ],
                 maxzoom: 14
             });
@@ -1233,6 +1233,30 @@
                     'circle-radius': 2.5,
                     'circle-opacity': 0.75
                 }
+            });
+
+            map.addLayer({
+                "id": "poi_pts_symbols",
+                "type": "symbol",
+                "metadata": {},
+                "source": "asia_china.mbtiles",
+                "source-layer": "poi",
+                "filter": [
+                    "==",
+                    "$type",
+                    "Point"
+                ],
+                "layout": {
+                    "text-field": "{name}",
+                    "text-max-width": 5,
+                    "text-size": 12
+                },
+                "paint": {
+                    "text-color": "#5d60be",
+                    "text-halo-color": "rgba(255,255,255,0.7)",
+                    "text-halo-width": 1
+                },
+                "minzoom": 0
             });
 
             layers.polygons.push('poi-polygons');
