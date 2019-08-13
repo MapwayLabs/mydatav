@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>高性能的web输入框</title>
+</head>
+<body>
+    <script>
+        function doExpensiveOperation() {
+            console.time('e');
+            var count = 1000000000;
+            while(count--);
+            console.timeEnd('e');
+        }
+
+        function throttleRAF () {
+            let queuedCallback
+            return callback => {
+                if (!queuedCallback) {
+                    requestAnimationFrame(() => {
+                        const cb = queuedCallback
+                        queuedCallback = null
+                        cb()
+                    })
+                }
+                queuedCallback = callback
+            }
+        }
+
+        var raf = throttleRAF();
+
+        document.documentElement.addEventListener('mousemove', function() {
+            raf(doExpensiveOperation);
+        });
+
+        // var i = 0;
+        // while(i < 10) {
+        //     // requestAnimationFrame(doExpensiveOperation);
+        //     raf(doExpensiveOperation);
+        //     i++;
+        // }
+    </script>
+</body>
+</html>
