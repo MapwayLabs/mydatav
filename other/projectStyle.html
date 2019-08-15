@@ -1086,96 +1086,95 @@
       }
     </script>
     <script>
-      // mapboxField myField toMapbox toMe
-      var map = [
-        ["paint.background-color", "style.backgroundColor"],
-        ["paint.fill-color", "style.fillColor"],
-        ["paint.text-color", "style.textColor"],
-        ["paint.line-color", "style.borderColor"],
-        ["paint.line-width", "style.lineWidth"],
-        ["layout.text-size", "style.fontSize"],
-        ["layout.icon-image", "style.icon"],
-        ["layout.icon-size", "style.iconSize"],
-        ["layout.icon-rotate", "style.rotationAngle"],
-        ["maxzoom", "style.zoomMax"],
-        ["minzoom", "style.zoomMin"],
-        ["id", "id"],
-        ["type", "type"]
-      ];
-      function StyleMap(map) {
-        this.map = map;
-      }
-      StyleMap.prototype = {
-        constructor: StyleMap,
-        toMapboxStyle: function(myStyle) {
-            return (
-              myStyle &&
-              myStyle.map(l => {
-              // layer
-              let layer = {};
-              this.map.forEach(k => {
-                const mapboxField = k[0];
-                const myField = k[1];
-                const toMapbox = k[2] || function(e) {return e};
-                const toMy = k[3] || function(e) {return e};
-                const myValue = myField.split(".").reduce((a, v) => {
-                    if (a && a[v]) return a[v];
-                }, l);
-                const mapboxValue = toMapbox.call(null, myValue);
-                mapboxField.split(".").reduce((a, v, i, arr) => {
-                    if (!a[v]) {
-                        a[v] = {};
-                    }
-                    if (i === arr.length - 1) {
-                        if (mapboxValue) {
-                            a[v] = mapboxValue;
-                        } else {
-                            delete a[v];
+// [mapbox字段名，图层树字段名，字段值转成mapbox函数，字段值转成图层树值函数]
+const DEFAULT_MAP = [
+    ['paint.background-color', 'style.backgroundColor'],
+    ['paint.fill-color', 'style.fillColor'],
+    ['paint.text-color', 'style.textColor'],
+    ['paint.line-color', 'style.borderColor'],
+    ['paint.line-width', 'style.lineWidth'],
+    ['layout.text-size', 'style.fontSize'],
+    ['layout.icon-image', 'style.icon'],
+    ['layout.icon-size', 'style.iconSize'],
+    ['layout.icon-rotate', 'style.rotationAngle'],
+    ['maxzoom', 'style.zoomMax'],
+    ['minzoom', 'style.zoomMin'],
+    ['id', 'id'],
+    ['type', 'type']
+];
+
+function StyleMap (map = DEFAULT_MAP) {
+    this.map = map;
+}
+
+StyleMap.prototype = {
+    constructor: StyleMap,
+    toMapboxStyle: function (myStyle) {
+        return (
+            myStyle &&
+            myStyle.map(l => {
+                // layer
+                let layer = {};
+                this.map.forEach(k => {
+                    const mapboxField = k[0];
+                    const myField = k[1];
+                    const toMapbox = k[2] || function (e) { return e;};
+                    const myValue = myField.split('.').reduce((a, v) => {
+                        if (a && a[v]) return a[v];
+                    }, l);
+                    const mapboxValue = toMapbox.call(null, myValue);
+                    mapboxField.split('.').reduce((a, v, i, arr) => {
+                        if (!a[v]) {
+                            a[v] = {};
                         }
-                    }
-                    return a[v];
-                }, layer);
-              });
-              return layer;
+                        if (i === arr.length - 1) {
+                            if (mapboxValue) {
+                                a[v] = mapboxValue;
+                            } else {
+                                delete a[v];
+                            }
+                        }
+                        return a[v];
+                    }, layer);
+                });
+                return layer;
             })
-          );
-        },
-        fromMapboxStyle: function(mapboxStyle) {
-          return (
+        );
+    },
+    fromMapboxStyle: function (mapboxStyle) {
+        return (
             mapboxStyle.layers &&
             mapboxStyle.layers.map(l => {
-              // layer
-              let layer = {};
-              this.map.forEach(k => {
-                const mapboxField = k[0];
-                const myField = k[1];
-                const toMapbox = k[2] || function(e) {return e};
-                const toMy = k[3] || function(e) {return e};
-                const mapboxValue = mapboxField.split(".").reduce((a, v) => {
-                    if (a && a[v]) return a[v];
-                }, l);
-                const myValue = toMy.call(null, mapboxValue);
-                myField.split(".").reduce((a, v, i, arr) => {
-                    if (!a[v]) {
-                        a[v] = {};
-                    }
-                    if (i === arr.length - 1) {
-                        if (myValue) {
-                            a[v] = myValue;
-                        } else {
-                            delete a[v];
+                // layer
+                let layer = {};
+                this.map.forEach(k => {
+                    const mapboxField = k[0];
+                    const myField = k[1];
+                    const toMy = k[3] || function (e) { return e; };
+                    const mapboxValue = mapboxField.split('.').reduce((a, v) => {
+                        if (a && a[v]) return a[v];
+                    }, l);
+                    const myValue = toMy.call(null, mapboxValue);
+                    myField.split('.').reduce((a, v, i, arr) => {
+                        if (!a[v]) {
+                            a[v] = {};
                         }
-                    }
-                    return a[v];
-                }, layer);
-              });
-              return layer;
+                        if (i === arr.length - 1) {
+                            if (myValue) {
+                                a[v] = myValue;
+                            } else {
+                                delete a[v];
+                            }
+                        }
+                        return a[v];
+                    }, layer);
+                });
+                return layer;
             })
-          );
-        }
-      };
-
-      var stylemap = new StyleMap(map);
+        );
+    }
+};
+      var stylemap = new StyleMap();
       var newStyle = stylemap.fromMapboxStyle(mapboxStyle);
       console.log(newStyle);
       var newMapboxStyle = stylemap.toMapboxStyle(newStyle);
