@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>geoserver</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v1.0.0/mapbox-gl.js'></script>
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.0.0/mapbox-gl.css' rel='stylesheet' />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+    <script>
+    var layer = 'testfull2';
+    var projection_epsg_no = '900913';
+    var map = new mapboxgl.Map({
+        container: 'map',
+        center: [116.7350860781, 40.3459367715],
+        zoom: 3,
+        style: {
+            "version": 8,
+            //我使用的这个版本sprite要写全路径
+            "sprite": "http://127.0.0.1:8080/map/mapbox/sprites/sprite",
+            //字体.pbf文件获取
+            // "glyphs":"mapbox://fonts/mapbox/{fontstack}/{range}.pbf",
+            "glyphs": "./fonts/{fontstack}/{range}.pbf",
+            "sources": {
+                "jsonpub2": {
+                    //矢量类型
+                    "type": "vector",
+                    //服务类型 tms，要使用wmts服务请换成wmts
+                    "scheme": "tms",
+                    "tiles": [
+                        'http://192.168.8.96:8080/geoserver/gwc/service/tms/1.0.0/' + layer + '@EPSG%3A' + projection_epsg_no + '@pbf/{z}/{x}/{y}.pbf'
+                        //获取GeoServer 矢量切片服务,可以是一下几种方式
+                        //"http://localhost:8080/geoserver/gwc/service/tms/1.0.0/china:china_map@EPSG:900913@pbf/{z}/{x}/{y}.pbf",
+                        // "http://localhost:61477/maptile/{z}/{x}/{y}.pbf"
+                        //"http://127.0.0.1:8080/geoserver/gwc/service/wmts?REQUEST=GetTile&SERVICE=WMTS&VERSION=1.0.0&LAYER=china:china_map&STYLE=&TILEMATRIX=EPSG:900913:{z}&TILEMATRIXSET=EPSG:900913&FORMAT=application/x-protobuf;type=mapbox-vector&TILECOL={x}&TILEROW={y}"
+                    ]
+                }
+            },
+            "layers": [
+                {
+                    'id': "point",
+                    'type': 'circle',
+                    'filter': ['all',
+                        ['==', 'type', 'point']
+                    ],
+                    'paint': {
+                        'circle-radius': 3,
+                        'circle-color': '#3bb2d0'
+                    },
+                    "source": "jsonpub2",
+                    "source-layer": layer
+                },
+                {
+                    'id': 'line',
+                    'type': 'line',
+                    'filter': ['all',
+                        ['==', 'type', 'line'],
+                    ],
+                    'layout': {
+                        'line-cap': 'round',
+                        'line-join': 'round'
+                    },
+                    'paint': {
+                        'line-color': '#fbb03b',
+                        'line-dasharray': [0.2, 2],
+                        'line-width': 2
+                    },
+                    "source": "jsonpub2",
+                    "source-layer": layer
+                },
+                {
+                    'id': 'area',
+                    'type': 'fill',
+                    'filter': ['all', 
+                       ['==', 'type', 'area']
+                    ],
+                    'paint': {
+                        'fill-color': '#404040',
+                        'fill-outline-color': '#404040',
+                        'fill-opacity': 0.1
+                    },
+                    "source": "jsonpub2",
+                    "source-layer": layer
+                }
+            ],
+            "_ssl": true
+        }
+    });
+    map.addControl(new mapboxgl.NavigationControl());
+    </script>
+</body>
+
+</html>

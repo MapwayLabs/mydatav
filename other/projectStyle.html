@@ -10,25 +10,28 @@
 
     <script>
       var mapboxStyle = {
-        version: 8,
-        name: "Basic",
-        metadata: {
-          "mapbox:autocomposite": false,
-          "mapbox:type": "template",
-          "maputnik:renderer": "mbgljs",
-          "openmaptiles:version": "3.x",
-          "openmaptiles:mapbox:owner": "openmaptiles",
-          "openmaptiles:mapbox:source:url": "mapbox://openmaptiles.4qljc88t"
-        },
-        sources: {
-          openmaptiles: {
-            type: "vector",
-            url: "https://api.maptiler.com/tiles/v3/tiles.json?key={key}"
-          }
-        },
-        glyphs:
-          "https://api.maptiler.com/fonts/{fontstack}/{range}.pbf?key={key}",
-        layers:[{
+    "id": "basic",
+    "version": 8,
+    "name": "Basic",
+    "metadata": {
+      "mapbox:autocomposite": false,
+      "mapbox:type": "template",
+      "maputnik:renderer": "mbgljs",
+      "openmaptiles:version": "3.x",
+      "openmaptiles:mapbox:owner": "openmaptiles",
+      "openmaptiles:mapbox:source:url": "mapbox://openmaptiles.4qljc88t"
+    },
+    "sources": {
+      "openmaptiles": {
+        "type": "vector",
+        "tiles": [
+            "http://192.168.8.3:9000/asia_china.mbtiles/{z}/{x}/{y}.pbf"
+        ]
+      }
+    },
+    "sprite": "http://localhost:8000/sprite/sprite",
+    "glyphs": "/fonts/{fontstack}/{range}.pbf",
+    "layers": [{
         "id": "background",
         "paint": {
             "background-color": "hsl(47, 26%, 88%)"
@@ -304,7 +307,7 @@
         "id": "housenumber",
         "layout": {
             "text-field": "{housenumber}",
-            "text-font": ["Noto Sans Regular"],
+            "text-font": ["SourceHanSerifSC-Regular"],
             "text-size": 10
         },
         "minzoom": 17,
@@ -849,7 +852,7 @@
             "icon-size": 1,
             "text-anchor": "top",
             "text-field": "{name}",
-            "text-font": ["Noto Sans Regular"],
+            "text-font": ["SourceHanSerifSC-Regular"],
             "text-max-width": 8,
             "text-offset": [0, 0.5],
             "text-size": 11,
@@ -878,7 +881,7 @@
           "icon-image": "{class}_11",
           "text-anchor": "top",
           "text-field": "{name}",
-          "text-font": ["Noto Sans Regular"],
+          "text-font": ["SourceHanSerifSC-Regular"],
           "text-max-width": 9,
           "text-offset": [0, 0.6],
           "text-padding": 2,
@@ -908,7 +911,7 @@
           "icon-image": "{class}_11",
           "text-anchor": "top",
           "text-field": "{name}",
-          "text-font": ["Noto Sans Regular"],
+          "text-font": ["SourceHanSerifSC-Regular"],
           "text-max-width": 9,
           "text-offset": [0, 0.6],
           "text-padding": 2,
@@ -938,7 +941,7 @@
           "icon-image": "{class}_11",
           "text-anchor": "top",
           "text-field": "{name}",
-          "text-font": ["Noto Sans Regular"],
+          "text-font": ["SourceHanSerifSC-Regular"],
           "text-max-width": 9,
           "text-offset": [0, 0.6],
           "text-padding": 2,
@@ -970,7 +973,7 @@
           "text-allow-overlap": false,
           "text-anchor": "top",
           "text-field": "{name}",
-          "text-font": ["Noto Sans Regular"],
+          "text-font": ["SourceHanSerifSC-Regular"],
           "text-ignore-placement": false,
           "text-max-width": 9,
           "text-offset": [0, 0.6],
@@ -995,7 +998,7 @@
             "icon-size": 1,
             "text-anchor": "top",
             "text-field": "{name}",
-            "text-font": ["Noto Sans Regular"],
+            "text-font": ["SourceHanSerifSC-Regular"],
             "text-max-width": 8,
             "text-offset": [0, 0.5],
             "text-size": 11,
@@ -1017,7 +1020,7 @@
         "layout": {
             "symbol-placement": "line",
             "text-field": "{name}",
-            "text-font": ["Noto Sans Regular"],
+            "text-font": ["SourceHanSerifSC-Regular"],
             "text-letter-spacing": 0.1,
             "text-rotation-alignment": "map",
             "text-size": {
@@ -1045,7 +1048,7 @@
         "layout": {
             "text-anchor": "center",
             "text-field": "{name}",
-            "text-font": ["Noto Sans Regular"],
+            "text-font": ["SourceHanSerifSC-Regular"],
             "text-max-width": 6,
             "text-size": {
                 "stops": [
@@ -1072,7 +1075,7 @@
         "id": "place_label_city",
         "layout": {
             "text-field": "{name}",
-            "text-font": ["Noto Sans Regular"],
+            "text-font": ["SourceHanSerifSC-Regular"],
             "text-max-width": 10,
             "text-size": {
                 "stops": [
@@ -1099,7 +1102,7 @@
         "id": "country_label-other",
         "layout": {
             "text-field": "{name}",
-            "text-font": ["Noto Sans Regular"],
+            "text-font": ["SourceHanSerifSC-Regular"],
             "text-max-width": 10,
             "text-size": {
                 "stops": [
@@ -1127,7 +1130,7 @@
         "id": "country_label",
         "layout": {
             "text-field": "{name}",
-            "text-font": ["Noto Sans Bold"],
+            "text-font": ["SourceHanSerifSC-Regular"],
             "text-max-width": 10,
             "text-size": {
                 "stops": [
@@ -1148,7 +1151,7 @@
         "source-layer": "place",
         "type": "symbol"
       }]
-      };
+}
     </script>
 
     <script>
@@ -1278,26 +1281,64 @@ StyleMap.prototype = {
       };
       var stylemap = new StyleMap();
       var newStyle = stylemap.fromMapboxStyle(mapboxStyle);
-      var types = {
-        "fill": "area",
-        "line":"line",
-        "symbol":"text",
-        "circle": "point",
-        "background": "background"
-      };
-      newStyle = newStyle.map(s => {
-        return Object.assign(s, {
-          id: generateUUID()(),
-          pid: "35867682-11A4-425A-83B3-E3196FC9CCFB",
-          origin: "coverage",
-          type: "layer",
-          className: types[s.style.type],
-          name: s.style.sourceLayer || 'background'
-        });
-      });
-      newStyle.unshift({"id":"35867682-11A4-425A-83B3-E3196FC9CCFB","pid":null,"type":"group","name":"底图","expanded":true,"origin":"coverage"});
-      console.log(newStyle);
-      JSON.stringify(newStyle);
+    //   var types = {
+    //     "fill": "area",
+    //     "line":"line",
+    //     "symbol":"text",
+    //     "circle": "point",
+    //     "background": "background"
+    //   };
+    //   newStyle = newStyle.map(s => {
+    //     return Object.assign(s, {
+    //       id: generateUUID()(),
+    //       pid: "35867682-11A4-425A-83B3-E3196FC9CCFB",
+    //       origin: "coverage",
+    //       type: "layer",
+    //       className: types[s.style.type],
+    //       name: s.style.sourceLayer || 'background'
+    //     });
+    //   });
+    //   newStyle.unshift({"id":"35867682-11A4-425A-83B3-E3196FC9CCFB","pid":null,"type":"group","name":"底图","expanded":true,"origin":"coverage"});
+    //   console.log(newStyle);
+    //   JSON.stringify(newStyle);
+
+    //   var layers = [{
+    //       id: generateUUID()(),
+    //       pid: '',
+    //       origin: 'vectortile',
+    //       type: "layer",
+    //       className: "point",
+    //       name: "点图层",
+    //       style: {
+    //         "type": "symbol",
+    //         "mbId": "point",
+    //         "sourceLayer": 对应的group名称
+    //       }
+    //   },{
+    //       id: generateUUID()(),
+    //       pid: '',
+    //       origin: 'vectortile',
+    //       type: "layer",
+    //       className: "line",
+    //       name: "线图层",
+    //       style: {
+    //         "type": "line",
+    //         "mbId": "line",
+    //         "sourceLayer": 对应的group名称
+    //       }
+    //   },{
+    //       id: generateUUID()(),
+    //       pid: '',
+    //       origin: 'vectortile',
+    //       type: "layer",
+    //       className: "area",
+    //       name: "面图层",
+    //       style: {
+    //         "type": "fill",
+    //         "mbId": "area",
+    //         "sourceLayer": 对应的group名称
+    //       }
+    //   },]
       var newMapboxStyle = stylemap.toMapboxStyle(newStyle);
       console.log(newMapboxStyle);
     </script>
