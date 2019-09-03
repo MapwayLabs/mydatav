@@ -69,7 +69,8 @@ export default class GeoJSONLayer extends Layer {
             areaMaterial: { // 面材质配置
                 color: 0x00ff00,
                 side: THREE.DoubleSide,
-                opacity: 1
+                opacity: 1,
+                textureSrc: null
             },
             extrudeMaterial: { // 侧面材质,如果为 null，则与面材质相同
                 color:  0x00ff00,
@@ -561,7 +562,26 @@ export default class GeoJSONLayer extends Layer {
             //     bevelEnabled: false   // 是否用斜角
             // };
             // geometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings);
-            let material1 = new THREE.MeshPhongMaterial(areaMaterialOptions);
+            // let material1 = new THREE.MeshPhongMaterial(areaMaterialOptions);
+            let texture1;
+            if (areaMaterialOptions.textureSrc) {
+                texture1 = new THREE.TextureLoader().load(areaMaterialOptions.textureSrc);
+                // texture1.mapping = THREE.EquirectangularReflectionMapping;
+                // texture1.magFilter = THREE.NearestFilter;
+                // texture1.minFilter = THREE.LinearFilter;
+                // texture1.center = new THREE.Vector2(0.5, 0.5);
+                // texture1.rotation = Math.PI;
+                texture1.wrapS = THREE.RepeatWrapping;
+                texture1.wrapT = THREE.RepeatWrapping;
+                texture1.repeat.set( 0.01, 0.01);
+                texture1.format = THREE.RGBAFormat;
+                // texture1.offset.set(0.5, 0.5);
+            }
+            window.texture1 = texture1;
+            let material1 = new THREE.MeshPhongMaterial({
+                map: texture1 ? texture1 : null,
+                color: texture1 ? 0xffffff : areaMaterialOptions.color
+            });
             if (areaMaterialOptions.opacity < 1) {
                 material1.transparent = true;
                 material1.opacity = areaMaterialOptions.opacity;
