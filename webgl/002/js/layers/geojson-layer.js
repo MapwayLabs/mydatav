@@ -430,11 +430,15 @@ export default class GeoJSONLayer extends Layer {
             color: texture1 ? 0xffffff : areaMaterial.color
         });
 
+        // 拉伸体的侧面材质
         if (this.options.isExtrude) {
-            // 拉伸体的侧面材质
-            if (extrudeMaterial.textureGradient) {
+            if (extrudeMaterial.textureSrc) {
+                texture2 = new THREE.TextureLoader().load(extrudeMaterial.textureSrc);
+            } else if (extrudeMaterial.textureGradient) {
                 const canvas = this.getCanvasTextureElement(64, 64, extrudeMaterial.textureGradient);
                 texture2 = new THREE.CanvasTexture(canvas);
+            }
+            if (texture2) {
                 texture2.center = new THREE.Vector2(0.5, 0.5);
                 texture2.rotation = Math.PI;
                 material2 = new THREE.MeshPhongMaterial({
@@ -682,7 +686,8 @@ export default class GeoJSONLayer extends Layer {
         let geometry;
         if (options.isExtrude) {
             let extrudeSettings = {
-                depth: options.depth, 
+                depth: options.depth,
+                UVGenerator : WorldUVGenerator,
                 bevelEnabled: false   // 是否用斜角
             };
             geometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings);
@@ -714,17 +719,22 @@ export default class GeoJSONLayer extends Layer {
             material1.opacity = areaMaterialOptions.opacity;
         }
 
-        let material2;
+        let texture2, material2;
         if (isExtrude) {
-            // 拉伸体的侧面材质
-            if (extrudeMaterial.textureGradient) {
+            if (extrudeMaterial.textureSrc) {
+                texture2 = new THREE.TextureLoader().load(extrudeMaterial.textureSrc);
+            } else if (extrudeMaterial.textureGradient) {
                 const canvas = this.getCanvasTextureElement(64, 64, extrudeMaterial.textureGradient);
-                const texture2 = new THREE.CanvasTexture(canvas);
-                texture2.center = new THREE.Vector2(0.5, 0.5);
-                texture2.rotation = Math.PI;
+                texture2 = new THREE.CanvasTexture(canvas);
+            }
+            if (texture2) {
+                // texture2.wrapS = THREE.RepeatWrapping;
+                // texture2.wrapT = THREE.RepeatWrapping;
+                // texture2.repeat.set(4, 4);
+                // texture2.center = new THREE.Vector2(0.5, 0.5);
+                // texture2.rotation = Math.PI;
                 material2 = new THREE.MeshPhongMaterial({
-                    map: texture2,
-                    color: 0xffffff
+                    map: texture2
                 });
                 if (extrudeMaterial.opacity < 1) {
                     material2.transparent = true;

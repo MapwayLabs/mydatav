@@ -2116,6 +2116,64 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
+var WorldUVGenerator = {
+
+	generateTopUV: function ( geometry, vertices, indexA, indexB, indexC ) {
+
+		var a_x = vertices[ indexA * 3 ];
+		var a_y = vertices[ indexA * 3 + 1 ];
+		var b_x = vertices[ indexB * 3 ];
+		var b_y = vertices[ indexB * 3 + 1 ];
+		var c_x = vertices[ indexC * 3 ];
+		var c_y = vertices[ indexC * 3 + 1 ];
+
+		return [
+			new THREE.Vector2( a_x, a_y ),
+			new THREE.Vector2( b_x, b_y ),
+			new THREE.Vector2( c_x, c_y )
+		];
+
+	},
+
+	generateSideWallUV: function ( geometry, vertices, indexA, indexB, indexC, indexD ) {
+
+		var a_x = vertices[ indexA * 3 ];
+		var a_y = vertices[ indexA * 3 + 1 ];
+		var a_z = vertices[ indexA * 3 + 2 ];
+		var b_x = vertices[ indexB * 3 ];
+		var b_y = vertices[ indexB * 3 + 1 ];
+		var b_z = vertices[ indexB * 3 + 2 ];
+		var c_x = vertices[ indexC * 3 ];
+		var c_y = vertices[ indexC * 3 + 1 ];
+		var c_z = vertices[ indexC * 3 + 2 ];
+		var d_x = vertices[ indexD * 3 ];
+		var d_y = vertices[ indexD * 3 + 1 ];
+		var d_z = vertices[ indexD * 3 + 2 ];
+
+		if ( Math.abs( a_y - b_y ) < 0.01 ) {
+
+			return [
+				new THREE.Vector2( a_x, 1 - a_z ),
+				new THREE.Vector2( b_x, 1 - b_z ),
+				new THREE.Vector2( c_x, 1 - c_z ),
+				new THREE.Vector2( d_x, 1 - d_z )
+			];
+
+		} else {
+
+			return [
+				new THREE.Vector2( a_y, 1 - a_z ),
+				new THREE.Vector2( b_y, 1 - b_z ),
+				new THREE.Vector2( c_y, 1 - c_z ),
+				new THREE.Vector2( d_y, 1 - d_z )
+			];
+
+		}
+
+	}
+};
+
 // geojson 地图
 class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
     constructor(data, options, outlineData) {
@@ -2542,11 +2600,15 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             color: texture1 ? 0xffffff : areaMaterial.color
         });
 
+        // 拉伸体的侧面材质
         if (this.options.isExtrude) {
-            // 拉伸体的侧面材质
-            if (extrudeMaterial.textureGradient) {
+            if (extrudeMaterial.textureSrc) {
+                texture2 = new THREE.TextureLoader().load(extrudeMaterial.textureSrc);
+            } else if (extrudeMaterial.textureGradient) {
                 const canvas = this.getCanvasTextureElement(64, 64, extrudeMaterial.textureGradient);
                 texture2 = new THREE.CanvasTexture(canvas);
+            }
+            if (texture2) {
                 texture2.center = new THREE.Vector2(0.5, 0.5);
                 texture2.rotation = Math.PI;
                 material2 = new THREE.MeshPhongMaterial({
@@ -2794,7 +2856,8 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         let geometry;
         if (options.isExtrude) {
             let extrudeSettings = {
-                depth: options.depth, 
+                depth: options.depth,
+                UVGenerator : WorldUVGenerator,
                 bevelEnabled: false   // 是否用斜角
             };
             geometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings);
@@ -2826,17 +2889,22 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             material1.opacity = areaMaterialOptions.opacity;
         }
 
-        let material2;
+        let texture2, material2;
         if (isExtrude) {
-            // 拉伸体的侧面材质
-            if (extrudeMaterial.textureGradient) {
+            if (extrudeMaterial.textureSrc) {
+                texture2 = new THREE.TextureLoader().load(extrudeMaterial.textureSrc);
+            } else if (extrudeMaterial.textureGradient) {
                 const canvas = this.getCanvasTextureElement(64, 64, extrudeMaterial.textureGradient);
-                const texture2 = new THREE.CanvasTexture(canvas);
-                texture2.center = new THREE.Vector2(0.5, 0.5);
-                texture2.rotation = Math.PI;
+                texture2 = new THREE.CanvasTexture(canvas);
+            }
+            if (texture2) {
+                // texture2.wrapS = THREE.RepeatWrapping;
+                // texture2.wrapT = THREE.RepeatWrapping;
+                // texture2.repeat.set(4, 4);
+                // texture2.center = new THREE.Vector2(0.5, 0.5);
+                // texture2.rotation = Math.PI;
                 material2 = new THREE.MeshPhongMaterial({
-                    map: texture2,
-                    color: 0xffffff
+                    map: texture2
                 });
                 if (extrudeMaterial.opacity < 1) {
                     material2.transparent = true;
