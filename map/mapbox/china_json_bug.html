@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8' />
+    <title>china_bug</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <script src='../../lib/mapbox-gl.js'></script>
+    <link href='../../lib/mapbox-gl.css' rel='stylesheet' />
+    <style>
+        body { margin:0; padding:0; }
+        #map { position:absolute; top:0; bottom:0; width:100%; }
+    </style>
+</head>
+<body>
+
+<div id='map'></div>
+<script>
+mapboxgl.accessToken = 'pk.eyJ1IjoibGluZ2h1YW0iLCJhIjoiY2o1dWYzYzlqMDQ4OTJxbzRiZWl5OHdtcyJ9._Ae66CF7CGUIoJlVdrXjqA';
+var map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/linghuam/cjxlossd012rv1ckcsbpsvrp1',
+    center: [116, 40],
+    zoom: 3
+});
+
+map.on('load', function() {
+        // 矢量瓦片返回数据
+        var geojsonSource = window.geojsonSource = map.addSource('geojsonSource', {
+            type: 'geojson',
+            data: '../../data/Chart.json'
+        });
+        
+        // 原始数据
+        var geojsonSource2 = window.geojsonSource2 = map.addSource('geojsonSource2', {
+            type: 'geojson',
+            data: '../../data/CHN_adm0.json'
+        });
+
+        map.addLayer({
+            id: 'geojsonLayerArea2',
+            type: 'fill',
+            source: 'geojsonSource2',
+            layout: {},
+            paint: {
+                "fill-color": '#f00',
+                "fill-opacity": 0.8,
+                "fill-outline-color": '#f00'
+            }
+        });
+
+        map.addLayer({
+            id: 'geojsonLayerArea',
+            type: 'fill',
+            source: 'geojsonSource',
+            layout: {},
+            paint: {
+                "fill-color": '#0f0',
+                "fill-opacity": 0.5,
+                "fill-outline-color": '#0f0'
+            }
+        });
+
+        // map.addLayer({
+        //     id: "line",
+        //     type: "line",
+        //     source: 'geojsonSource',
+        //     layout: {},
+        //     paint: {
+        //         'line-width': 2,
+        //         'line-color': '#0ff'
+        //     }
+        // });
+
+        map.addLayer({
+            id: "point",
+            type: "circle",
+            source: 'geojsonSource',
+            layout: {},
+            paint: {
+                'circle-radius': 3,
+                'circle-color': '#000'
+            }
+        });
+});
+</script>
+
+</body>
+</html>
