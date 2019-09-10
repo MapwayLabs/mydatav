@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>polygon_union</title>
+    <link rel="stylesheet" href="../../lib/mapbox-gl.css">
+    <script src="../../lib/mapbox-gl.js"></script>
+    <script src="../../lib/turf.min.js"></script>
+    <script src="../../lib/jquery.min.js"></script>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+
+      #map {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <script>
+      mapboxgl.accessToken =
+        "pk.eyJ1IjoibGluZ2h1YW0iLCJhIjoiY2o1dWYzYzlqMDQ4OTJxbzRiZWl5OHdtcyJ9._Ae66CF7CGUIoJlVdrXjqA";
+      var map = new mapboxgl.Map({
+        container: "map",
+        style: "mapbox://styles/linghuam/cjxlossd012rv1ckcsbpsvrp1",
+        center: [116, 40],
+        zoom: 6
+      });
+    </script>
+    <script>
+      map.on("load", e => {
+          $.getJSON('../../data/world2.json', worldData => {
+              // 通过找当前区域的父节点来绘制轮廓
+              var worldChinaFeature = worldData.features.find(f => f.properties.id==='CHN');
+              $.getJSON('../../data/china_province.json', china => {
+                 map.addSource( "oldgeo", {
+                    type: "geojson",
+                    data: china
+                });
+                map.addSource( "newgeo", {
+                    type: "geojson",
+                    data: worldChinaFeature
+                });
+                var oldLayer = map.addLayer({
+                    id: "oldlayer",
+                    type: "fill",
+                    source: "oldgeo",
+                    paint: {
+                        "fill-color": "#00f",
+                        "fill-opacity": 1,
+                        "fill-outline-color": "#fff"
+                    }
+                });
+                var newLayer = map.addLayer({
+                    id: "newlayer",
+                    type: "fill",
+                    source: "newgeo",
+                    paint: {
+                        "fill-color": "#f00",
+                        "fill-opacity": 1
+                    }
+                });
+              });
+          });
+        // $.getJSON('../../data/100000.json', data => {
+        //     var polygons = window.polygons = [];
+        //     data.features.forEach(f => {
+        //         if (f.geometry && f.geometry.type === 'Polygon') {
+        //             polygons.push(turf.polygon(f.geometry.coordinates));
+        //         } else if (f.geometry && f.geometry.type === 'MultiPolygon') {
+        //             f.geometry.coordinates.forEach(p => {
+        //                 polygons.push(turf.polygon(p));
+        //             });
+        //         }
+        //     });
+
+        //     var unionpolygons = polygons.filter(poly => !turf.kinks(poly).features.length);
+            
+        //     var union = window.union = turf.union(...unionpolygons);
+
+        //     var oldData = window.oldData = turf.featureCollection(polygons);
+        //     var newData = window.newData = turf.featureCollection([union]);
+
+        //     map.addSource( "oldgeo", {
+        //         type: "geojson",
+        //         data: oldData
+        //     });
+        //     map.addSource( "newgeo", {
+        //         type: "geojson",
+        //         data: newData
+        //     });
+        //     var oldLayer = map.addLayer({
+        //         id: "oldlayer",
+        //         type: "fill",
+        //         source: "oldgeo",
+        //         paint: {
+        //             "fill-color": "#00f",
+        //             "fill-opacity": 1,
+        //             "fill-outline-color": "#fff"
+        //         }
+        //     });
+        //     var newLayer = map.addLayer({
+        //         id: "newlayer",
+        //         type: "fill",
+        //         source: "newgeo",
+        //         paint: {
+        //             "fill-color": "#f00",
+        //             "fill-opacity": 0.5,
+        //             "fill-outline-color": "#0f0"
+        //         }
+        //     });
+        // });
+      });
+    </script>
+  </body>
+</html>

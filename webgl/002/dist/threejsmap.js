@@ -2116,9 +2116,67 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+
+var WorldUVGenerator = {
+
+	generateTopUV: function ( geometry, vertices, indexA, indexB, indexC ) {
+
+		var a_x = vertices[ indexA * 3 ];
+		var a_y = vertices[ indexA * 3 + 1 ];
+		var b_x = vertices[ indexB * 3 ];
+		var b_y = vertices[ indexB * 3 + 1 ];
+		var c_x = vertices[ indexC * 3 ];
+		var c_y = vertices[ indexC * 3 + 1 ];
+
+		return [
+			new THREE.Vector2( a_x, a_y ),
+			new THREE.Vector2( b_x, b_y ),
+			new THREE.Vector2( c_x, c_y )
+		];
+
+	},
+
+	generateSideWallUV: function ( geometry, vertices, indexA, indexB, indexC, indexD ) {
+
+		var a_x = vertices[ indexA * 3 ];
+		var a_y = vertices[ indexA * 3 + 1 ];
+		var a_z = vertices[ indexA * 3 + 2 ];
+		var b_x = vertices[ indexB * 3 ];
+		var b_y = vertices[ indexB * 3 + 1 ];
+		var b_z = vertices[ indexB * 3 + 2 ];
+		var c_x = vertices[ indexC * 3 ];
+		var c_y = vertices[ indexC * 3 + 1 ];
+		var c_z = vertices[ indexC * 3 + 2 ];
+		var d_x = vertices[ indexD * 3 ];
+		var d_y = vertices[ indexD * 3 + 1 ];
+		var d_z = vertices[ indexD * 3 + 2 ];
+
+		if ( Math.abs( a_y - b_y ) < 0.01 ) {
+
+			return [
+				new THREE.Vector2( a_x, 1 - a_z ),
+				new THREE.Vector2( b_x, 1 - b_z ),
+				new THREE.Vector2( c_x, 1 - c_z ),
+				new THREE.Vector2( d_x, 1 - d_z )
+			];
+
+		} else {
+
+			return [
+				new THREE.Vector2( a_y, 1 - a_z ),
+				new THREE.Vector2( b_y, 1 - b_z ),
+				new THREE.Vector2( c_y, 1 - c_z ),
+				new THREE.Vector2( d_y, 1 - d_z )
+			];
+
+		}
+
+	}
+};
+
 // geojson 地图
 class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
-    constructor(data, options) {
+    constructor(data, options, outlineData) {
         super(data, options);
         const defaultOptions = {
             // 是否自动适配尺寸。如果设置为 true，配置项中的 depth\offset\scale 等尺寸会根据当前行政区来自动适配，用户传入的值就无效了。
@@ -2176,23 +2234,33 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
                     }
                 }
             },
-            isAreaMutilColor: false, // 面是否采用不同颜色
+            isAreaMutilColor: false, // 面是否采用不同颜色,程序会取颜色值随机赋值
             mutiColors: ['#7EBFF0', '#D1F6FC', '#53A4EA', '#107AE0'],
             areaMaterial: { // 面材质配置
                 color: 0x00ff00,
                 side: THREE.DoubleSide,
-                opacity: 1
+                opacity: 1,
+                textureSrc: null, // 如果设置贴图，则面采用图片贴图
+                textureConfig: {
+                    offset: [0, 0],
+                    repeat: [0.01, 0.01],
+                    rotation: 0
+                }
             },
             extrudeMaterial: { // 侧面材质,如果为 null，则与面材质相同
                 color:  0x00ff00,
                 opacity: 1,
-                textureSrc: null
+                textureSrc: null,
+                textureGradient: {
+                    "0": "red",
+                    "1": "blue"
+                }
             },
-            hightLight: {
+            hightLight: { // 鼠标滑过面块是否高亮
                 show: false,
                 color: '#639fc0'
             },
-            tooltip: {
+            tooltip: { // 是否显示tooltip提示
                 show: false
             },
             outline: {  // 拉伸地图的轮廓
@@ -2218,14 +2286,20 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         };
         this.options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](true, defaultOptions, options);
         this.type = 'geojson';
-        this._initFeatures();
+        // this._initFeatures();
+        this._features = this.createFeatureArray(this._data);
+        if (outlineData != null) {
+            this._outlineFeatures = this.createFeatureArray(outlineData);
+        }
     }
+
     onAdd(map) {
         _layer__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.onAdd.call(this, map); 
         this._initBoundsAndCenter();
         if (this.options.isAutoResize) {
             this._initResizeOptions();
         }
+        this._drawBaseLayer();
         this._draw();
         // FIXME: 文字的碰撞计算 worldToScreen 需要等底图绘制完成才能计算准确
         this.updateLabels();
@@ -2236,6 +2310,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             this._tooltip = new _tooltip__WEBPACK_IMPORTED_MODULE_4__["default"](this._map.getContainerElement());
         }
     }
+
     onRemove(map) {
         _layer__WEBPACK_IMPORTED_MODULE_0__["default"].prototype.onRemove.call(this, map);
         this._textLayer && this._map.removeLayer(this._textLayer);
@@ -2244,15 +2319,19 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         this._tooltip && this._tooltip.remove();
         this._tooltip = null;
     }
+
     getBounds() {
         return this._bounds;
     }
+
     getCenter() {
         return this._center;
     }
+
     getFeatures() {
         return this._features || [];
     }
+
     getDepth() {
         if (this.options.isExtrude) {
             return this.options.depth;
@@ -2260,9 +2339,11 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             return 0;
         }
     }
+
     getRatio() {
         return this._ratio;
     }
+
     createFeatureArray(json) {
         var feature_array = [];
         var temp_feature;
@@ -2285,6 +2366,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         }
         return feature_array;
     }
+
     createCoordinateArray(feature) {
         //Loop through the coordinates and figure out if the points need interpolation.
         var temp_array = [];
@@ -2311,6 +2393,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         }
         return temp_array;
     }
+
     needsInterpolation(point2, point1) {
         //If the distance between two latitude and longitude values is
         //greater than five degrees, return true.
@@ -2327,6 +2410,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             return false;
         }
     }
+
     interpolatePoints(interpolation_array) {
         //This function is recursive. It will continue to add midpoints to the
         //interpolation array until needsInterpolation() returns false.
@@ -2354,6 +2438,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         }
         return temp_array;
     }
+
     getMidpoint(point1, point2) {
         var midpoint_lon = (point1[0] + point2[0]) / 2;
         var midpoint_lat = (point1[1] + point2[1]) / 2;
@@ -2361,12 +2446,14 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
 
         return midpoint;
     }
+
     convertCoordinates(coordinateArray) {
         return coordinateArray.map(lnglat => {
             let mecatorPoint = _maphelper__WEBPACK_IMPORTED_MODULE_2__["wgs84ToMecator"](lnglat);
             return mecatorPoint.map(p => p / this._map.options.SCALE_RATIO);
         });
     }
+
     _initBoundsAndCenter() {
         let bounds;
         let mapOptions = this._map.options;
@@ -2392,6 +2479,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             }
         }
     }
+
     _initResizeOptions() {
         const ratio = this._map.getRatio(this._bounds);
         const resizeParam = this.options.resizeParam;
@@ -2401,9 +2489,11 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         this.options.areaText.nullTextStyle.scale = resizeParam.scale2 * ratio;
         this._ratio = ratio;
     }
+
     _initFeatures() {
         this._features = this.createFeatureArray(this._data);
     }
+
     _draw() {
         if (this._features == null || !this._features.length) {return;}
         for (let i = 0, len = this._features.length; i < len; i++) {
@@ -2451,6 +2541,120 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             }
         }
     }
+
+    _drawBaseLayer() {
+        if (!this._outlineFeatures || !this._outlineFeatures.length) return;
+
+        for (let i = 0, len = this._outlineFeatures.length; i < len; i++) {
+            const feature = this._outlineFeatures[i];
+            const geometry = feature.geometry;
+            if (feature && geometry && ( geometry.type === 'Polygon' || geometry.type === 'MultiPolygon' )) {
+                const featureGroup = new THREE.Group();
+                this._container.add(featureGroup);
+                if (geometry.type == 'Polygon') {
+                    for (let segment_num = 0; segment_num < geometry.coordinates.length; segment_num++) {
+                        let coordinate_array = this.createCoordinateArray(geometry.coordinates[segment_num]);
+                        let convert_array = coordinate_array;
+                        if (this._map.options.crs === _maphelper__WEBPACK_IMPORTED_MODULE_2__["CRS"].epsg3857) {
+                            convert_array = this.convertCoordinates(coordinate_array);
+                        }
+                        this.drawBasePolygon(convert_array, null, featureGroup);
+                    }
+                } else if (geometry.type == 'MultiPolygon') {
+                    for (let polygon_num = 0; polygon_num < geometry.coordinates.length; polygon_num++) {
+                        for (let segment_num = 0; segment_num < geometry.coordinates[polygon_num].length; segment_num++) {
+                            let coordinate_array = this.createCoordinateArray(geometry.coordinates[polygon_num][segment_num]);
+                            let convert_array = coordinate_array;
+                            if (this._map.options.crs === _maphelper__WEBPACK_IMPORTED_MODULE_2__["CRS"].epsg3857) {
+                                convert_array = this.convertCoordinates(coordinate_array);
+                            }
+                            this.drawBasePolygon(convert_array, null, featureGroup);
+                        }
+                    }
+                } 
+            }
+        }
+    }
+
+    drawBasePolygon(points, userData, container) {
+        const areaMaterial = this.options.areaMaterial;
+        const extrudeMaterial = this.options.extrudeMaterial;
+        const geometry = this.createGeometry(points, {
+            isExtrude: this.options.isExtrude,
+            depth: this.options.depth
+        });
+
+        let texture1, material1, texture2, material2;
+        // 轮廓面上的贴图材质
+        if (areaMaterial.textureSrc) {
+            texture1 = new THREE.TextureLoader().load(areaMaterial.textureSrc);
+            texture1.wrapS = THREE.RepeatWrapping;
+            texture1.wrapT = THREE.RepeatWrapping;
+            texture1.offset.set(areaMaterial.textureConfig.offset[0], areaMaterial.textureConfig.offset[1]);
+            texture1.repeat.set(areaMaterial.textureConfig.repeat[0], areaMaterial.textureConfig.repeat[1]);
+            texture1.rotation = areaMaterial.textureConfig.rotation;
+            texture1.center.set(0.5, 0.5);
+        }
+        material1 = new THREE.MeshPhongMaterial({
+            map: texture1 ? texture1 : null,
+            color: texture1 ? 0xffffff : areaMaterial.color
+        });
+
+        // 拉伸体的侧面材质
+        if (this.options.isExtrude) {
+            if (extrudeMaterial.textureSrc) {
+                texture2 = new THREE.TextureLoader().load(extrudeMaterial.textureSrc);
+            } else if (extrudeMaterial.textureGradient) {
+                const canvas = this.getCanvasTextureElement(64, 64, extrudeMaterial.textureGradient);
+                texture2 = new THREE.CanvasTexture(canvas);
+            }
+            if (texture2) {
+                texture2.center = new THREE.Vector2(0.5, 0.5);
+                texture2.rotation = Math.PI;
+                material2 = new THREE.MeshPhongMaterial({
+                    map: texture2,
+                    color: 0xffffff
+                });
+                if (extrudeMaterial.opacity < 1) {
+                    material2.transparent = true;
+                    material2.opacity = extrudeMaterial.opacity;
+                }
+            }
+        }
+
+        const material = material2 ? [material1, material2] : material1;
+        const mesh = new THREE.Mesh(geometry, material);
+        
+        // 是否画轮廓线
+        if (this.options.outline.top.show) {
+            const options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"]({
+                offset: this.options.isExtrude ? this.options.depth : 0,
+                renderOrder: 20
+            }, this.options.outline.top);
+            this.drawOutLine2(points, mesh, options);
+        }
+
+        mesh.rotateX(-Math.PI/2);
+        mesh.userData = _util__WEBPACK_IMPORTED_MODULE_1__["extend"]({type: 'area_base'}, userData);
+        container.add(mesh);
+    }
+
+    getCanvasTextureElement(width, height, colorstop) {
+        width = width * window.devicePixelRatio;
+        height = height * window.devicePixelRatio;
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.width = width;
+        canvas.height = height;
+        const gradient = context.createLinearGradient(0, 0, 0, height);
+        Object.keys(colorstop).forEach(key => {
+            gradient.addColorStop(key, colorstop[key]);
+        });
+        context.fillStyle = gradient;
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        return canvas;
+    }
+
     _mousemoveEvtHandler(event) {
         const mapSize = this._map.getContainerSize();
         const camera = this._map.getCamera();
@@ -2505,6 +2709,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             }
         }
     }
+
     updateLabels(barLayer, filterText = []) {
         if (this._features == null || !this._features.length) {return;}
         let barWidth = 0;
@@ -2578,6 +2783,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             }
         }
     }
+
     drawOutLine(points, mesh, lineOptions) {
         // 画轮廓线
         // 因为面是画在xy平面的，然后通过旋转而来，为了保持一致，轮廓线也绘制在xy平面，这样变换就能与面同步
@@ -2602,6 +2808,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         // line.material.depthTest = false;
         mesh.add(line);
     }
+
     drawOutLine2(points, mesh, options) {
         const size = this._map.getContainerSize();
 
@@ -2628,11 +2835,13 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         if (options.offset) {
             lineMesh.translateZ(options.offset);
         }
-        // lineMesh.renderOrder = 80;
-        // lineMesh.material.depthTest = false;
+        lineMesh.renderOrder = options.renderOrder || 0;
+        lineMesh.material.depthTest = false;
         mesh.add(lineMesh);
     }
-    createGeometry(points) {
+
+    createGeometry(points, options) {
+        options = options || {};
         const shape = new THREE.Shape();
         for (let i = 0; i < points.length; i++) {
             let point = points[i];
@@ -2645,9 +2854,10 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         shape.closePath();  
         
         let geometry;
-        if (this.options.isExtrude) {
+        if (options.isExtrude) {
             let extrudeSettings = {
-                depth: this.options.depth, 
+                depth: options.depth,
+                UVGenerator : WorldUVGenerator,
                 bevelEnabled: false   // 是否用斜角
             };
             geometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings);
@@ -2656,83 +2866,82 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         }
         return geometry;
     }
-    drawPolygon(points, userData, container) {
 
-        let geometry, material;
-        let areaMaterialOptions = this.options.areaMaterial;
+    drawPolygon(points, userData, container) {
+        const isExtrude = this.options.isExtrude && !this._outlineFeatures;
+
+        const areaMaterialOptions = this.options.areaMaterial;
+        const extrudeMaterial = this.options.extrudeMaterial;
+
         if (this.options.isAreaMutilColor) {
             areaMaterialOptions.color = userData.color;
         }
 
-        geometry = this.createGeometry(points);
+        const geometry = this.createGeometry(points, { isExtrude: isExtrude, depth: isExtrude ? this.options.depth : 0 });
+        
+        // 正面的材质
+        let material1 = new THREE.MeshBasicMaterial({
+            color: areaMaterialOptions.color,
+            side: areaMaterialOptions.side
+        });
+        if (areaMaterialOptions.opacity < 1) {
+            material1.transparent = true;
+            material1.opacity = areaMaterialOptions.opacity;
+        }
 
-        if (this.options.isExtrude) {
-            // 拉伸
-            // let extrudeSettings = {
-            //     depth: this.options.depth, 
-            //     bevelEnabled: false   // 是否用斜角
-            // };
-            // geometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings);
-            let material1 = new THREE.MeshPhongMaterial(areaMaterialOptions);
-            if (areaMaterialOptions.opacity < 1) {
-                material1.transparent = true;
-                material1.opacity = areaMaterialOptions.opacity;
+        let texture2, material2;
+        if (isExtrude) {
+            if (extrudeMaterial.textureSrc) {
+                texture2 = new THREE.TextureLoader().load(extrudeMaterial.textureSrc);
+            } else if (extrudeMaterial.textureGradient) {
+                const canvas = this.getCanvasTextureElement(64, 64, extrudeMaterial.textureGradient);
+                texture2 = new THREE.CanvasTexture(canvas);
             }
-            if (this.options.extrudeMaterial) {
-                let texture;
-                if (this.options.extrudeMaterial.textureSrc) {
-                    texture = new THREE.TextureLoader().load(this.options.extrudeMaterial.textureSrc);
-                    texture.center = new THREE.Vector2(0.5, 0.5);
-                    texture.rotation = Math.PI;
-                }
-                let material2 = new THREE.MeshPhongMaterial({
-                    map: texture ? texture : null,
-                    color: texture ? 0xffffff : this.options.extrudeMaterial.color
+            if (texture2) {
+                // texture2.wrapS = THREE.RepeatWrapping;
+                // texture2.wrapT = THREE.RepeatWrapping;
+                // texture2.repeat.set(4, 4);
+                // texture2.center = new THREE.Vector2(0.5, 0.5);
+                // texture2.rotation = Math.PI;
+                material2 = new THREE.MeshPhongMaterial({
+                    map: texture2
                 });
-                if (this.options.extrudeMaterial.opacity < 1) {
+                if (extrudeMaterial.opacity < 1) {
                     material2.transparent = true;
-                    material2.opacity = this.options.extrudeMaterial.opacity;
+                    material2.opacity = extrudeMaterial.opacity;
                 }
-                material = [material1, material2];
-            } else {
-                material = material1;
-            }
-        } else {
-            // 不拉伸
-            // geometry = new THREE.ShapeBufferGeometry(shape);
-            material = new THREE.MeshBasicMaterial(areaMaterialOptions);
-            if (areaMaterialOptions.opacity < 1) {
-                material.transparent = true;
-                material.opacity = areaMaterialOptions.opacity;
             }
         }
-        
-        let mesh = new THREE.Mesh(geometry, material);
 
-        // 画线
-        let options = {
-            offset: this.options.isExtrude ? this.options.depth : 0
-        };
+        const material = material2 ? [material1, material2] : material1;
+        const mesh = new THREE.Mesh(geometry, material);
+        
+        // 内部轮廓线
         if (this.options.outline.normal.show) {
-            options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](options, this.options.outline.normal);
+            const options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"]({
+                offset: isExtrude ? this.options.depth : 0,
+                renderOrder: 10
+            }, this.options.outline.normal);
             if (options.width <= 1) {
                 this.drawOutLine(points, mesh, options);
             } else {
                 this.drawOutLine2(points, mesh, options);
             }
         }
-        if (this.options.outline.top.show) {
-            options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](options, this.options.outline.top);
-            this.drawOutLine2(points, mesh, options);
-        }
-        if (this.options.outline.bottom.show) {
-            options = _util__WEBPACK_IMPORTED_MODULE_1__["extend"](options, this.options.outline.bottom);
-            options.offset = 0;
-            this.drawOutLine2(points, mesh, options);
-        }
 
         mesh.rotateX(-Math.PI/2);
+        // 如果外轮廓面拉伸了，移到外轮廓上面
+        if (this.options.isExtrude && this._outlineFeatures && this._outlineFeatures.length) {
+             mesh.translateZ(this.options.depth);
+        }
+        // 如果用图片覆盖上面，则设置此材质透明
+        if (areaMaterialOptions.textureSrc) {
+            mesh.material.transparent = true;
+            mesh.material.opacity = 0;
+        }
         mesh.userData = _util__WEBPACK_IMPORTED_MODULE_1__["extend"]({type: 'area'}, userData);
+        mesh.renderOrder = 5;
+        mesh.material.depthTest = false;
         container.add(mesh);
     }
 }
@@ -3904,7 +4113,8 @@ class TextSprite {
                 show: false, // 是否显示文字旁边的标注点
                 margin: 4, // 标注点距离文字的距离
                 radius: 6, // 标注点半径
-                color: '#fff' // 标注点颜色，可以是 hexString、rgb、rgba
+                color: '#fff', // 标注点颜色，可以是 hexString、rgb、rgba
+                image: null
             }
         }
         this.options = _util__WEBPACK_IMPORTED_MODULE_0__["extend"](true, defaultOptions, options);
@@ -4065,7 +4275,19 @@ class TextSprite {
             ctx.beginPath();
             const r = Math.min(radius, this._textWidth/2);
             ctx.arc(point.x, point.y, r*dpr, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.clip();
+            if (this.options.labelPointStyle.image) {
+                 const img = this.options.labelPointStyle.image;
+                // const img = new Image();
+                // img.onload = e => {
+                    ctx.globalCompositeOperation = "destination-over";
+                    // ctx.drawImage(img, point.x-r*dpr, point.y-r*dpr, r*dpr*2, r*dpr*2);
+                    ctx.drawImage(img, point.x-img.width/2, point.y-img.height/2);
+                    // ctx.fillRect(point.x-r*dpr, point.y-r*dpr, r*dpr*2, r*dpr*2);
+                // };
+                // img.src = this.options.labelPointStyle.imageSrc;
+            }
+            // ctx.fill();
             ctx.restore();
         }
 

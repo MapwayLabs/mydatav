@@ -17,7 +17,8 @@ export default class TextSprite {
                 show: false, // 是否显示文字旁边的标注点
                 margin: 4, // 标注点距离文字的距离
                 radius: 6, // 标注点半径
-                color: '#fff' // 标注点颜色，可以是 hexString、rgb、rgba
+                color: '#fff', // 标注点颜色，可以是 hexString、rgb、rgba
+                image: null
             }
         }
         this.options = Util.extend(true, defaultOptions, options);
@@ -178,7 +179,19 @@ export default class TextSprite {
             ctx.beginPath();
             const r = Math.min(radius, this._textWidth/2);
             ctx.arc(point.x, point.y, r*dpr, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.clip();
+            if (this.options.labelPointStyle.image) {
+                 const img = this.options.labelPointStyle.image;
+                // const img = new Image();
+                // img.onload = e => {
+                    ctx.globalCompositeOperation = "destination-over";
+                    // ctx.drawImage(img, point.x-r*dpr, point.y-r*dpr, r*dpr*2, r*dpr*2);
+                    ctx.drawImage(img, point.x-img.width/2, point.y-img.height/2);
+                    // ctx.fillRect(point.x-r*dpr, point.y-r*dpr, r*dpr*2, r*dpr*2);
+                // };
+                // img.src = this.options.labelPointStyle.imageSrc;
+            }
+            // ctx.fill();
             ctx.restore();
         }
 

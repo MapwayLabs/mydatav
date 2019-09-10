@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>china_outline</title>
+    <script src="../../lib/threejs/three.js"></script>
+    <script src="../../lib/threejs/js/controls/OrbitControls.js"></script>
+    <script src="./dist/threejsmap.js"></script>
+    <script src="../../lib/jquery.min.js"></script>
+    <script src="../../lib/threejs/dat.gui.min.js"></script>
+    <script src="../../lib/threejs/stats.min.js"></script>
+    <script src="../../lib/turf.min.js"></script>
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+
+        #threemap {
+            position: absolute;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="threemap"></div>
+    <script>
+        function addStats(map) {
+            const container = document.createElement('div');
+            document.body.appendChild(container);
+            const stats = new Stats();
+            container.appendChild(stats.dom);
+            map.animateCallback = function () {
+                stats.update();
+            };
+        }
+    </script>
+    <script>
+        // ./china_province.json  geo-china-beijing.json world2 countriesgeo.json
+        $.getJSON('../../data/china_province.json', function(chinadata) {
+            $.getJSON('../../data/china_outline.json', function (outlinedata) {
+                const mapOptions = {
+                    type: 'plane', // plane or sphere ,平面或球面
+                    region: 'china', // china or world, 中国或世界地图
+                    crs: 'EPSG:3857', // 地图采用的地理坐标系 EPSG:4326: 经纬度，EPSG:3857: 墨卡托
+                    SCALE_RATIO: 100000, // 地球墨卡托平面缩放比例
+                    containerClassName: 'three-map-container', // 地图容器类名
+                    bgColor: '#1C1F3B',
+                    camera: {
+                        fov: 45,
+                        near: 0.1,
+                        far: 2000
+                    },
+                    orbitControlOptions: {
+                        minDistance: 0, // 最小距离
+                        maxDistance: Infinity, // 最大距离
+                        // 垂直方向翻转角度，范围：0-180 度
+                        minPolarAngle: 0,
+                        maxPolarAngle: 80,
+                        // 横向旋转角度，范围：-180-180 度，Infinity 表示不限制
+                        minAzimuthAngle: -90,
+                        maxAzimuthAngle: 90
+                    },
+                    light: {
+                        // 主光源：太阳光 THREE.DirectionalLight
+                        main: {
+                            color: '#E6E8EA',
+                            intensity: 0.8, // 主光源的强度，0-1
+                            shadow: false, // 主光源是否投射阴影。默认关闭。开启阴影可以给场景带来更真实和有层次的光照效果。但是同时也会增加程序的运行开销。
+                            shadowQuality: 'medium', // 阴影的质量。可选'low', 'medium', 'high', 'ultra'
+                            alpha: 40, // 主光源绕 x 轴，即上下旋转的角度。配合 beta 控制光源的方向。
+                            beta: 40 // 主光源绕 y 轴，即左右旋转的角度。
+                        },
+                        // 环境光源 THREE.AmbientLight
+                        ambient: {
+                            color: '#E6E8EA',
+                            intensity: 0.6
+                        }
+                    },
+                    bloom: {
+                        show: false
+                    }
+                }
+                window.map = new TMap.ThreeMap('threemap', mapOptions);
+
+                addStats(window.map);
+
+                // geojsonlayer
+                const geoOptions = {
+                    isExtrude: true, // 是否拉伸面
+                    depth: 0.2, // 拉伸厚度
+                    areaText: {
+                        show: true, // 是否显示【无数据】区域文字，不能控制无数据区域文字
+                        offset: 1, // 文字离地面高度
+                        isAvoidCollision: true, // 是否避免文字碰撞
+                        textStyle: { // 有数据地区的名字样式
+                            show: true, // 是否显示有数据地区文字
+                            scale: 1, // 缩放比例
+                            fontStyle: 'normal',
+                            fontWeight: 'normal',
+                            fontSize: '16px',
+                            fontFamily: 'Microsoft YaHei',
+                            fontColor: '#000',
+                            textAlign: 'center',
+                            textBaseline: 'middle',
+                            maxWidth: 512,
+                            offsetY: 0,
+                            labelPointStyle: {
+                                show: true, // 是否显示文字旁边的标注点
+                                margin: 4, // 标注点距离文字的距离
+                                radius: 6, // 标注点半径
+                                color: '#0f0' // 标注点颜色，可以是 hexString、rgb、rgba
+                            }
+                        },
+                        nullTextStyle: { // 无数据地区的名字样式
+                            scale: 1, // 缩放比例
+                            fontStyle: 'normal',
+                            fontWeight: 'normal',
+                            fontSize: '16px',
+                            fontFamily: 'Microsoft YaHei',
+                            fontColor: '#000',
+                            textAlign: 'left',
+                            textBaseline: 'middle',
+                            maxWidth: 512,
+                            offsetY: 0,
+                            labelPointStyle: {
+                                show: true, // 是否显示文字旁边的标注点
+                                margin: 44, // 标注点距离文字的距离
+                                radius: 60, // 标注点半径
+                                color: '#0f0', // 标注点颜色，可以是 hexString、rgb、rgba,
+                                image: '../../../../images/kg4.png'
+                            }
+                        }
+                    },
+                    isAreaMutilColor: true,
+                    areaMaterial: { // 面材质配置
+                        color: '#FFF',
+                        textureSrc: '../../../../images/china512.png',
+                        opacity: 1
+                    },
+                    extrudeMaterial: {
+                        color: '#0086FF',
+                        opacity: 0.8,
+                        // textureSrc: '../../../../images/dark_edge.png'
+                    },
+                    tooltip: {
+                        show: false
+                    },
+                    outline: {
+                        normal: {
+                            show: true,
+                            color: '#f00',
+                            width: 1,
+                            opacity: 1
+                        },
+                        top: {
+                            show: true,
+                            color: '#0f0',
+                            width: 15,
+                            opacity: 1
+                        },
+                        bottom: {
+                            show: false,
+                            color: 0x00ff00,
+                            width: 1,
+                            opacity: 1
+                        }
+                    },
+                    hightLight: {
+                        show: false,
+                        color: '#639fc0'
+                    }
+                };
+                var img = new Image();
+                img.onload = e => {
+                    geoOptions.areaText.nullTextStyle.labelPointStyle.image = img;
+                    window.geojsonLayer = new TMap.GeoJSONLayer(chinadata, geoOptions, outlinedata);
+                    window.map.addLayer(window.geojsonLayer);
+                    window.map.setView(window.geojsonLayer.getBounds());
+                };
+                img.src = geoOptions.areaText.nullTextStyle.labelPointStyle.image;
+                // window.geojsonLayer = new TMap.GeoJSONLayer(chinadata, geoOptions, outlinedata);
+                // window.map.addLayer(window.geojsonLayer);
+                // window.map.setView(window.geojsonLayer.getBounds());
+            });
+        });
+    </script>
+</body>
+
+</html>

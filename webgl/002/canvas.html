@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>canvas_test</title>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <script>
+        var canvas = document.getElementById('canvas');
+        var context = canvas.getContext('2d');
+        var gradient = context.createLinearGradient(0, 0, 0, 200);
+        gradient.addColorStop(0, 'rgba(255, 0, 0, 0.5)');
+        gradient.addColorStop(1, 'blue');
+        context.fillStyle = gradient;
+        context.fillRect(0, 0, 100, 200);
+
+        function getCanvasTexture(width, height, colorstop) {
+            width = width * window.devicePixelRatio;
+            height = height * window.devicePixelRatio;
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = width;
+            canvas.height = height;
+            const gradient = context.createLinearGradient(0, 0, 0, height);
+            Object.keys(colorstop).forEach(key => {
+                gradient.addColorStop(key, colorstop[key]);
+            });
+            context.fillStyle = gradient;
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            return canvas;
+        }
+    </script>
+</body>
+</html>
