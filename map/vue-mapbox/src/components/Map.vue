@@ -16,16 +16,19 @@ import geojsonData from '../data/110100.json';
 import hexagonData from '../data/sf-bike-parking.json';
 import {GeoJsonLayer} from '@deck.gl/layers';
 import {HexagonLayer} from '@deck.gl/aggregation-layers';
+import addHeatMap from '../js/heatmap';
+import addArcLayer from '../js/arcmap';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibGluZ2h1YW0iLCJhIjoiY2o1dWYzYzlqMDQ4OTJxbzRiZWl5OHdtcyJ9._Ae66CF7CGUIoJlVdrXjqA';
 
 export default {
   name: 'Map',
   mounted() {
+    vue.$mapboxgl = mapboxgl;
     this.map = vue.$map = new mapboxgl.Map({
         container: 'map', // container id
         style: 'mapbox://styles/mapbox/streets-v11', // stylesheet location
-        // style: 'mapbox://styles/linghuam/cjxlh5bfw0vgi1cn19s9nu2o4',
+        // style: 'mapbox://styles/linghuam/cjxlossd012rv1ckcsbpsvrp1',
         center: [116, 40], // starting position [lng, lat]
         zoom: 6, // starting zoom,
         bearing: 0, // 方位角，以正北方的逆时针转动度数计量。
@@ -34,33 +37,34 @@ export default {
         attributionControl: false,
         preserveDrawingBuffer: true, // 如果为  true ，即可使用  map.getCanvas().toDataURL() 将地图画布输出到 PNG。
         trackResize: true,
+        antialias: true
     });
 
     this.map.on('load', this._mapLoaded);
   },
   methods: {
     _mapLoaded() {
-      const myDeckLayer = new MapboxLayer({
-          id: 'my-scatterplot',
-          type: ScatterplotLayer,
-          data: [
-                {position: [116, 40], size: 100},
-                {position: [114, 30], size: 10},
-          ],
-          getPosition: d => d.position,
-          getRadius: d => d.size,
-          getFillColor: [255, 0, 0],
-          getLineColor: [255, 0, 0]
-      });
-      this.map.addLayer(myDeckLayer);
+      // const myDeckLayer = new MapboxLayer({
+      //     id: 'my-scatterplot',
+      //     type: ScatterplotLayer,
+      //     data: [
+      //           {position: [116, 40], size: 100},
+      //           {position: [114, 30], size: 10},
+      //     ],
+      //     getPosition: d => d.position,
+      //     getRadius: d => d.size,
+      //     getFillColor: [255, 0, 0],
+      //     getLineColor: [255, 0, 0]
+      // });
+      // this.map.addLayer(myDeckLayer);
 
-      const myGeojsonlayer = new MapboxLayer({
-        id: 'geojson-layer',
-        type: GeoJsonLayer,
-        data: geojsonData,
-        getFillColor: [160, 160, 180, 200]
-      });
-      this.map.addLayer(myGeojsonlayer);
+      // const myGeojsonlayer = new MapboxLayer({
+      //   id: 'geojson-layer',
+      //   type: GeoJsonLayer,
+      //   data: geojsonData,
+      //   getFillColor: [160, 160, 180, 200]
+      // });
+      // this.map.addLayer(myGeojsonlayer);
       
       console.log('hexagonData', hexagonData);
       const myHexagonLayer = new MapboxLayer({
@@ -70,12 +74,23 @@ export default {
         extruded: false,
         radius: 200,
         elevationScale: 4,
-        getPosition: d => d.COORDINATES
+        autoHighlight: true,
+        getPosition: d => d.COORDINATES,
+        pickable: true,
+        onHover: (e) => {
+          console.log('onHover', e);
+        },
+        onClick: (e) => {
+          console.log('onClick', e);
+        }
       });
       this.map.addLayer(myHexagonLayer);
       this.$nextTick(e => {
         this.map.setCenter([-122.42177834,37.78346622]);
       });
+
+      // addHeatMap(this.map);
+      addArcLayer(this.map);
     }
   }
 }
