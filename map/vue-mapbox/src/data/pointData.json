@@ -1,0 +1,224 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "id": "719024896",
+        "geometry": { "type": "Point", "coordinates": [-97.6475, 31.106] },
+        "geometry_name": "geom",
+        "properties": {
+          "GLOBALEVENTID": "719024896",
+          "Actor1Name": "UNITED STATES",
+          "Actor1CountryCode": "USA",
+          "Actor2Name": "SENATE",
+          "Actor2CountryCode": "",
+          "EventCode": "042",
+          "NumMentions": 2,
+          "NumSources": 1,
+          "NumArticles": 2,
+          "ActionGeo_Type": 2,
+          "ActionGeo_FullName": "Texas, United States",
+          "ActionGeo_CountryCode": "US",
+          "dtg": "2017-12-31T00:00:00.000Z"
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "719024892",
+        "geometry": { "type": "Point", "coordinates": [-82.379, 34.1782] },
+        "geometry_name": "geom",
+        "properties": {
+          "GLOBALEVENTID": "719024892",
+          "Actor1Name": "UNITED STATES",
+          "Actor1CountryCode": "USA",
+          "Actor2Name": "DEPUTY",
+          "Actor2CountryCode": "",
+          "EventCode": "010",
+          "NumMentions": 4,
+          "NumSources": 1,
+          "NumArticles": 4,
+          "ActionGeo_Type": 3,
+          "ActionGeo_FullName": "Abbeville, South Carolina, United States",
+          "ActionGeo_CountryCode": "US",
+          "dtg": "2017-12-31T00:00:00.000Z"
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "719024891",
+        "geometry": { "type": "Point", "coordinates": [-82.024, 34.1751] },
+        "geometry_name": "geom",
+        "properties": {
+          "GLOBALEVENTID": "719024891",
+          "Actor1Name": "UNITED STATES",
+          "Actor1CountryCode": "USA",
+          "Actor2Name": "",
+          "Actor2CountryCode": "",
+          "EventCode": "010",
+          "NumMentions": 2,
+          "NumSources": 1,
+          "NumArticles": 2,
+          "ActionGeo_Type": 3,
+          "ActionGeo_FullName": "Ninety Six, South Carolina, United States",
+          "ActionGeo_CountryCode": "US",
+          "dtg": "2017-12-31T00:00:00.000Z"
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "719024889",
+        "geometry": { "type": "Point", "coordinates": [-77.0364, 38.8951] },
+        "geometry_name": "geom",
+        "properties": {
+          "GLOBALEVENTID": "719024889",
+          "Actor1Name": "SENATE",
+          "Actor1CountryCode": "",
+          "Actor2Name": "UNITED STATES",
+          "Actor2CountryCode": "USA",
+          "EventCode": "043",
+          "NumMentions": 2,
+          "NumSources": 1,
+          "NumArticles": 2,
+          "ActionGeo_Type": 3,
+          "ActionGeo_FullName": "Washington, District of Columbia, United States",
+          "ActionGeo_CountryCode": "US",
+          "dtg": "2017-12-31T00:00:00.000Z"
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "719024890",
+        "geometry": { "type": "Point", "coordinates": [3.89639, 7.38778] },
+        "geometry_name": "geom",
+        "properties": {
+          "GLOBALEVENTID": "719024890",
+          "Actor1Name": "NIGERIA",
+          "Actor1CountryCode": "NGA",
+          "Actor2Name": "PRESIDENT",
+          "Actor2CountryCode": "",
+          "EventCode": "020",
+          "NumMentions": 2,
+          "NumSources": 1,
+          "NumArticles": 2,
+          "ActionGeo_Type": 4,
+          "ActionGeo_FullName": "Ibadan, Oyo, Nigeria",
+          "ActionGeo_CountryCode": "NI",
+          "dtg": "2017-12-31T00:00:00.000Z"
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "719024909",
+        "geometry": { "type": "Point", "coordinates": [144.967, -37.8167] },
+        "geometry_name": "geom",
+        "properties": {
+          "GLOBALEVENTID": "719024909",
+          "Actor1Name": "",
+          "Actor1CountryCode": "",
+          "Actor2Name": "MELBOURNE",
+          "Actor2CountryCode": "AUS",
+          "EventCode": "051",
+          "NumMentions": 10,
+          "NumSources": 1,
+          "NumArticles": 10,
+          "ActionGeo_Type": 4,
+          "ActionGeo_FullName": "Melbourne, Victoria, Australia",
+          "ActionGeo_CountryCode": "AS",
+          "dtg": "2018-01-01T00:00:00.000Z"
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "719024906",
+        "geometry": { "type": "Point", "coordinates": [151.217, -33.8833] },
+        "geometry_name": "geom",
+        "properties": {
+          "GLOBALEVENTID": "719024906",
+          "Actor1Name": "",
+          "Actor1CountryCode": "",
+          "Actor2Name": "SYDNEY",
+          "Actor2CountryCode": "AUS",
+          "EventCode": "043",
+          "NumMentions": 6,
+          "NumSources": 1,
+          "NumArticles": 6,
+          "ActionGeo_Type": 4,
+          "ActionGeo_FullName": "Sydney, New South Wales, Australia",
+          "ActionGeo_CountryCode": "AS",
+          "dtg": "2018-01-01T00:00:00.000Z"
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "719024954",
+        "geometry": { "type": "Point", "coordinates": [-104.951, 39.3333] },
+        "geometry_name": "geom",
+        "properties": {
+          "GLOBALEVENTID": "719024954",
+          "Actor1Name": "",
+          "Actor1CountryCode": "",
+          "Actor2Name": "DEPUTY",
+          "Actor2CountryCode": "",
+          "EventCode": "193",
+          "NumMentions": 1,
+          "NumSources": 1,
+          "NumArticles": 1,
+          "ActionGeo_Type": 3,
+          "ActionGeo_FullName": "Douglas County, Colorado, United States",
+          "ActionGeo_CountryCode": "US",
+          "dtg": "2018-01-01T00:00:00.000Z"
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "719024958",
+        "geometry": { "type": "Point", "coordinates": [-104.856, 39.3722] },
+        "geometry_name": "geom",
+        "properties": {
+          "GLOBALEVENTID": "719024958",
+          "Actor1Name": "",
+          "Actor1CountryCode": "",
+          "Actor2Name": "CIVILIAN",
+          "Actor2CountryCode": "",
+          "EventCode": "013",
+          "NumMentions": 18,
+          "NumSources": 9,
+          "NumArticles": 18,
+          "ActionGeo_Type": 3,
+          "ActionGeo_FullName": "Castle Rock, Colorado, United States",
+          "ActionGeo_CountryCode": "US",
+          "dtg": "2018-01-01T00:00:00.000Z"
+        }
+      },
+      {
+        "type": "Feature",
+        "id": "719024968",
+        "geometry": { "type": "Point", "coordinates": [-104.969, 39.5539] },
+        "geometry_name": "geom",
+        "properties": {
+          "GLOBALEVENTID": "719024968",
+          "Actor1Name": "",
+          "Actor1CountryCode": "",
+          "Actor2Name": "CIVILIAN",
+          "Actor2CountryCode": "",
+          "EventCode": "193",
+          "NumMentions": 1,
+          "NumSources": 1,
+          "NumArticles": 1,
+          "ActionGeo_Type": 3,
+          "ActionGeo_FullName": "Highlands Ranch, Colorado, United States",
+          "ActionGeo_CountryCode": "US",
+          "dtg": "2018-01-01T00:00:00.000Z"
+        }
+      }
+    ],
+    "totalFeatures": 0,
+    "numberMatched": 0,
+    "numberReturned": 10,
+    "timeStamp": "2019-09-11T09:33:53.167Z",
+    "crs": {
+      "type": "name",
+      "properties": { "name": "urn:ogc:def:crs:EPSG::4326" }
+    }
+  }
+  

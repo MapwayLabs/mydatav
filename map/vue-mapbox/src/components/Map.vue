@@ -16,8 +16,11 @@ import geojsonData from '../data/110100.json';
 import hexagonData from '../data/sf-bike-parking.json';
 import {GeoJsonLayer} from '@deck.gl/layers';
 import {HexagonLayer} from '@deck.gl/aggregation-layers';
+import {IconLayer} from '@deck.gl/layers';
 import addHeatMap from '../js/heatmap';
 import addArcLayer from '../js/arcmap';
+import poinData from '../data/pointData.json';
+import {PointLayer} from '../layers/index';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibGluZ2h1YW0iLCJhIjoiY2o1dWYzYzlqMDQ4OTJxbzRiZWl5OHdtcyJ9._Ae66CF7CGUIoJlVdrXjqA';
 
@@ -44,19 +47,57 @@ export default {
   },
   methods: {
     _mapLoaded() {
+       
+      this.map.addLayer(new PointLayer({
+        id: 'point-layer',
+        name: '点图层',
+        data: poinData.features,
+        isVisible: true,
+        visConfig: {}
+      }));
+
       // const myDeckLayer = new MapboxLayer({
       //     id: 'my-scatterplot',
       //     type: ScatterplotLayer,
-      //     data: [
-      //           {position: [116, 40], size: 100},
-      //           {position: [114, 30], size: 10},
-      //     ],
-      //     getPosition: d => d.position,
-      //     getRadius: d => d.size,
+      //     data: scatterData,
+      //     getPosition: d => d.coordinates,
+      //     getRadius: e => Math.sqrt(e.exits),
+      //     // getRadius: 100,
       //     getFillColor: [255, 0, 0],
       //     getLineColor: [255, 0, 0]
       // });
       // this.map.addLayer(myDeckLayer);
+      // this.$nextTick(e => {
+      //   this.map.setCenter([-122.123801,37.893394]);
+      // });
+      // const ICON_MAPPING = {
+      //   marker: {x: 0, y: 0, width: 32, height: 32, mask: true}
+      // };
+
+      // const myIconLayer = new MapboxLayer({
+      //     id: 'my-iconLayer',
+      //     type: IconLayer,
+      //     data: scatterData,
+      //     // iconAtlas: './icon-atlas.png',
+      //     // iconMapping: ICON_MAPPING,
+      //     pickable: true,
+      //     autoHighlight: true,
+      //     sizeScale: 15,
+      //     getSize: d => 1,
+      //     getIcon: d => ({
+      //       url: './water.svg',
+      //       width: 256,
+      //       height: 256,
+      //       anchorY: 0
+      //     }),
+      //     // getColor: d => [Math.sqrt(d.exits), 140, 0],
+      //     getColor: d => [0, 255, 0],
+      //     getPosition: d => d.coordinates
+      // });
+      // this.map.addLayer(myIconLayer);
+      // this.$nextTick(e => {
+      //   this.map.setCenter([-122.123801,37.893394]);
+      // });
 
       // const myGeojsonlayer = new MapboxLayer({
       //   id: 'geojson-layer',
@@ -66,31 +107,32 @@ export default {
       // });
       // this.map.addLayer(myGeojsonlayer);
       
-      console.log('hexagonData', hexagonData);
-      const myHexagonLayer = new MapboxLayer({
-        id: 'hexagon-layer',
-        type: HexagonLayer,
-        data: hexagonData,
-        extruded: false,
-        radius: 200,
-        elevationScale: 4,
-        autoHighlight: true,
-        getPosition: d => d.COORDINATES,
-        pickable: true,
-        onHover: (e) => {
-          console.log('onHover', e);
-        },
-        onClick: (e) => {
-          console.log('onClick', e);
-        }
-      });
-      this.map.addLayer(myHexagonLayer);
-      this.$nextTick(e => {
-        this.map.setCenter([-122.42177834,37.78346622]);
-      });
+      // console.log('hexagonData', hexagonData);
+      // const myHexagonLayer = new MapboxLayer({
+      //   id: 'hexagon-layer',
+      //   type: HexagonLayer,
+      //   data: hexagonData,
+      //   extruded: false,
+      //   radius: 200,
+      //   elevationScale: 4,
+      //   autoHighlight: true,
+      //   getPosition: d => d.COORDINATES,
+      //   pickable: true,
+      //   // onHover: (e) => {
+      //   //   console.log('onHover', e);
+      //   // },
+      //   // onClick: (e) => {
+      //   //   console.log('onClick', e);
+      //   // }
+      // });
+      // this.map.addLayer(myHexagonLayer);
+      // myHexagonLayer.implementation.setProps({extruded:true});
+      // this.$nextTick(e => {
+      //   this.map.setCenter([-122.42177834,37.78346622]);
+      // });
 
       // addHeatMap(this.map);
-      addArcLayer(this.map);
+      // addArcLayer(this.map);
     }
   }
 }
