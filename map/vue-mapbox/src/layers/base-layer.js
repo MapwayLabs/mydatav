@@ -1,4 +1,6 @@
-import { SCALE_TYPES } from './config';
+import { SCALE_FUNC } from './config';
+import { onWebGLInitialized } from './gl-utils';
+import _ from 'lodash';
 
 export default class BaseLayer {
 
@@ -10,12 +12,13 @@ export default class BaseLayer {
         this.layerType = 'unKnown';
         this.map = null;
         this.data = props.data || null;
-        this.props = props;
+        // this.props = props;
         this.config = this.getDefaultLayerConfig(props);
     }
 
     onAdd(map, gl) {
         this.map = map;
+        onWebGLInitialized(gl);
     }
 
     onRemove() {}
@@ -24,22 +27,55 @@ export default class BaseLayer {
 
     render(gl, matrix) {}
 
-    getDefaultLayerConfig(props = {}) {
-        return {
-            id: props.id || null,
-            name: props.name || '新图层',
-            isVisible: props.isVisible || false,
-            highlightColor: props.highlightColor || [252, 242, 26, 255],
+    setProps(props) {
+        console.log('oldProps', this.config);
+        this.data = props.data || this.data;
+        _.merge(this.config, props);
+        console.log('newProps', this.config);
+    }
 
-            // colorField: null,
-            // colorDomain: [0, 1],
-            // colorScale: SCALE_TYPES.quantile,
-            
-            // sizeField: null,
-            // sizeDomain: [0, 1],
-            // sizeScale: SCALE_TYPES.linear,
-            
-            visConfig: {}
-        };
+    getDefaultLayerConfig(props = {}) {
+      return _.merge({
+        id: null,
+        name: '新图层',
+        visConfig:{
+            isVisible: true
+        },
+        interactionConfig: {
+          tooltip: {
+              id: 'tooltip',
+              enabled: false,
+              config: {}
+          },
+          brush: {
+              id: 'brush',
+              enabled: false,
+              config: {
+                  size: .5
+              }
+          },
+          coordinate: {
+              id: 'coordinate',
+              enabled: false,
+              position: null
+          }
+        }
+      }, props);
+    }
+
+    getRadiusScaleByZoom(mapState, fixedRadius) {
+      const fixed = fixedRadius === undefined ? this.config.visConfig.fixedRadius : fixedRadius;
+      const {radius} = this.config.visConfig;
+      return fixed ? 1 : (this.config.visConfig['sizeField'] ? 1 : radius) * this.getZoomFactor(mapState);
+    }
+
+    getZoomFactor({zoom, zoomOffset = 0}) {
+        return Math.pow(2, Math.max(14 - zoom + zoomOffset, 0));
+    }
+
+    getVisChannelScale(scale, domain, range, fixed) {
+      return SCALE_FUNC[fixed ? 'linear' : scale]()
+        .domain(domain)
+        .range(fixed ? domain : range);
     }
 }

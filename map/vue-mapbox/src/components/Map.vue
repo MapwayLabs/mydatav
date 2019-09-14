@@ -125,18 +125,31 @@ export default {
         name: '点图层',
         // data: poinData.features,
         data: scatterData.map(e => ({type: 'Feature', 'properties': {weight:Math.sqrt(e.exits)}, geometry:{type:'Point',coordinates: e.coordinates}})),
-        isVisible: true,
         visConfig: {
-          pointType: 'bubble',
-          iconType: 'vector',
-          fillType: 'mutiple',
-          fillColor: ['#f00', '#0f0', '#00f', '#ff0'],
-          // fillColor: '#f00',
-          radiusScale: 1,
-          radius: 1,
-          minRadius: 1,
-          maxRadius: 100,
-          sizeField: 'weight'
+          pointType: 'scatter', // 'scatter' or 'bubble'  点类型：散点或气泡类型
+          iconType: 'vector', //  'vector' or 'icon' 图标类型：矢量或图标
+          iconName: 'airport-11', // 图标名称
+          filled: true, // 是否填充
+          fillType: 'mutiple', // 'single' or mutiple 填充类型：单色或多色
+          fillColorField: 'weight', // 填充颜色字段名
+          fillColor: ["#5A1846", "#900C3F", "#C70039", "#E3611C", "#F1920E", "#FFC300"],
+          // fillColor: '#f00', // 填充颜色
+          opacity: 1, // 图层透明度
+          highlightColor: 'rgba(0, 0, 128, 128)',
+          stroked: true, // 是否描边
+          strokeColor: '#0f0', // 轮廓颜色
+          strokeWidth: 1, // 轮廓宽度
+          radius:50, // 尺寸
+          sizeField: 'weight', // 尺寸基于字段名
+          minRadius: 10, // 最小半径
+          maxRadius: 100, /// 最大半径,
+          fixedRadius: false, // 半径是否固定为米
+          autoHighlight: true,
+        },
+        interactionConfig: {
+          pickable: true,
+          highlightColor: '#f00',
+          autoHighlight: true
         }
       }));
       this.$nextTick(e => {

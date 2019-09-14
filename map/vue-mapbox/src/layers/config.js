@@ -1,12 +1,12 @@
 import keymirror from 'keymirror';
 import {
-    scaleLinear,
-    scaleQuantize,
-    scaleQuantile,
-    scaleOrdinal,
-    scaleSqrt,
-    scaleLog,
-    scalePoint
+  scaleLinear,
+  scaleQuantize,
+  scaleQuantile,
+  scaleOrdinal,
+  scaleSqrt,
+  scaleLog,
+  scalePoint
 } from 'd3-scale';
 
 export const SCALE_TYPES = keymirror({
