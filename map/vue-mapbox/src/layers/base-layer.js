@@ -14,6 +14,7 @@ export default class BaseLayer {
         this.data = props.data || null;
         // this.props = props;
         this.config = this.getDefaultLayerConfig(props);
+        this.needUpdate = false;
     }
 
     onAdd(map, gl) {
@@ -32,6 +33,19 @@ export default class BaseLayer {
         this.data = props.data || this.data;
         _.merge(this.config, props);
         console.log('newProps', this.config);
+        this.needUpdate = true;
+    }
+
+    getMapState() {
+      return {
+        zoom: this.map.getZoom(),
+        minZoom: this.map.getMinZoom(),
+        maxZoom: this.map.getMaxZoom(),
+        pitch: this.map.getPitch(),
+        bearing: this.map.getBearing(),
+        latitude: this.map.getCenter()[1],
+        longitude: this.map.getCenter()[0]
+      };
     }
 
     getDefaultLayerConfig(props = {}) {
@@ -39,7 +53,9 @@ export default class BaseLayer {
         id: null,
         name: '新图层',
         visConfig:{
-            isVisible: true
+            isVisible: true,
+            fixedRadius: false,
+            sizeField: null
         },
         interactionConfig: {
           tooltip: {

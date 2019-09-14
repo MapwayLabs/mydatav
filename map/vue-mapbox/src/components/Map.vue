@@ -127,7 +127,7 @@ export default {
         data: scatterData.map(e => ({type: 'Feature', 'properties': {weight:Math.sqrt(e.exits)}, geometry:{type:'Point',coordinates: e.coordinates}})),
         visConfig: {
           pointType: 'scatter', // 'scatter' or 'bubble'  点类型：散点或气泡类型
-          iconType: 'vector', //  'vector' or 'icon' 图标类型：矢量或图标
+          iconType: 'icon', //  'vector' or 'icon' 图标类型：矢量或图标
           iconName: 'airport-11', // 图标名称
           filled: true, // 是否填充
           fillType: 'mutiple', // 'single' or mutiple 填充类型：单色或多色
@@ -135,7 +135,6 @@ export default {
           fillColor: ["#5A1846", "#900C3F", "#C70039", "#E3611C", "#F1920E", "#FFC300"],
           // fillColor: '#f00', // 填充颜色
           opacity: 1, // 图层透明度
-          highlightColor: 'rgba(0, 0, 128, 128)',
           stroked: true, // 是否描边
           strokeColor: '#0f0', // 轮廓颜色
           strokeWidth: 1, // 轮廓宽度

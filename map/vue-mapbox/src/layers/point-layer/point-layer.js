@@ -1,9 +1,11 @@
 import BaseLayer from '../base-layer';
 import { MapboxLayer } from '@deck.gl/mapbox';
 import ScatterplotBrushingLayer from '../deckgl-layers/scatterplot-brushing-layer/scatterplot-brushing-layer';
+import { IconLayer } from '@deck.gl/layers';
 import { SCALE_TYPES } from '../config';
 import * as d3Color from 'd3-color';
 import _ from 'lodash';
+import IconMapping from './sprite.json';
 
 function getColorArray(color) {
   const dColor = d3Color.color(color);
@@ -28,39 +30,38 @@ export default class PointLayer extends BaseLayer {
 
     onAdd(map, gl) {
       super.onAdd(map, gl);
-      if (this.config.visConfig.pointType === 'scatter' 
-         && this.config.visConfig.iconType === 'icon') {
-          const sourceId = `${this.id}-${this.config.visConfig.pointType}-${this.config.visConfig.iconType}-source`;
-          this.map.addSource(sourceId, {
-            type: 'geojson',
-            data: {type:'FeatureCollection', features: this.data} 
-          });
-          this.map.addLayer({
-            id: `${this.id}-${this.config.visConfig.pointType}-${this.config.visConfig.iconType}`,
-            type: 'symbol',
-            source: sourceId,
-            layout: {
-              'visibility': this.config.isVisible ? 'visible' : 'none',
-              'icon-size': this.config.visConfig.radius,
-              'icon-image': this.config.visConfig.iconName,
-            },
-            paint: {
-              'icon-opacity': this.config.visConfig.opacity
-            }
-          });
-      } else {
-        const scatterLayer = window.scatterLayer = new MapboxLayer(this.getDeckProps());
-        this.map.addLayer(scatterLayer);
+      this._deckLayer = this.createLayer();
+      if (this._deckLayer) {
+        this.map.addLayer(this._deckLayer);
       }
     }
 
     onRemove() {}
 
     render() {
-      if (window.scatterLayer) {
-        const options = this.getDeckProps();
-        delete options.id;
-        window.scatterLayer.setProps(options);
+      if (this.needUpdate) {
+        const deckLayer = this.createLayer();
+        if (this.map.getLayer(deckLayer.id)) {
+          if (this.config.visConfig.pointType === 'scatter' 
+          && this.config.visConfig.iconType === 'icon') {
+            this._deckLayer.setProps(this.getIconLayerProps());
+          } else {
+            this._deckLayer.setProps(this.getScatterLayerProps());
+          } 
+        } else {
+          this.map.addLayer(deckLayer);
+          this._deckLayer = deckLayer;
+        }
+      }
+      this.needUpdate = false;
+    }
+
+    createLayer() {
+      if (this.config.visConfig.pointType === 'scatter' 
+         && this.config.visConfig.iconType === 'icon') {
+          return new MapboxLayer(this.getIconLayerProps());
+      } else {
+        return new MapboxLayer(this.getScatterLayerProps());
       }
     }
 
@@ -98,19 +99,7 @@ export default class PointLayer extends BaseLayer {
       }, super.getDefaultLayerConfig(props));
     }
 
-    getMapState() {
-      return {
-        zoom: this.map.getZoom(),
-        minZoom: this.map.getMinZoom(),
-        maxZoom: this.map.getMaxZoom(),
-        pitch: this.map.getPitch(),
-        bearing: this.map.getBearing(),
-        latitude: this.map.getCenter()[1],
-        longitude: this.map.getCenter()[0]
-      };
-    }
-
-    getDeckProps() {
+    getScatterLayerProps() {
       const interactionConfig = this.config.interactionConfig;
       const visConfig = this.config.visConfig;
       const enableBrushing = interactionConfig.brush.enabled;
@@ -137,7 +126,6 @@ export default class PointLayer extends BaseLayer {
       const dataAccessors = {
         getPosition: d => d.geometry.coordinates,
         getRadius: this.getRadius(),
-        getColor: [0, 0, 0, 255],
         getFillColor: this.getFillColor(),
         getLineColor: this.getLineColor(),
         getLineWith: this.getLineWidth()
@@ -146,6 +134,49 @@ export default class PointLayer extends BaseLayer {
       return {
         id: `${this.id}-scatter`,
         type: ScatterplotBrushingLayer,
+        data: this.data,
+        ...layerProps,
+        ...interaction,
+        ...dataAccessors
+      };
+    }
+
+    getIconLayerProps() {
+      const interactionConfig = this.config.interactionConfig;
+      const visConfig = this.config.visConfig;
+      const radiusScale = this.getRadiusScaleByZoom(this.getMapState());
+
+      const layerProps = {
+        opacity: visConfig.opacity,
+        iconAtlas: './sprite.png',
+        iconMapping: IconMapping,
+        sizeScale: radiusScale,
+        sizeUnits: 'pixels',
+        sizeMinPixels: 0,
+        sizeMaxPixels: 500
+      };
+
+      const interaction = {
+        pickable: interactionConfig.pickable,
+        highlightColor: getColorArray(interactionConfig.highlightColor),
+        autoHighlight: interactionConfig.autoHighlight
+      };
+
+      const dataAccessors = {
+        getIcon: d => visConfig.iconName,
+        // 方法二：通过文件路径引入图标
+        // getIcon: d => ({
+        //   url: './water.svg',
+        //   width: 128,
+        //   height: 128,
+        //   anchorY: 128
+        // }),
+        getPosition: d => d.geometry.coordinates
+      };
+
+      return {
+        id: `${this.id}-scatter`,
+        type: IconLayer,
         data: this.data,
         ...layerProps,
         ...interaction,
