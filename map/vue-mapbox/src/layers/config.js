@@ -31,4 +31,24 @@ export const SCALE_FUNC = {
     [SCALE_TYPES.point]: scalePoint
 };
 
-
+export const LAYER_BLENDINGS = {
+    additive: {
+      blendFunc: ['SRC_ALPHA', 'DST_ALPHA'],
+      blendEquation: 'FUNC_ADD'
+    },
+    normal: {
+      // reference to
+      // https://limnu.com/webgl-blending-youre-probably-wrong/
+      blendFunc: [
+        'SRC_ALPHA',
+        'ONE_MINUS_SRC_ALPHA',
+        'ONE',
+        'ONE_MINUS_SRC_ALPHA'
+      ],
+      blendEquation: ['FUNC_ADD', 'FUNC_ADD']
+    },
+    subtractive: {
+      blendFunc: ['ONE', 'ONE_MINUS_DST_COLOR', 'SRC_ALPHA', 'DST_ALPHA'],
+      blendEquation: ['FUNC_SUBTRACT', 'FUNC_ADD']
+    }
+  };

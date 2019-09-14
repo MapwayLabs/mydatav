@@ -1,6 +1,7 @@
 <template>
-  <div class="map">
+  <div class="map-container">
     <div id="map"></div>
+    <!-- <canvas id="deck-canvas"></canvas> -->
   </div>
 </template>
 
@@ -9,130 +10,138 @@
 import vue from 'vue';
 import '../../node_modules/mapbox-gl/dist/mapbox-gl.css';
 import mapboxgl from '../../node_modules/mapbox-gl/dist/mapbox-gl-unminified';
-import {MapboxLayer} from '@deck.gl/mapbox';
-import {ScatterplotLayer} from '@deck.gl/layers';
+import {Deck} from '@deck.gl/core';
+// import {GeoJsonLayer, ArcLayer} from '@deck.gl/layers';
+import ScatterplotBrushingLayer from '../layers/deckgl-layers/scatterplot-brushing-layer/scatterplot-brushing-layer';
+import {onWebGLInitialized} from '../layers/gl-utils';
+
 import scatterData from '../data/bart-stations.json';
-import geojsonData from '../data/110100.json';
-import hexagonData from '../data/sf-bike-parking.json';
-import {GeoJsonLayer} from '@deck.gl/layers';
-import {HexagonLayer} from '@deck.gl/aggregation-layers';
-import {IconLayer} from '@deck.gl/layers';
-import addHeatMap from '../js/heatmap';
-import addArcLayer from '../js/arcmap';
 import poinData from '../data/pointData.json';
 import {PointLayer} from '../layers/index';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibGluZ2h1YW0iLCJhIjoiY2o1dWYzYzlqMDQ4OTJxbzRiZWl5OHdtcyJ9._Ae66CF7CGUIoJlVdrXjqA';
 
 export default {
-  name: 'Map',
   mounted() {
-    vue.$mapboxgl = mapboxgl;
-    this.map = vue.$map = new mapboxgl.Map({
-        container: 'map', // container id
-        style: 'mapbox://styles/mapbox/streets-v11', // stylesheet location
-        // style: 'mapbox://styles/linghuam/cjxlossd012rv1ckcsbpsvrp1',
-        center: [116, 40], // starting position [lng, lat]
-        zoom: 6, // starting zoom,
-        bearing: 0, // 方位角，以正北方的逆时针转动度数计量。
-        pitch: 0, // 地图的初始倾斜度，按偏离屏幕水平面的度数计量（0-60）。
-        renderWorldCopies: false,
-        attributionControl: false,
-        preserveDrawingBuffer: true, // 如果为  true ，即可使用  map.getCanvas().toDataURL() 将地图画布输出到 PNG。
-        trackResize: true,
-        antialias: true
-    });
-
-    this.map.on('load', this._mapLoaded);
+    this._initMap();
   },
   methods: {
+
+    _initMap() {
+      this.map = window.map = new mapboxgl.Map({
+          container: 'map',
+          // style: 'mapbox://styles/mapbox/streets-v11', 
+          style: 'mapbox://styles/linghuam/cjxlossd012rv1ckcsbpsvrp1',
+          center: [116, 40],
+          zoom: 8,
+          bearing: 0,
+          pitch: 0,
+          renderWorldCopies: false,
+          antialias: true
+      });
+      this.map.on('load', this._mapLoaded);
+    },
+
     _mapLoaded() {
-       
+      this.addScatterLayer();
+      // this.addDeckLayr();
+    },
+
+    addDeckLayr() {
+      const INITIAL_VIEW_STATE = {
+        latitude: 40,
+        longitude: 116,
+        zoom: 8,
+        bearing: 0,
+        pitch: 0
+      };
+      const deck = new Deck({
+        canvas: 'deck-canvas',
+        width: '100%',
+        height: '100%',
+        initialViewState: INITIAL_VIEW_STATE,
+        controller: true,
+        onWebGLInitialized: onWebGLInitialized,
+        onViewStateChange: ({viewState}) => {
+          map.jumpTo({
+            center: [viewState.longitude, viewState.latitude],
+            zoom: viewState.zoom,
+            bearing: viewState.bearing,
+            pitch: viewState.pitch
+          });
+        },
+        layers: [
+          new ScatterplotBrushingLayer({
+            id: 'scatterlayer',
+            data: scatterData,
+            pickable: true,
+            opacity: 0.8,
+            stroked: true,
+            filled: true,
+            radiusScale: 6,
+            radiusMinPixels: 50,
+            radiusMaxPixels: 100,
+            lineWidthMinPixels: 1,
+            getPosition: d => d.coordinates,
+            getRadius: d => Math.sqrt(d.exits),
+            getFillColor: d => [255, 140, 0],
+            getLineColor: d => [0, 0, 0],
+          }),
+          // new GeoJsonLayer({
+          //   id: 'airports',
+          //   data: AIR_PORTS,
+          //   // Styles
+          //   filled: true,
+          //   pointRadiusMinPixels: 2,
+          //   opacity: 1,
+          //   pointRadiusScale: 2000,
+          //   getRadius: f => 11 - f.properties.scalerank,
+          //   getFillColor: [200, 0, 80, 180],
+          //   // Interactive props
+          //   pickable: true,
+          //   autoHighlight: true,
+          //   onClick: info =>
+          //     // eslint-disable-next-line
+          //     info.object && alert(`${info.object.properties.name} ($      {info.object.properties.abbrev})`)
+          // }),
+          // new ArcLayer({
+          //   id: 'arcs',
+          //   data: AIR_PORTS,
+          //   dataTransform: d => d.features.filter(f => f.properties.scalerank < 4),
+          //   // Styles
+          //   getSourcePosition: f => [-0.4531566, 51.4709959], // London
+          //   getTargetPosition: f => f.geometry.coordinates,
+          //   getSourceColor: [0, 128, 200],
+          //   getTargetColor: [200, 0, 80],
+          //   getWidth: 1
+          // })
+        ]
+      });
+    },
+
+    addScatterLayer() {
       this.map.addLayer(new PointLayer({
         id: 'point-layer',
         name: '点图层',
-        data: poinData.features,
+        // data: poinData.features,
+        data: scatterData.map(e => ({type: 'Feature', 'properties': {weight:Math.sqrt(e.exits)}, geometry:{type:'Point',coordinates: e.coordinates}})),
         isVisible: true,
-        visConfig: {}
+        visConfig: {
+          pointType: 'bubble',
+          iconType: 'vector',
+          fillType: 'mutiple',
+          fillColor: ['#f00', '#0f0', '#00f', '#ff0'],
+          // fillColor: '#f00',
+          radiusScale: 1,
+          radius: 1,
+          minRadius: 1,
+          maxRadius: 100,
+          sizeField: 'weight'
+        }
       }));
-
-      // const myDeckLayer = new MapboxLayer({
-      //     id: 'my-scatterplot',
-      //     type: ScatterplotLayer,
-      //     data: scatterData,
-      //     getPosition: d => d.coordinates,
-      //     getRadius: e => Math.sqrt(e.exits),
-      //     // getRadius: 100,
-      //     getFillColor: [255, 0, 0],
-      //     getLineColor: [255, 0, 0]
-      // });
-      // this.map.addLayer(myDeckLayer);
-      // this.$nextTick(e => {
-      //   this.map.setCenter([-122.123801,37.893394]);
-      // });
-      // const ICON_MAPPING = {
-      //   marker: {x: 0, y: 0, width: 32, height: 32, mask: true}
-      // };
-
-      // const myIconLayer = new MapboxLayer({
-      //     id: 'my-iconLayer',
-      //     type: IconLayer,
-      //     data: scatterData,
-      //     // iconAtlas: './icon-atlas.png',
-      //     // iconMapping: ICON_MAPPING,
-      //     pickable: true,
-      //     autoHighlight: true,
-      //     sizeScale: 15,
-      //     getSize: d => 1,
-      //     getIcon: d => ({
-      //       url: './water.svg',
-      //       width: 256,
-      //       height: 256,
-      //       anchorY: 0
-      //     }),
-      //     // getColor: d => [Math.sqrt(d.exits), 140, 0],
-      //     getColor: d => [0, 255, 0],
-      //     getPosition: d => d.coordinates
-      // });
-      // this.map.addLayer(myIconLayer);
-      // this.$nextTick(e => {
-      //   this.map.setCenter([-122.123801,37.893394]);
-      // });
-
-      // const myGeojsonlayer = new MapboxLayer({
-      //   id: 'geojson-layer',
-      //   type: GeoJsonLayer,
-      //   data: geojsonData,
-      //   getFillColor: [160, 160, 180, 200]
-      // });
-      // this.map.addLayer(myGeojsonlayer);
-      
-      // console.log('hexagonData', hexagonData);
-      // const myHexagonLayer = new MapboxLayer({
-      //   id: 'hexagon-layer',
-      //   type: HexagonLayer,
-      //   data: hexagonData,
-      //   extruded: false,
-      //   radius: 200,
-      //   elevationScale: 4,
-      //   autoHighlight: true,
-      //   getPosition: d => d.COORDINATES,
-      //   pickable: true,
-      //   // onHover: (e) => {
-      //   //   console.log('onHover', e);
-      //   // },
-      //   // onClick: (e) => {
-      //   //   console.log('onClick', e);
-      //   // }
-      // });
-      // this.map.addLayer(myHexagonLayer);
-      // myHexagonLayer.implementation.setProps({extruded:true});
-      // this.$nextTick(e => {
-      //   this.map.setCenter([-122.42177834,37.78346622]);
-      // });
-
-      // addHeatMap(this.map);
-      // addArcLayer(this.map);
+      this.$nextTick(e => {
+        this.map.setCenter([-122.123801,37.893394]);
+      });
     }
   }
 }
@@ -140,13 +149,18 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
-#map {
-  position:absolute;
+.map-container {
+  position: fixed;
   top: 0;
-  bottom: 0;
   left: 0;
+  bottom: 0;
   right: 0;
+}
+.map-container * {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
-  padding: 0;
+  height: 100%;
 }
 </style>

@@ -1,6 +1,8 @@
 import BaseLayer from '../base-layer';
 import { MapboxLayer } from '@deck.gl/mapbox';
-import { ScatterplotLayer } from '@deck.gl/layers';
+// import { ScatterplotLayer } from '@deck.gl/layers';
+import ScatterplotBrushingLayer from '../deckgl-layers/scatterplot-brushing-layer/scatterplot-brushing-layer';
+import {onWebGLInitialized} from '../gl-utils';
 import { SCALE_TYPES, SCALE_FUNC } from '../config';
 import * as d3Color from 'd3-color';
 
@@ -27,12 +29,13 @@ export default class PointLayer extends BaseLayer {
 
     onAdd(map, gl) {
       super.onAdd(map, gl);
+      onWebGLInitialized(gl);
       if (this.config.visConfig.pointType === 'scatter' 
          && this.config.visConfig.iconType === 'icon') {
           const sourceId = `${this.id}-${this.config.visConfig.pointType}-${this.config.visConfig.iconType}-source`;
           this.map.addSource(sourceId, {
             type: 'geojson',
-            data: this.data
+            data: {type:'FeatureCollection', features: this.data} 
           });
           this.map.addLayer({
             id: `${this.id}-${this.config.visConfig.pointType}-${this.config.visConfig.iconType}`,
@@ -50,17 +53,29 @@ export default class PointLayer extends BaseLayer {
       } else {
         const options = {
           id: `${this.id}-${this.config.visConfig.pointType}-${this.config.visConfig.iconType}`,
-          type: ScatterplotLayer,
+          // type: ScatterplotLayer,
+          type: ScatterplotBrushingLayer,
           data: this.data,
           visible: this.config.isVisible,
           opacity: this.config.visConfig.opacity,
+          
+          radiusScale: 1,
+          lineWidthUnits: 'pixels',
+          lineWidthScale: 1,
           stroked: !!this.config.visConfig.strokeColor,
-          getLineColor: this.getLineColor(),
-          getLineWidth: this.getLineWidth(),
           filled: !!this.config.visConfig.fillColor,
-          getFillColor: this.getFillColor(),
+          // radiusMinPixels: 1,
+          // radiusMaxPixels: 100,
+          lineWidthMinPixels: 0,
+          lineWidthMaxPixels: 100,
+          brushRadius: 10,
+          outsideBrushRadius: 10,
+
           getPosition: d => d.geometry.coordinates,
-          getRadius: this.getRadius()
+          // getRadius: this.getRadius(),
+          getFillColor: this.getFillColor(), 
+          getLineColor: this.getLineColor(),
+          getLineWidth: this.getLineWidth()
         };
         const scatterLayer = new MapboxLayer(options);
         this.map.addLayer(scatterLayer);
@@ -79,17 +94,17 @@ export default class PointLayer extends BaseLayer {
         return getColorArray(config.visConfig.fillColor);
       } else {
         if (config.visConfig.fillColorField) {
-          const g = generateColor(config.visConfig.fillColor);
-          return d => getColorArray(g.next().value);
-        } else {
           const minMax = this.getFieldMinMaxValue(config.visConfig.fillColorField);
           const scaleFunction = SCALE_FUNC.quantize;
           const colors = config.visConfig.fillColor;
           const scale = scaleFunction().domain([0,1]).range(colors);
           return d => {
-            const ratio = d[config.visConfig.fillColorField] / minMax[1];
+            const ratio = d['properties'][config.visConfig.fillColorField] / minMax[1];
             return getColorArray(scale(ratio));
           } 
+        } else {
+          const g = generateColor(config.visConfig.fillColor);
+          return d => getColorArray(g.next().value);
         }
       }
     }
@@ -123,8 +138,9 @@ export default class PointLayer extends BaseLayer {
         const radius = [config.visConfig.minRadius, config.visConfig.maxRadius];
         const scale = scaleFunction().domain([0,1]).range(radius);
         return d => {
-          const ratio = d[config.visConfig.sizeField] / minMax[1];
-          return scale(ratio);
+          // const ratio = d['properties'][config.visConfig.sizeField] / minMax[1];
+          // return scale(ratio);
+          return d['properties'][config.visConfig.sizeField];
         };
       }
       return config.visConfig.radius;
