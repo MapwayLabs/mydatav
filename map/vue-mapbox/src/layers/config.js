@@ -1,4 +1,4 @@
-import keymirror from 'keymirror';
+import keyMirror from 'keymirror';
 import {
   scaleLinear,
   scaleQuantize,
@@ -9,7 +9,7 @@ import {
   scalePoint
 } from 'd3-scale';
 
-export const SCALE_TYPES = keymirror({
+export const SCALE_TYPES = keyMirror({
     ordinal: null,
     quantile: null,
     quantize: null,
@@ -52,3 +52,14 @@ export const LAYER_BLENDINGS = {
       blendEquation: ['FUNC_SUBTRACT', 'FUNC_ADD']
     }
   };
+
+  export const ALL_FIELD_TYPES = keyMirror({
+    boolean: null,
+    date: null,
+    geojson: null,
+    integer: null,
+    real: null,
+    string: null,
+    timestamp: null,
+    point: null
+  });

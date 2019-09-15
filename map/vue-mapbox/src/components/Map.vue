@@ -15,9 +15,10 @@ import {Deck} from '@deck.gl/core';
 import ScatterplotBrushingLayer from '../layers/deckgl-layers/scatterplot-brushing-layer/scatterplot-brushing-layer';
 import {onWebGLInitialized} from '../layers/gl-utils';
 import ToolTip from '../layers/tooltip';
+import { SCALE_TYPES } from '../layers/config';
 
 import scatterData from '../data/bart-stations.json';
-import poinData from '../data/pointData.json';
+import poinData from '../data/sample-geojson-points.json';
 import {PointLayer} from '../layers/index';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibGluZ2h1YW0iLCJhIjoiY2o1dWYzYzlqMDQ4OTJxbzRiZWl5OHdtcyJ9._Ae66CF7CGUIoJlVdrXjqA';
@@ -33,8 +34,9 @@ export default {
           container: 'map',
           // style: 'mapbox://styles/mapbox/streets-v11', 
           style: 'mapbox://styles/linghuam/cjxlossd012rv1ckcsbpsvrp1',
-          center: [116, 40],
-          zoom: 8,
+          // center: [116, 40],
+          center: [-122.30032769568463, 37.75408115730713],
+          zoom: 9.263890518361467,
           bearing: 0,
           pitch: 0,
           renderWorldCopies: false,
@@ -125,25 +127,74 @@ export default {
       const pointLayer = window.pointLayer = new PointLayer({
         id: 'point-layer',
         name: '点图层',
-        // data: poinData.features,
-        data: scatterData.map(e => ({type: 'Feature', 'properties': {weight:Math.sqrt(e.exits)}, geometry:{type:'Point',coordinates: e.coordinates}})),
+        data: poinData.features.map(f => {
+          f.properties.exits = Number(f.properties.exits);
+          return f;
+        }),
+        // data: scatterData.map(e => ({type: 'Feature', 'properties': {weight:Math.sqrt(e.exits)}, geometry:{type:'Point',coordinates: e.coordinates}})),
+        visConfig: {
+          pointType: 'bubble', // 'scatter' or 'bubble'  点类型：散点或气泡类型
+          iconType: 'vector', //  'vector' or 'icon' 图标类型：矢量或图标
+          iconName: 'airport-11', // 图标名称
+          filled: true, // 是否填充
+          fillType: 'single', // 'single' or mutiple 填充类型：单色或多色
+          fillColorField: 'exits', // 填充颜色字段名
+          // fillColor: ["#5A1846", "#900C3F", "#C70039", "#E3611C", "#F1920E", "#FFC300"],
+          fillColor: '#f00', // 填充颜色
+          opacity: 0.8, // 图层透明度
+          stroked: false, // 是否描边
+          strokeColor: '#0f0', // 轮廓颜色
+          strokeWidth: 1, // 轮廓宽度
+          radius:17.3, // 尺寸
+          sizeField: 'exits', // 尺寸基于字段名
+          sizeScale: SCALE_TYPES.sqrt,
+          sizeRange: [0, 51.5],
+          // minRadius: 0, // 最小半径
+          // maxRadius: 10.4, /// 最大半径,
+          fixedRadius: false, // 半径是否固定为米
+        },
+        interactionConfig: {
+          pickable: true,
+          highlightColor: '#f00',
+          autoHighlight: true,          
+          tooltip: {
+              id: 'tooltip',
+              enabled: true,
+              config: {
+                style: 'font-size:12px;', // css样式
+                triggerType: 'hover', // 触发方式， 'hover' or 'click'
+                displayField: [{name:'weight'}], //显示字段，对象数组 [{name: '字段名', type:'字段类型', ... }]
+              }
+          }
+        }
+      });
+      const pointLayer2 = window.pointLayer = new PointLayer({
+        id: 'point-layer2',
+        name: '点图层2',
+        data: poinData.features.map(f => {
+          f.properties.exits = Number(f.properties.exits);
+          return f;
+        }),
+        // data: scatterData.map(e => ({type: 'Feature', 'properties': {weight:Math.sqrt(e.exits)}, geometry:{type:'Point',coordinates: e.coordinates}})),
         visConfig: {
           pointType: 'bubble', // 'scatter' or 'bubble'  点类型：散点或气泡类型
           iconType: 'vector', //  'vector' or 'icon' 图标类型：矢量或图标
           iconName: 'airport-11', // 图标名称
           filled: true, // 是否填充
           fillType: 'mutiple', // 'single' or mutiple 填充类型：单色或多色
-          fillColorField: 'weight', // 填充颜色字段名
+          fillColorField: 'exits', // 填充颜色字段名
           fillColor: ["#5A1846", "#900C3F", "#C70039", "#E3611C", "#F1920E", "#FFC300"],
           // fillColor: '#f00', // 填充颜色
-          opacity: 1, // 图层透明度
-          stroked: true, // 是否描边
+          opacity: 0.6, // 图层透明度
+          stroked: false, // 是否描边
           strokeColor: '#0f0', // 轮廓颜色
           strokeWidth: 1, // 轮廓宽度
-          radius:10, // 尺寸
-          sizeField: 'weight', // 尺寸基于字段名
-          minRadius: 1, // 最小半径
-          maxRadius: 100, /// 最大半径,
+          radius:17.3, // 尺寸
+          sizeField: 'exits', // 尺寸基于字段名
+          sizeScale: SCALE_TYPES.sqrt,
+          sizeRange: [0, 21.5],
+          // minRadius: 0, // 最小半径
+          // maxRadius: 10.4, /// 最大半径,
           fixedRadius: false, // 半径是否固定为米
         },
         interactionConfig: {
@@ -162,9 +213,10 @@ export default {
         }
       });
       this.map.addLayer(pointLayer);
-      this.$nextTick(e => {
-        this.map.setCenter([-122.123801,37.893394]);
-      });
+      this.map.addLayer(pointLayer2);
+      // this.$nextTick(e => {
+      //   this.map.setCenter([-122.123801,37.893394]);
+      // });
     }
   }
 }

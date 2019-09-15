@@ -6,6 +6,7 @@ import { SCALE_TYPES } from '../config';
 import * as d3Color from 'd3-color';
 import _ from 'lodash';
 import IconMapping from './sprite.json';
+import { ALL_FIELD_TYPES } from '../config';
 
 function getColorArray(color) {
   const dColor = d3Color.color(color);
@@ -62,6 +63,32 @@ export default class PointLayer extends BaseLayer {
       }
     }
 
+    get visualChannels() {
+      // const visConfig = this.config.visConfig;
+      return {
+        color: {
+          property: 'color',
+          field: 'fillColorField',
+          fieldType: 'fillColorFieldType',
+          scale: 'fillColorScale',
+          domain: 'fillColorDomain',
+          range: 'fillColor',
+          key: 'color',
+          // channelScaleType: CHANNEL_SCALES.color
+        },
+        size: {
+          property: 'size',
+          field: 'sizeField',
+          fieldType: 'sizeFieldType',
+          scale: 'sizeScale',
+          domain: 'sizeDomain',
+          range: 'sizeRange',
+          key: 'size',
+          // channelScaleType: CHANNEL_SCALES.size
+        }
+      };
+    }
+
     getDefaultLayerConfig(props = {}) {
       return this.mergeConfig({
         id: `${this.id}`,
@@ -72,20 +99,27 @@ export default class PointLayer extends BaseLayer {
           iconName: 'airport-11', // 图标名称
           filled: true, // 是否填充
           fillType: 'single', // 'single' or mutiple 填充类型：单色或多色
+
           fillColorField: null, // 填充颜色字段名
+          fillColorFieldType: ALL_FIELD_TYPES.integer, // 字段类型
           fillColorDomain: [0, 1],
           fillColorScale: SCALE_TYPES.quantile,
           fillColor: '#f00', // 填充颜色
+
           opacity: 1, // 图层透明度
           stroked: false, // 是否描边
           strokeColor: null, // 轮廓颜色
           strokeWidth: 1, // 轮廓宽度
-          radius: 10, // 尺寸
+          radius: 10, // 
+          
           sizeField: null, // 尺寸基于字段名
-          sizeScale: SCALE_TYPES.linear,
+          sizeFieldType: ALL_FIELD_TYPES.integer,
           sizeDomain: [0, 1],
-          minRadius: 1, // 最小半径
-          maxRadius: 10, /// 最大半径,
+          sizeScale: SCALE_TYPES.linear,
+          sizeRange: [1, 10],
+          // minRadius: 1, // 最小半径
+          // maxRadius: 10, /// 最大半径,
+
           fixedRadius: false, // 半径是否固定为米
         },
         interactionConfig: {
@@ -105,7 +139,7 @@ export default class PointLayer extends BaseLayer {
       const layerProps = {
         stroked: visConfig.stroked,
         filled: visConfig.filled,
-        radiusMinPixels: 1,
+        radiusMinPixels: 0,
         lineWidthMinPixels: visConfig.strokeWidth,
         radiusScale: radiusScale,
         opacity: visConfig.opacity,
@@ -153,14 +187,15 @@ export default class PointLayer extends BaseLayer {
         getRadius: {
           pointType: visConfig.pointType,
           sizeField: visConfig.sizeField,
-          minRadius: visConfig.minRadius,
-          maxRadius: visConfig.maxRadius,
+          // minRadius: visConfig.minRadius,
+          // maxRadius: visConfig.maxRadius,
+          sizeRange: visConfig.sizeRange,
           radius: visConfig.radius,
           fixedRadius: visConfig.fixedRadius,
         },
         getFillColor: {
           fillType: visConfig.fillType,
-          fillColor: visConfig.fillColor.toString(),
+          fillColor: visConfig.fillColor,
           fillColorField: visConfig.fillColorField,
           fixedRadius: visConfig.fixedRadius
         },
@@ -241,7 +276,8 @@ export default class PointLayer extends BaseLayer {
         return getColorArray(visConfig.fillColor);
       } else {
         if (visConfig.fillColorField) {
-          const colorDomain = this.getFieldMinMaxValue(visConfig.fillColorField);
+          // const colorDomain = this.getFieldMinMaxValue(visConfig.fillColorField);
+          const colorDomain = this.calculateLayerDomain(this.data, this.visualChannels.color);
           const colorRange = Array.isArray(visConfig.fillColor) ? visConfig.fillColor : [visConfig.fillColor];
           const scale = this.getVisChannelScale(visConfig.fillColorScale, colorDomain, colorRange, visConfig.fixedRadius);
           return d => {
@@ -279,8 +315,10 @@ export default class PointLayer extends BaseLayer {
     getRadius() {
       const visConfig = this.config.visConfig;
       if (visConfig.pointType === 'bubble' && visConfig.sizeField) {
-        const sizeDomain = this.getFieldMinMaxValue(visConfig.sizeField);
-        const radiusRange = [visConfig.minRadius, visConfig.maxRadius];
+        // const sizeDomain_old = this.getFieldMinMaxValue(visConfig.sizeField);
+        const sizeDomain = this.calculateLayerDomain(this.data, this.visualChannels.size);
+        console.log('sizeDomain:', sizeDomain);
+        const radiusRange = visConfig.sizeRange;
         const scale = this.getVisChannelScale(visConfig.sizeScale, sizeDomain, radiusRange, visConfig.fixedRadius);
         return d => {
           const value = Number(d['properties'][visConfig.sizeField]);

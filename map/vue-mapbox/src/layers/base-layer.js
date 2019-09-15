@@ -1,5 +1,15 @@
-import { SCALE_FUNC } from './config';
+import { SCALE_FUNC, SCALE_TYPES } from './config';
 import { onWebGLInitialized } from './gl-utils';
+import { ALL_FIELD_TYPES } from './config';
+import {
+  getSortingFunction,
+  getValueAccessor
+} from './utils/data-utils';
+import {
+  getQuantileDomain,
+  getOrdinalDomain,
+  getLinearDomain
+} from './utils/data-scale-utils';
 import _ from 'lodash';
 
 export default class BaseLayer {
@@ -54,6 +64,10 @@ export default class BaseLayer {
       return config;
     }
 
+    get visualChannels() {
+      return {};
+    }
+
     getDefaultLayerConfig(props = {}) {
       return this.mergeConfig({
         id: null,
@@ -103,5 +117,48 @@ export default class BaseLayer {
       return SCALE_FUNC[fixed ? 'linear' : scale]()
         .domain(domain)
         .range(fixed ? domain : range);
+    }
+
+    calculateLayerDomain(data, visualChannel) {
+      const filteredIndexForDomain = new Array(data.length).fill(-1).map((v, i) => i);
+      // const {allData, filteredIndexForDomain} = dataset;
+      const defaultDomain = [0, 1];
+      const {scale} = visualChannel;
+      const scaleType = this.config.visConfig[scale];
+  
+      const field = this.config.visConfig[visualChannel.field];
+      const fieldType = this.config.visConfig[visualChannel.fieldType];
+      if (!field) {
+        // if colorField or sizeField were set back to null
+        return defaultDomain;
+      }
+  
+      if (!SCALE_TYPES[scaleType]) {
+        Console.error(`scale type ${scaleType} not supported`);
+        return defaultDomain;
+      }
+
+      const isTime = fieldType === ALL_FIELD_TYPES.timestamp;
+      const valueAccessor = getValueAccessor.bind(null, isTime, null);
+      const indexValueAccessor = i => valueAccessor(data[i]['properties'][field]);
+  
+      const sortFunction = getSortingFunction(fieldType);
+  
+      switch (scaleType) {
+        case SCALE_TYPES.ordinal:
+        case SCALE_TYPES.point:
+          // do not recalculate ordinal domain based on filtered data
+          // don't need to update ordinal domain every time
+          // return getOrdinalDomain(allData, valueAccessor);
+  
+        case SCALE_TYPES.quantile:
+          return getQuantileDomain(filteredIndexForDomain, indexValueAccessor, sortFunction);
+  
+        case SCALE_TYPES.quantize:
+        case SCALE_TYPES.linear:
+        case SCALE_TYPES.sqrt:
+        default:
+          return getLinearDomain(filteredIndexForDomain, indexValueAccessor);
+      }
     }
 }
