@@ -12,9 +12,7 @@ export default class BaseLayer {
         this.layerType = 'unKnown';
         this.map = null;
         this.data = props.data || null;
-        // this.props = props;
         this.config = this.getDefaultLayerConfig(props);
-        this.needUpdate = false;
     }
 
     onAdd(map, gl) {
@@ -29,13 +27,10 @@ export default class BaseLayer {
     render(gl, matrix) {}
 
     setProps(props) {
-      // TODO: diff减少重绘
       console.log('oldProps', this.config);
       this.data = props.data || this.data;
-      _.merge(this.config, props);
+      this.mergeConfig(this.config, props);
       console.log('newProps', this.config);
-      this.needUpdate = true;
-      this.map.triggerRepaint();
     }
 
     getMapState() {
@@ -50,8 +45,17 @@ export default class BaseLayer {
       };
     }
 
+    mergeConfig(config, props = {}) {
+      config = config || {};
+      config.id = props.id || null;
+      config.name = props.name || '新图层',
+      config.visConfig = Object.assign(config.visConfig, props.visConfig);
+      config.interactionConfig = Object.assign(config.interactionConfig, props.interactionConfig);
+      return config;
+    }
+
     getDefaultLayerConfig(props = {}) {
-      return _.merge({
+      return this.mergeConfig({
         id: null,
         name: '新图层',
         visConfig:{

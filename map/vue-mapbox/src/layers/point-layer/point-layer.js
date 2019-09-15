@@ -46,33 +46,24 @@ export default class PointLayer extends BaseLayer {
 
     onRemove() {}
 
-    render() {
-      if (this.needUpdate) {
-        if (this.config.visConfig.pointType === 'scatter' 
-        && this.config.visConfig.iconType === 'icon') {
-          // this._iconLayer.setProps({visible: true});
-          this._scatterLayer.setProps({visible: false});
-          this._iconLayer.setProps(Object.assign({ visible: true } ,this.getIconLayerProps()));
-        } else {
-          this._iconLayer.setProps({visible: false});
-          // this._scatterLayer.setProps({visible: true});
-          this._scatterLayer.setProps(Object.assign({ visible: true }, this.getScatterLayerProps()));
-        }
-      }
-      this.needUpdate = false;
-    }
+    render() {}
 
-    createLayer() {
+    setProps(props) {
+      super.setProps(props);
       if (this.config.visConfig.pointType === 'scatter' 
-         && this.config.visConfig.iconType === 'icon') {
-          return new MapboxLayer(this.getIconLayerProps());
+      && this.config.visConfig.iconType === 'icon') {
+        // this._iconLayer.setProps({visible: true});
+        this._scatterLayer.setProps({visible: false});
+        this._iconLayer.setProps(Object.assign({ visible: true } ,this.getIconLayerProps()));
       } else {
-        return new MapboxLayer(this.getScatterLayerProps());
+        this._iconLayer.setProps({visible: false});
+        // this._scatterLayer.setProps({visible: true});
+        this._scatterLayer.setProps(Object.assign({ visible: true }, this.getScatterLayerProps()));
       }
     }
 
     getDefaultLayerConfig(props = {}) {
-      return _.merge({
+      return this.mergeConfig({
         id: `${this.id}`,
         name: '点图层',
         visConfig: {
@@ -156,6 +147,32 @@ export default class PointLayer extends BaseLayer {
         getLineColor: this.getLineColor(),
         getLineWith: this.getLineWidth()
       };
+    
+      // 定义数据变化的依赖，只有依赖的属性变化时才更新相应方法
+      const updateTriggers = {
+        getRadius: {
+          pointType: visConfig.pointType,
+          sizeField: visConfig.sizeField,
+          minRadius: visConfig.minRadius,
+          maxRadius: visConfig.maxRadius,
+          radius: visConfig.radius,
+          fixedRadius: visConfig.fixedRadius,
+        },
+        getFillColor: {
+          fillType: visConfig.fillType,
+          fillColor: visConfig.fillColor.toString(),
+          fillColorField: visConfig.fillColorField,
+          fixedRadius: visConfig.fixedRadius
+        },
+        getLineColor: {
+          stroked: visConfig.stroked,
+          strokeColor: visConfig.strokeColor
+        },
+        getLineWith: {
+          stroked: visConfig.stroked,
+          strokeWidth: visConfig.strokeWidth
+        }
+      };
 
       return {
         id: `${this.id}-scatter`,
@@ -163,7 +180,8 @@ export default class PointLayer extends BaseLayer {
         data: this.data,
         ...layerProps,
         ...interaction,
-        ...dataAccessors
+        ...dataAccessors,
+        updateTriggers
       };
     }
 
@@ -200,13 +218,20 @@ export default class PointLayer extends BaseLayer {
         getPosition: d => d.geometry.coordinates
       };
 
+      const updateTriggers = {
+        getIcon: {
+          iconName: visConfig.iconName
+        }
+      };
+
       return {
         id: `${this.id}-icon`,
         type: IconLayer,
         data: this.data,
         ...layerProps,
         ...interaction,
-        ...dataAccessors
+        ...dataAccessors,
+        updateTriggers
       };
     }
 

@@ -128,7 +128,7 @@ export default {
         // data: poinData.features,
         data: scatterData.map(e => ({type: 'Feature', 'properties': {weight:Math.sqrt(e.exits)}, geometry:{type:'Point',coordinates: e.coordinates}})),
         visConfig: {
-          pointType: 'scatter', // 'scatter' or 'bubble'  点类型：散点或气泡类型
+          pointType: 'bubble', // 'scatter' or 'bubble'  点类型：散点或气泡类型
           iconType: 'vector', //  'vector' or 'icon' 图标类型：矢量或图标
           iconName: 'airport-11', // 图标名称
           filled: true, // 是否填充
@@ -140,12 +140,11 @@ export default {
           stroked: true, // 是否描边
           strokeColor: '#0f0', // 轮廓颜色
           strokeWidth: 1, // 轮廓宽度
-          radius:15, // 尺寸
+          radius:10, // 尺寸
           sizeField: 'weight', // 尺寸基于字段名
-          minRadius: 10, // 最小半径
+          minRadius: 1, // 最小半径
           maxRadius: 100, /// 最大半径,
           fixedRadius: false, // 半径是否固定为米
-          autoHighlight: true,
         },
         interactionConfig: {
           pickable: true,
