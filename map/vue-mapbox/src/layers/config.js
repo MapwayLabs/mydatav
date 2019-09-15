@@ -31,6 +31,8 @@ export const SCALE_FUNC = {
     [SCALE_TYPES.point]: scalePoint
 };
 
+// https://drawpaintacademy.com/subtractive-additive-color/
+// http://www.colorbasics.com/AdditiveSubtractiveColors/
 export const LAYER_BLENDINGS = {
     additive: {
       blendFunc: ['SRC_ALPHA', 'DST_ALPHA'],

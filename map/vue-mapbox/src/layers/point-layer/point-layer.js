@@ -317,7 +317,7 @@ export default class PointLayer extends BaseLayer {
       if (visConfig.pointType === 'bubble' && visConfig.sizeField) {
         // const sizeDomain_old = this.getFieldMinMaxValue(visConfig.sizeField);
         const sizeDomain = this.calculateLayerDomain(this.data, this.visualChannels.size);
-        console.log('sizeDomain:', sizeDomain);
+        // console.log('sizeDomain:', sizeDomain);
         const radiusRange = visConfig.sizeRange;
         const scale = this.getVisChannelScale(visConfig.sizeScale, sizeDomain, radiusRange, visConfig.fixedRadius);
         return d => {

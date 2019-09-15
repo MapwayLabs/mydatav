@@ -11,9 +11,9 @@ import vue from 'vue';
 import '../../node_modules/mapbox-gl/dist/mapbox-gl.css';
 import mapboxgl from '../../node_modules/mapbox-gl/dist/mapbox-gl-unminified';
 import {Deck} from '@deck.gl/core';
-// import {GeoJsonLayer, ArcLayer} from '@deck.gl/layers';
+import {GeoJsonLayer, ArcLayer} from '@deck.gl/layers';
 import ScatterplotBrushingLayer from '../layers/deckgl-layers/scatterplot-brushing-layer/scatterplot-brushing-layer';
-import {onWebGLInitialized} from '../layers/gl-utils';
+import { onWebGLInitialized, setLayerBlending } from '../layers/gl-utils';
 import ToolTip from '../layers/tooltip';
 import { SCALE_TYPES } from '../layers/config';
 
@@ -23,6 +23,14 @@ import {PointLayer} from '../layers/index';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibGluZ2h1YW0iLCJhIjoiY2o1dWYzYzlqMDQ4OTJxbzRiZWl5OHdtcyJ9._Ae66CF7CGUIoJlVdrXjqA';
 
+const INITIAL_VIEW_STATE = {
+  latitude: 37.75408115730713,
+  longitude: -122.30032769568463,
+  zoom: 9,
+  bearing: 0,
+  pitch: 0
+};
+
 export default {
   mounted() {
     this._initMap();
@@ -30,35 +38,36 @@ export default {
   methods: {
 
     _initMap() {
+      window.mapboxgl = mapboxgl;
       this.map = window.map = new mapboxgl.Map({
           container: 'map',
           // style: 'mapbox://styles/mapbox/streets-v11', 
           style: 'mapbox://styles/linghuam/cjxlossd012rv1ckcsbpsvrp1',
           // center: [116, 40],
-          center: [-122.30032769568463, 37.75408115730713],
-          zoom: 9.263890518361467,
-          bearing: 0,
-          pitch: 0,
+          center: [INITIAL_VIEW_STATE.longitude, INITIAL_VIEW_STATE.latitude],
+          zoom: INITIAL_VIEW_STATE.zoom,
+          bearing: INITIAL_VIEW_STATE.bearing,
+          pitch: INITIAL_VIEW_STATE.pitch,
           renderWorldCopies: false,
-          antialias: true
+          antialias: true,
+          interactive: true,
       });
       this.map.on('load', this._mapLoaded);
     },
 
-    _mapLoaded() {
+    _mapLoaded(e) {
+      this.gl = this.map.painter.context.gl;
+      onWebGLInitialized(this.gl);
+      this.map.setLayerBlending = e => {
+        setLayerBlending(this.gl, e);
+      }
+      this.map.setLayerBlending('normal');
       this.addScatterLayer();
       this.map.tooltip = new ToolTip(this.map, null, 'theme-light');
       // this.addDeckLayr();
     },
 
     addDeckLayr() {
-      const INITIAL_VIEW_STATE = {
-        latitude: 40,
-        longitude: 116,
-        zoom: 8,
-        bearing: 0,
-        pitch: 0
-      };
       const deck = new Deck({
         canvas: 'deck-canvas',
         width: '100%',
@@ -67,7 +76,7 @@ export default {
         controller: true,
         onWebGLInitialized: onWebGLInitialized,
         onViewStateChange: ({viewState}) => {
-          map.jumpTo({
+          this.map.jumpTo({
             center: [viewState.longitude, viewState.latitude],
             zoom: viewState.zoom,
             bearing: viewState.bearing,
@@ -77,16 +86,16 @@ export default {
         layers: [
           new ScatterplotBrushingLayer({
             id: 'scatterlayer',
-            data: scatterData,
+            data: poinData.features,
             pickable: true,
             opacity: 0.8,
             stroked: true,
             filled: true,
             radiusScale: 6,
             radiusMinPixels: 50,
-            radiusMaxPixels: 100,
+            radiusMaxPixels: 500,
             lineWidthMinPixels: 1,
-            getPosition: d => d.coordinates,
+            getPosition: d => d.geometry.coordinates,
             getRadius: d => Math.sqrt(d.exits),
             getFillColor: d => [255, 140, 0],
             getLineColor: d => [0, 0, 0],
@@ -154,7 +163,7 @@ export default {
           fixedRadius: false, // 半径是否固定为米
         },
         interactionConfig: {
-          pickable: true,
+          pickable: false,
           highlightColor: '#f00',
           autoHighlight: true,          
           tooltip: {
@@ -163,12 +172,12 @@ export default {
               config: {
                 style: 'font-size:12px;', // css样式
                 triggerType: 'hover', // 触发方式， 'hover' or 'click'
-                displayField: [{name:'weight'}], //显示字段，对象数组 [{name: '字段名', type:'字段类型', ... }]
+                displayField: [{name:'exits'}], //显示字段，对象数组 [{name: '字段名', type:'字段类型', ... }]
               }
           }
         }
       });
-      const pointLayer2 = window.pointLayer = new PointLayer({
+      const pointLayer2 = window.pointLayer2 = new PointLayer({
         id: 'point-layer2',
         name: '点图层2',
         data: poinData.features.map(f => {
@@ -192,13 +201,13 @@ export default {
           radius:17.3, // 尺寸
           sizeField: 'exits', // 尺寸基于字段名
           sizeScale: SCALE_TYPES.sqrt,
-          sizeRange: [0, 21.5],
+          sizeRange: [0, 100],
           // minRadius: 0, // 最小半径
           // maxRadius: 10.4, /// 最大半径,
           fixedRadius: false, // 半径是否固定为米
         },
         interactionConfig: {
-          pickable: true,
+          pickable: false,
           highlightColor: '#f00',
           autoHighlight: true,          
           tooltip: {
@@ -207,7 +216,7 @@ export default {
               config: {
                 style: 'font-size:12px;', // css样式
                 triggerType: 'hover', // 触发方式， 'hover' or 'click'
-                displayField: [{name:'weight'}], //显示字段，对象数组 [{name: '字段名', type:'字段类型', ... }]
+                displayField: [{name:'exits'}], //显示字段，对象数组 [{name: '字段名', type:'字段类型', ... }]
               }
           }
         }

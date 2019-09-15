@@ -1,6 +1,5 @@
-import { SCALE_FUNC, SCALE_TYPES } from './config';
-import { onWebGLInitialized } from './gl-utils';
-import { ALL_FIELD_TYPES } from './config';
+import { SCALE_FUNC, SCALE_TYPES, ALL_FIELD_TYPES, LAYER_BLENDINGS } from './config';
+// import { onWebGLInitialized, setLayerBlending } from './gl-utils';
 import {
   getSortingFunction,
   getValueAccessor
@@ -15,19 +14,21 @@ import _ from 'lodash';
 export default class BaseLayer {
 
     constructor(props) {
-        this.id = props.id;
-        this.type = 'custom';
-        this.renderingMode = props.renderingMode || '3d';
-        
-        this.layerType = 'unKnown';
-        this.map = null;
-        this.data = props.data || null;
-        this.config = this.getDefaultLayerConfig(props);
+      this.id = props.id;
+      this.type = 'custom';
+      this.renderingMode = props.renderingMode || '3d';
+      
+      this.layerType = 'unKnown';
+      this.map = null;
+      this.data = props.data || null;
+      this.config = this.getDefaultLayerConfig(props);
     }
 
     onAdd(map, gl) {
-        this.map = map;
-        onWebGLInitialized(gl);
+      this.map = map;
+      this.gl = gl;
+      // onWebGLInitialized(gl);
+      // setLayerBlending(gl, this.config.layerBlending);
     }
 
     onRemove() {}
@@ -40,6 +41,7 @@ export default class BaseLayer {
       console.log('oldProps', this.config);
       this.data = props.data || this.data;
       this.mergeConfig(this.config, props);
+      // setLayerBlending(this.gl, this.config.layerBlending);
       console.log('newProps', this.config);
     }
 
@@ -58,7 +60,8 @@ export default class BaseLayer {
     mergeConfig(config, props = {}) {
       config = config || {};
       config.id = props.id || null;
-      config.name = props.name || '新图层',
+      config.name = props.name || '新图层';
+      // config.layerBlending = props.layerBlending || 'normal';
       config.visConfig = Object.assign(config.visConfig, props.visConfig);
       config.interactionConfig = Object.assign(config.interactionConfig, props.interactionConfig);
       return config;
@@ -72,6 +75,7 @@ export default class BaseLayer {
       return this.mergeConfig({
         id: null,
         name: '新图层',
+        // layerBlending: 'normal',
         visConfig:{
             isVisible: true,
             fixedRadius: false,
