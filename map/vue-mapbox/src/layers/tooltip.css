@@ -1,0 +1,14 @@
+.map-tooltip-container {
+    position: relative;
+}
+
+.map-tooltip-container.theme-light {
+    color: white;
+    background-color: black;
+}
+
+.map-tooltip-container.theme-dark {
+    color: black;
+    background-color: white;
+}
+

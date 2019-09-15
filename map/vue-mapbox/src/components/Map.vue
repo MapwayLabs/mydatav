@@ -14,6 +14,7 @@ import {Deck} from '@deck.gl/core';
 // import {GeoJsonLayer, ArcLayer} from '@deck.gl/layers';
 import ScatterplotBrushingLayer from '../layers/deckgl-layers/scatterplot-brushing-layer/scatterplot-brushing-layer';
 import {onWebGLInitialized} from '../layers/gl-utils';
+import ToolTip from '../layers/tooltip';
 
 import scatterData from '../data/bart-stations.json';
 import poinData from '../data/pointData.json';
@@ -44,6 +45,7 @@ export default {
 
     _mapLoaded() {
       this.addScatterLayer();
+      this.map.tooltip = new ToolTip(this.map, null, 'theme-light');
       // this.addDeckLayr();
     },
 
@@ -120,14 +122,14 @@ export default {
     },
 
     addScatterLayer() {
-      this.map.addLayer(new PointLayer({
+      const pointLayer = window.pointLayer = new PointLayer({
         id: 'point-layer',
         name: '点图层',
         // data: poinData.features,
         data: scatterData.map(e => ({type: 'Feature', 'properties': {weight:Math.sqrt(e.exits)}, geometry:{type:'Point',coordinates: e.coordinates}})),
         visConfig: {
           pointType: 'scatter', // 'scatter' or 'bubble'  点类型：散点或气泡类型
-          iconType: 'icon', //  'vector' or 'icon' 图标类型：矢量或图标
+          iconType: 'vector', //  'vector' or 'icon' 图标类型：矢量或图标
           iconName: 'airport-11', // 图标名称
           filled: true, // 是否填充
           fillType: 'mutiple', // 'single' or mutiple 填充类型：单色或多色
@@ -138,7 +140,7 @@ export default {
           stroked: true, // 是否描边
           strokeColor: '#0f0', // 轮廓颜色
           strokeWidth: 1, // 轮廓宽度
-          radius:50, // 尺寸
+          radius:15, // 尺寸
           sizeField: 'weight', // 尺寸基于字段名
           minRadius: 10, // 最小半径
           maxRadius: 100, /// 最大半径,
@@ -148,9 +150,19 @@ export default {
         interactionConfig: {
           pickable: true,
           highlightColor: '#f00',
-          autoHighlight: true
+          autoHighlight: true,          
+          tooltip: {
+              id: 'tooltip',
+              enabled: true,
+              config: {
+                style: 'font-size:12px;', // css样式
+                triggerType: 'hover', // 触发方式， 'hover' or 'click'
+                displayField: [{name:'weight'}], //显示字段，对象数组 [{name: '字段名', type:'字段类型', ... }]
+              }
+          }
         }
-      }));
+      });
+      this.map.addLayer(pointLayer);
       this.$nextTick(e => {
         this.map.setCenter([-122.123801,37.893394]);
       });

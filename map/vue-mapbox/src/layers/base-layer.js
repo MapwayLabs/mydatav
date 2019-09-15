@@ -29,11 +29,13 @@ export default class BaseLayer {
     render(gl, matrix) {}
 
     setProps(props) {
-        console.log('oldProps', this.config);
-        this.data = props.data || this.data;
-        _.merge(this.config, props);
-        console.log('newProps', this.config);
-        this.needUpdate = true;
+      // TODO: diff减少重绘
+      console.log('oldProps', this.config);
+      this.data = props.data || this.data;
+      _.merge(this.config, props);
+      console.log('newProps', this.config);
+      this.needUpdate = true;
+      this.map.triggerRepaint();
     }
 
     getMapState() {
@@ -60,8 +62,12 @@ export default class BaseLayer {
         interactionConfig: {
           tooltip: {
               id: 'tooltip',
-              enabled: false,
-              config: {}
+              enabled: true,
+              config: {
+                style: 'font-size:12px;', // css样式
+                triggerType: 'hover', // 触发方式， 'hover' or 'click'
+                displayField: [], //显示字段，对象数组 [{name: '字段名', type:'字段类型', ... }]
+              }
           },
           brush: {
               id: 'brush',

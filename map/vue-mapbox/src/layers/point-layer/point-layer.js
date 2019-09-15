@@ -30,27 +30,33 @@ export default class PointLayer extends BaseLayer {
 
     onAdd(map, gl) {
       super.onAdd(map, gl);
-      this._deckLayer = this.createLayer();
-      if (this._deckLayer) {
-        this.map.addLayer(this._deckLayer);
+      this._iconLayer = new MapboxLayer(this.getIconLayerProps());
+      this._scatterLayer = new MapboxLayer(this.getScatterLayerProps());
+      if (this.config.visConfig.pointType === 'scatter' 
+      && this.config.visConfig.iconType === 'icon') {
+        this._iconLayer.setProps({visible: true});
+        this._scatterLayer.setProps({visible: false});
+      } else {
+        this._iconLayer.setProps({visible: false});
+        this._scatterLayer.setProps({visible: true});
       }
+      this.map.addLayer(this._iconLayer);
+      this.map.addLayer(this._scatterLayer);
     }
 
     onRemove() {}
 
     render() {
       if (this.needUpdate) {
-        const deckLayer = this.createLayer();
-        if (this.map.getLayer(deckLayer.id)) {
-          if (this.config.visConfig.pointType === 'scatter' 
-          && this.config.visConfig.iconType === 'icon') {
-            this._deckLayer.setProps(this.getIconLayerProps());
-          } else {
-            this._deckLayer.setProps(this.getScatterLayerProps());
-          } 
+        if (this.config.visConfig.pointType === 'scatter' 
+        && this.config.visConfig.iconType === 'icon') {
+          // this._iconLayer.setProps({visible: true});
+          this._scatterLayer.setProps({visible: false});
+          this._iconLayer.setProps(Object.assign({ visible: true } ,this.getIconLayerProps()));
         } else {
-          this.map.addLayer(deckLayer);
-          this._deckLayer = deckLayer;
+          this._iconLayer.setProps({visible: false});
+          // this._scatterLayer.setProps({visible: true});
+          this._scatterLayer.setProps(Object.assign({ visible: true }, this.getScatterLayerProps()));
         }
       }
       this.needUpdate = false;
@@ -67,7 +73,7 @@ export default class PointLayer extends BaseLayer {
 
     getDefaultLayerConfig(props = {}) {
       return _.merge({
-        id: `${this.id}-scatter`,
+        id: `${this.id}`,
         name: '点图层',
         visConfig: {
           pointType: 'scatter', // 'scatter' or 'bubble'  点类型：散点或气泡类型
@@ -122,6 +128,26 @@ export default class PointLayer extends BaseLayer {
         enableBrushing,
         brushRadius: interactionConfig.brush.config.size * 1000
       };
+      if (interactionConfig.tooltip.enabled) {
+        const triggerType = interactionConfig.tooltip.config.triggerType === 'hover' ? 'onHover' : 'onClick';
+        const displayField = interactionConfig.tooltip.config.displayField;
+        interaction[triggerType] = (info, event) => {
+          if (info.picked) {
+            const keyValuePairs = [];
+            displayField.forEach(f => {
+              keyValuePairs.push({
+                key: f.name,
+                value: info.object['properties'][f.name]
+              });
+            });
+            const lnglat = info.lngLat;
+            this.map.tooltip.open(keyValuePairs, lnglat);
+          } else {
+            this.map.tooltip.close();
+          }
+          return true;
+        };
+      }
 
       const dataAccessors = {
         getPosition: d => d.geometry.coordinates,
@@ -175,7 +201,7 @@ export default class PointLayer extends BaseLayer {
       };
 
       return {
-        id: `${this.id}-scatter`,
+        id: `${this.id}-icon`,
         type: IconLayer,
         data: this.data,
         ...layerProps,
