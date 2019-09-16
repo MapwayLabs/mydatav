@@ -65,3 +65,17 @@ export const LAYER_BLENDINGS = {
     timestamp: null,
     point: null
   });
+
+  export const AGGREGATION_TYPES = {
+    // default
+    count: 'count',
+    // linear
+    average: 'average',
+    maximum: 'maximum',
+    minimum: 'minimum',
+    median: 'median',
+    sum: 'sum',
+    // ordinal
+    mode: 'mode',
+    countUnique: 'count unique'
+  };

@@ -19,7 +19,7 @@ import { SCALE_TYPES } from '../layers/config';
 
 import scatterData from '../data/bart-stations.json';
 import poinData from '../data/sample-geojson-points.json';
-import {PointLayer} from '../layers/index';
+import {PointLayer, HeatMapLayer} from '../layers/index';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibGluZ2h1YW0iLCJhIjoiY2o1dWYzYzlqMDQ4OTJxbzRiZWl5OHdtcyJ9._Ae66CF7CGUIoJlVdrXjqA';
 
@@ -221,8 +221,22 @@ export default {
           }
         }
       });
-      this.map.addLayer(pointLayer);
-      this.map.addLayer(pointLayer2);
+      const heatmapLayer = window.heatmapLayer = new HeatMapLayer({
+        id: 'heatmapLayer',
+        name: '热力图',
+        data: poinData,      
+        visConfig: {
+          isVisible: true, // 热力图是否可见
+          heatMapType: 'basic', // 热力图类型：'basic' | 'quadrilateral' | 'hexagon' | 'district'
+          weightField: 'exits', // 热度基于字段
+          colorRange: ["#5A1846", "#900C3F", "#C70039", "#E3611C", "#F1920E", "#FFC300"], // 热力颜色
+          opacity: 1, // 热力透明度
+          radius: 30 // 热力半径（单位：pixels）
+        }
+      });
+      // this.map.addLayer(pointLayer);
+      // this.map.addLayer(pointLayer2);
+      this.map.addLayer(heatmapLayer);
       // this.$nextTick(e => {
       //   this.map.setCenter([-122.123801,37.893394]);
       // });

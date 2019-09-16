@@ -3,15 +3,16 @@ import { MapboxLayer } from '@deck.gl/mapbox';
 import ScatterplotBrushingLayer from '../deckgl-layers/scatterplot-brushing-layer/scatterplot-brushing-layer';
 import { IconLayer } from '@deck.gl/layers';
 import { SCALE_TYPES } from '../config';
-import * as d3Color from 'd3-color';
+// import * as d3Color from 'd3-color';
 import _ from 'lodash';
 import IconMapping from './sprite.json';
 import { ALL_FIELD_TYPES } from '../config';
+import { getColorArray } from '../utils/color-utils';
 
-function getColorArray(color) {
-  const dColor = d3Color.color(color);
-  return [dColor.r, dColor.g, dColor.b, dColor.opacity * 255]; 
-};
+// function getColorArray(color) {
+//   const dColor = d3Color.color(color);
+//   return [dColor.r, dColor.g, dColor.b, dColor.opacity * 255]; 
+// };
 
 function* generateColor(colors) {
   let index = 0;
@@ -137,6 +138,7 @@ export default class PointLayer extends BaseLayer {
       const radiusScale = this.getRadiusScaleByZoom(this.getMapState());
 
       const layerProps = {
+        isVisible: visConfig.isVisible,
         stroked: visConfig.stroked,
         filled: visConfig.filled,
         radiusMinPixels: 0,
@@ -226,6 +228,7 @@ export default class PointLayer extends BaseLayer {
       const radiusScale = this.getRadiusScaleByZoom(this.getMapState());
 
       const layerProps = {
+        isVisible: visConfig.isVisible,
         opacity: visConfig.opacity,
         iconAtlas: './sprite.png',
         iconMapping: IconMapping,
