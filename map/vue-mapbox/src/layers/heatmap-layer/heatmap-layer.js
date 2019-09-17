@@ -4,7 +4,6 @@ import { SCALE_FUNC, SCALE_TYPES, ALL_FIELD_TYPES, AGGREGATION_TYPES } from '../
 import { hexToRgb, getColorArray } from '../utils/color-utils';
 import { GridLayer } from '@deck.gl/aggregation-layers';
 import { aggregate } from '../utils/aggregate-utils';
-// import HexagonLayer from '../deckgl-layers/hexagon-layer/enhanced-hexagon-layer';
 import { HexagonLayer } from '@deck.gl/aggregation-layers';
 import { PolygonLayer } from '@deck.gl/layers';
 
@@ -45,6 +44,39 @@ export default class HeatMapLayer extends BaseLayer {
 
   onAdd(map, gl) {
     super.onAdd(map, gl);
+    this.initLayer();
+  }
+
+  onRemove() {
+    this.removeLayer();
+  }
+
+  render() {}
+
+  setProps(props) {
+    super.setProps(props);
+    const visConfig = this.config.visConfig;
+    if (this._currentType === visConfig.heatMapType) {
+      if (visConfig.heatMapType === 'basic') {
+        this.map.getSource(this._basicHeatMapSourceId).setData(this.data);
+        this.map.removeLayer(this._basicHeatMapLayerId);
+        this.map.addLayer(this.getBasicHeatMapLayerProps());
+      } else if (visConfig.heatMapType === 'grid') {
+        this._gridLayer.setProps(this.getHexagonHeatMapLayerProps());
+      } else if (visConfig.heatMapType === 'hexagon') {
+        this._hexagonLayer.setProps(this.getHexagonHeatMapLayerProps());
+      } else if (visConfig.heatMapType === 'district') {
+        this._districtLayer.setProps(this.getDistrictHeatMapLayerProps());
+      } else if (visConfig.heatMapType === 'heat3d') {
+        this._heat3dLayer.setProps(this.get3DHeatMapLayerProps());
+      }
+    } else {
+      this.removeLayer();
+      this.initLayer();
+    }
+  }
+
+  initLayer() {
     const visConfig = this.config.visConfig;
     if (visConfig.heatMapType === 'basic') {
       this._basicHeatMapSourceId = `${this.id}-${visConfig.heatMapType}-source`;
@@ -63,24 +95,33 @@ export default class HeatMapLayer extends BaseLayer {
     } else if (visConfig.heatMapType === 'district') {
       this._districtLayer = new MapboxLayer(this.getDistrictHeatMapLayerProps());
       this.map.addLayer(this._districtLayer);
-    } else if (visConfig.heatMapType === '3d') {
-      this._3dLayer = new MapboxLayer(this.get3DHeatMapLayerProps());
-      this.map.addLayer(this._3dLayer);
+    } else if (visConfig.heatMapType === 'heat3d') {
+      this._heat3dLayer = new MapboxLayer(this.get3DHeatMapLayerProps());
+      this.map.addLayer(this._heat3dLayer);
     }
+    this._currentType = visConfig.heatMapType;
   }
 
-  onRemove() {}
-
-  render() {}
-
-  setProps(props) {
-    super.setProps(props);
-    const visConfig = this.config.visConfig;
-    if (visConfig.heatMapType === 'basic') {
-      this.map.getSource(this._basicHeatMapSourceId).setData(this.data);
+  removeLayer() {
+    if (this._currentType === 'basic') {
       this.map.removeLayer(this._basicHeatMapLayerId);
-      this.map.addLayer(this.getBasicHeatMapLayerProps());
+      this.map.removeSource(this._basicHeatMapSourceId);
+      this._basicHeatMapSourceId = null;
+      this._basicHeatMapLayerId = null;
+    } else if (this._currentType === 'grid') {
+      this.map.removeLayer(this._gridLayer.id);
+      this._gridLayer = null;
+    } else if (this._currentType === 'hexagon') {
+      this.map.removeLayer(this._hexagonLayer.id);
+      this._hexagonLayer = null;
+    } else if (this._currentType === 'district') {
+      this.map.removeLayer(this._districtLayer.id);
+      this._districtLayer = null;
+    } else if (this._currentType === 'heat3d') {
+      this.map.removeLayer(this._heat3dLayer.id);
+      this._heat3dLayer = null;
     }
+    this._currentType = null;
   }
 
   get visualChannels() {
@@ -101,7 +142,7 @@ export default class HeatMapLayer extends BaseLayer {
       name: '热力图层',
       visConfig: {
         isVisible: true, // 热力图是否可见
-        heatMapType: 'basic', // 热力图类型：'basic' | 'grid' | 'hexagon' | 'district' | '3d'
+        heatMapType: 'basic', // 热力图类型：'basic' | 'grid' | 'hexagon' | 'district' | 'heat3d'
 
         weightField: null, // 热度基于字段名
         weightFieldType: ALL_FIELD_TYPES.real,
@@ -121,9 +162,7 @@ export default class HeatMapLayer extends BaseLayer {
         stroked: true,
         strokeColor: '#f00',
         strokeWidth: 1,
-        regionCode: '100000',
-
-        // enable3d: false
+        regionCode: '100000'
       },
       interactionConfig: {
         pickable: false

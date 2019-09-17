@@ -77,7 +77,7 @@ const ChartConfig =
   // 基础热力
   "C201": {
     visConfig: {
-      heatMapType: 'basic', // 热力图类型：'basic' | 'grid' | 'hexagon' | 'district' | '3d'
+      heatMapType: 'basic', // 热力图类型：'basic' | 'grid' | 'hexagon' | 'district' | 'heat3d'
       weightField: null, // 热度基于字段名
       weightFieldType: ALL_FIELD_TYPES.real, // 字段类型
       colorRange: ["#5A1846", "#900C3F", "#C70039"], // 热力颜色
