@@ -18,38 +18,27 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-import {HexagonLayer} from '@deck.gl/aggregation-layers';
-import {pointToHexbin} from './hexagon-aggregator';
+import {registerShaderModules, setParameters} from 'luma.gl';
+import brushingModule from '../shaderlib/brushing-module';
+// import {LAYER_BLENDINGS} from 'constants/default-settings';
+import {LAYER_BLENDINGS} from '../config';
+import GL from '@luma.gl/constants';
 
-import {getColorValueDomain, getColorScaleFunction} from '../layer-utils/utils';
+const getGlConst = d => GL[d];
 
-const defaultProps = {
-  ...HexagonLayer.defaultProps,
-  hexagonAggregator: pointToHexbin,
-  colorScale: 'quantile'
-};
-
-export default class EnhancedHexagonLayer extends HexagonLayer {
-  getDimensionUpdaters() {
-    const dimensionUpdaters = super.getDimensionUpdaters();
-    // add colorScale to dimension updates
-    dimensionUpdaters.getFillColor[1].triggers.push('colorScale');
-    dimensionUpdaters.getElevation[1].triggers.push('sizeScale');
-    return dimensionUpdaters;
-  }
-
-  /*
-   * override default layer method to calculate color domain
-   * and scale function base on color scale type
-   */
-  getColorValueDomain() {
-    getColorValueDomain(this);
-  }
-
-  getColorScale() {
-    getColorScaleFunction(this);
-  }
+export function onWebGLInitialized(gl) {
+  registerShaderModules([brushingModule], {ignoreMultipleRegistrations: true});
 }
 
-EnhancedHexagonLayer.layerName = 'EnhancedHexagonLayer';
-EnhancedHexagonLayer.defaultProps = defaultProps;
+export function setLayerBlending(gl, layerBlending) {
+  const blending = LAYER_BLENDINGS[layerBlending];
+  const {blendFunc, blendEquation} = blending;
+
+  setParameters(gl, {
+    [GL.BLEND]: true,
+    ...(blendFunc ? {
+      blendFunc: blendFunc.map(getGlConst),
+      blendEquation: Array.isArray(blendEquation) ? blendEquation.map(getGlConst) : getGlConst(blendEquation)
+    } : {})
+  });
+};

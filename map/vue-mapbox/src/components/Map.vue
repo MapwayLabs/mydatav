@@ -13,19 +13,23 @@ import mapboxgl from '../../node_modules/mapbox-gl/dist/mapbox-gl-unminified';
 import {Deck} from '@deck.gl/core';
 import {GeoJsonLayer, ArcLayer} from '@deck.gl/layers';
 import ScatterplotBrushingLayer from '../layers/deckgl-layers/scatterplot-brushing-layer/scatterplot-brushing-layer';
-import { onWebGLInitialized, setLayerBlending } from '../layers/gl-utils';
-import ToolTip from '../layers/tooltip';
+import { onWebGLInitialized, setLayerBlending } from '../layers/utils/gl-utils';
+import ToolTip from '../layers/tooltip/tooltip';
 import { SCALE_TYPES } from '../layers/config';
 
 import scatterData from '../data/bart-stations.json';
 import poinData from '../data/sample-geojson-points.json';
-import {PointLayer} from '../layers/index';
+import polygonData from '../data/110100.json';
+import altitudePolygonData from '../data/altitude_polygon.json';
+import {PointLayer, HeatMapLayer} from '../layers/index';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibGluZ2h1YW0iLCJhIjoiY2o1dWYzYzlqMDQ4OTJxbzRiZWl5OHdtcyJ9._Ae66CF7CGUIoJlVdrXjqA';
 
 const INITIAL_VIEW_STATE = {
   latitude: 37.75408115730713,
   longitude: -122.30032769568463,
+  // latitude: 40,
+  // longitude: 116,
   zoom: 9,
   bearing: 0,
   pitch: 0
@@ -221,8 +225,37 @@ export default {
           }
         }
       });
-      this.map.addLayer(pointLayer);
-      this.map.addLayer(pointLayer2);
+      const heatmapLayer = window.heatmapLayer = new HeatMapLayer({
+        id: 'heatmapLayer',
+        name: '热力图',
+        data: poinData,     
+        // data: altitudePolygonData,
+        visConfig: {
+          isVisible: true, // 热力图是否可见
+          heatMapType: 'basic', // 热力图类型：
+          weightField: 'exits', // 热度基于字段
+          colorRange: ["#f00","#0f0", "#00f", "#ff0"], // 热力颜色
+          aggregationType: 'count',
+          opacity: 1, // 热力透明度
+          radius: 200 // 热力半径（单位：pixels）
+        },
+        interactionConfig: {
+          pickable: true,
+          autoHighlight: true,          
+          tooltip: {
+              id: 'tooltip',
+              enabled: true,
+              config: {
+                style: 'font-size:12px;', // css样式
+                triggerType: 'hover', // 触发方式， 'hover' or 'click'
+                displayField: [{name:'exits'}], //显示字段，对象数组 [{name: '字段名', type:'字段类型', ... }]
+              }
+          }
+        }
+      });
+      // this.map.addLayer(pointLayer);
+      // this.map.addLayer(pointLayer2);
+      this.map.addLayer(heatmapLayer);
       // this.$nextTick(e => {
       //   this.map.setCenter([-122.123801,37.893394]);
       // });

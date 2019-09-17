@@ -17,39 +17,41 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+import * as d3Color from 'd3-color';
+/**
+ * get r g b from hex code
+ *
+ * @param {string} hex
+ * @returns {array} array of r g bs
+ */
+export function hexToRgb(hex) {
+  // const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
 
-import {HexagonLayer} from '@deck.gl/aggregation-layers';
-import {pointToHexbin} from './hexagon-aggregator';
+  // const r = parseInt(result[1], 16);
+  // const g = parseInt(result[2], 16);
+  // const b = parseInt(result[3], 16);
 
-import {getColorValueDomain, getColorScaleFunction} from '../layer-utils/utils';
-
-const defaultProps = {
-  ...HexagonLayer.defaultProps,
-  hexagonAggregator: pointToHexbin,
-  colorScale: 'quantile'
-};
-
-export default class EnhancedHexagonLayer extends HexagonLayer {
-  getDimensionUpdaters() {
-    const dimensionUpdaters = super.getDimensionUpdaters();
-    // add colorScale to dimension updates
-    dimensionUpdaters.getFillColor[1].triggers.push('colorScale');
-    dimensionUpdaters.getElevation[1].triggers.push('sizeScale');
-    return dimensionUpdaters;
-  }
-
-  /*
-   * override default layer method to calculate color domain
-   * and scale function base on color scale type
-   */
-  getColorValueDomain() {
-    getColorValueDomain(this);
-  }
-
-  getColorScale() {
-    getColorScaleFunction(this);
-  }
+  // return [r, g, b];
+  const dColor = d3Color.color(hex);
+  return [dColor.r, dColor.g, dColor.b];
 }
 
-EnhancedHexagonLayer.layerName = 'EnhancedHexagonLayer';
-EnhancedHexagonLayer.defaultProps = defaultProps;
+function PadNum(c) {
+  const hex = c.toString(16);
+  return hex.length === 1 ? `0${hex}` : hex;
+}
+
+/**
+ * get hex from r g b
+ *
+ * @param {array} rgb
+ * @returns {string} hex string
+ */
+export function rgbToHex([r, g, b]) {
+  return `#${[r, g, b].map(n => PadNum(n)).join('')}`.toUpperCase();
+}
+
+export function getColorArray(color) {
+  const dColor = d3Color.color(color);
+  return [dColor.r, dColor.g, dColor.b, dColor.opacity * 255]; 
+};

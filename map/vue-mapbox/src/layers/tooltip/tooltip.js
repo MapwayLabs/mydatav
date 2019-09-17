@@ -1,4 +1,4 @@
-import mapboxgl from '../../node_modules/mapbox-gl/dist/mapbox-gl-unminified';
+import mapboxgl from 'mapbox-gl/dist/mapbox-gl-unminified';
 import './tooltip.css';
 
 export default class ToolTip {

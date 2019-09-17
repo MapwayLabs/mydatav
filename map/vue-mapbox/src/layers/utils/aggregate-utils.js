@@ -18,27 +18,44 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-import {registerShaderModules, setParameters} from 'luma.gl';
-import brushingModule from './shaderlib/brushing-module';
-// import {LAYER_BLENDINGS} from 'constants/default-settings';
-import {LAYER_BLENDINGS} from './config';
-import GL from '@luma.gl/constants';
+import {min, max, mean, median, sum} from 'd3-array';
+import {AGGREGATION_TYPES} from '../config';
 
-const getGlConst = d => GL[d];
+const getFrenquency = data => data.reduce((uniques, val) => {
+  uniques[val] = (uniques[val] || 0) + 1;
+  return uniques;
+}, {});
 
-export function onWebGLInitialized(gl) {
-  registerShaderModules([brushingModule], {ignoreMultipleRegistrations: true});
+function getMode(data) {
+  const occur = getFrenquency(data);
+  return Object.keys(occur).reduce((prev, key) =>
+    occur[prev] >= occur[key] ? prev : key, Object.keys(occur)[0]);
 }
 
-export function setLayerBlending(gl, layerBlending) {
-  const blending = LAYER_BLENDINGS[layerBlending];
-  const {blendFunc, blendEquation} = blending;
+export function aggregate(data, technique) {
+  switch (technique) {
+    case AGGREGATION_TYPES.average:
+      return mean(data);
+    case AGGREGATION_TYPES.countUnique:
+      return Object.keys(
+        data.reduce((uniques, val) => {
+          uniques[val] = uniques[val] || 0;
+          uniques[val] += 1;
+          return uniques;
+        }, {})
+      ).length;
+    case AGGREGATION_TYPES.mode:
+      return getMode(data);
 
-  setParameters(gl, {
-    [GL.BLEND]: true,
-    ...(blendFunc ? {
-      blendFunc: blendFunc.map(getGlConst),
-      blendEquation: Array.isArray(blendEquation) ? blendEquation.map(getGlConst) : getGlConst(blendEquation)
-    } : {})
-  });
-};
+    case AGGREGATION_TYPES.maximum:
+      return max(data);
+    case AGGREGATION_TYPES.minimum:
+      return min(data);
+    case AGGREGATION_TYPES.median:
+      return median(data);
+    case AGGREGATION_TYPES.sum:
+      return sum(data);
+    default:
+      return data.length;
+  }
+}
