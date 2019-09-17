@@ -19,13 +19,16 @@ import { SCALE_TYPES } from '../layers/config';
 
 import scatterData from '../data/bart-stations.json';
 import poinData from '../data/sample-geojson-points.json';
+import polygonData from '../data/110100.json';
 import {PointLayer, HeatMapLayer} from '../layers/index';
 
 mapboxgl.accessToken = 'pk.eyJ1IjoibGluZ2h1YW0iLCJhIjoiY2o1dWYzYzlqMDQ4OTJxbzRiZWl5OHdtcyJ9._Ae66CF7CGUIoJlVdrXjqA';
 
 const INITIAL_VIEW_STATE = {
-  latitude: 37.75408115730713,
-  longitude: -122.30032769568463,
+  // latitude: 37.75408115730713,
+  // longitude: -122.30032769568463,
+  latitude: 40,
+  longitude: 116,
   zoom: 9,
   bearing: 0,
   pitch: 0
@@ -224,15 +227,15 @@ export default {
       const heatmapLayer = window.heatmapLayer = new HeatMapLayer({
         id: 'heatmapLayer',
         name: '热力图',
-        data: poinData,      
+        data: polygonData,      
         visConfig: {
           isVisible: true, // 热力图是否可见
-          heatMapType: 'hexagon', // 热力图类型：
-          weightField: 'exits', // 热度基于字段
+          heatMapType: 'district', // 热力图类型：
+          weightField: 'id', // 热度基于字段
           colorRange: ["#f00","#0f0", "#00f", "#ff0"], // 热力颜色
           aggregationType: 'count',
           opacity: 1, // 热力透明度
-          radius: 2000 // 热力半径（单位：pixels）
+          // radius: 2000 // 热力半径（单位：pixels）
         },
         interactionConfig: {
           pickable: true,
@@ -243,7 +246,7 @@ export default {
               config: {
                 style: 'font-size:12px;', // css样式
                 triggerType: 'hover', // 触发方式， 'hover' or 'click'
-                displayField: [{name:'exits'}], //显示字段，对象数组 [{name: '字段名', type:'字段类型', ... }]
+                displayField: [{name:'name'}], //显示字段，对象数组 [{name: '字段名', type:'字段类型', ... }]
               }
           }
         }

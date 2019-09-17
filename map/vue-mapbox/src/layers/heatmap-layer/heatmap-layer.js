@@ -5,7 +5,8 @@ import { hexToRgb, getColorArray } from '../utils/color-utils';
 import { GridLayer } from '@deck.gl/aggregation-layers';
 import { aggregate } from '../utils/aggregate-utils';
 // import HexagonLayer from '../deckgl-layers/hexagon-layer/enhanced-hexagon-layer';
-import {HexagonLayer} from '@deck.gl/aggregation-layers';
+import { HexagonLayer } from '@deck.gl/aggregation-layers';
+import { PolygonLayer } from '@deck.gl/layers';
 
 /**
  *
@@ -59,6 +60,9 @@ export default class HeatMapLayer extends BaseLayer {
     } else if (visConfig.heatMapType === 'hexagon') {
       this._hexagonLayer = new MapboxLayer(this.getHexagonHeatMapLayerProps());
       this.map.addLayer(this._hexagonLayer);
+    } else if (visConfig.heatMapType === 'district') {
+      this._districtLayer = new MapboxLayer(this.getDistrictHeatMapLayerProps());
+      this.map.addLayer(this._districtLayer);
     }
   }
 
@@ -106,10 +110,15 @@ export default class HeatMapLayer extends BaseLayer {
         opacity: 1, // 热力透明度
         radius: 30, // 热力半径（basic单位：pixels, grid单位：meters）
 
-        // grid类型配置
+        // grid、hexagon 类型独有
         aggregationType: AGGREGATION_TYPES.count, // 聚合类型：'count' | 'average' | 'maximum' | 'minimum' | 'median' | 'sum'
-        sizeUnit: 'meters', // 尺寸单位： 'pixels' | 'meters'
-
+        sizeUnit: 'meters', // 尺寸单位： 'pixels' | 'meters',
+        
+        // district 独有
+        stroked: true,
+        strokeColor: '#f00',
+        strokeWidth: 1,
+        regionCode: '100000'
       },
       interactionConfig: {
         pickable: false
@@ -132,6 +141,34 @@ export default class HeatMapLayer extends BaseLayer {
                   key: f.name,
                   value: p['properties'][f.name]
                 });
+              });
+            });
+            const lnglat = info.lngLat;
+            this.map.tooltip.open(keyValuePairs, lnglat);
+          } else {
+            this.map.tooltip.close();
+          }
+          return true;
+        }
+      }
+    };
+    return {};
+  }
+  
+  // 行政区热力图的信息气泡
+  getDistrictTooltipInterAction() {
+    const interactionConfig = this.config.interactionConfig;
+    if (interactionConfig.tooltip.enabled) {
+      const triggerType = interactionConfig.tooltip.config.triggerType === 'hover' ? 'onHover' : 'onClick';
+      const displayField = interactionConfig.tooltip.config.displayField;
+      return {
+        [triggerType]: (info, event) => {
+          if (info.picked) {
+            const keyValuePairs = [];
+            displayField.forEach(f => {
+              keyValuePairs.push({
+                key: f.name,
+                value: info.object['properties'][f.name]
               });
             });
             const lnglat = info.lngLat;
@@ -281,6 +318,59 @@ export default class HeatMapLayer extends BaseLayer {
     return {
       id: `${this.id}-${visConfig.heatMapType}-layer`,
       type: HexagonLayer,
+      data: this.data.features,
+      ...layerProps,
+      ...interaction,
+      ...dataAccessors,
+      updateTriggers
+    };
+  }
+  
+  getDistrictHeatMapLayerProps() {
+    const visConfig = this.config.visConfig;
+    const interactionConfig = this.config.interactionConfig;
+
+    const layerProps = {
+      isVisible: visConfig.isVisible,
+      opacity: visConfig.opacity,
+      filled: true,
+      stroked: visConfig.stroked,
+      extruded: false,
+      lineWidthUnits: 'pixels'
+    };
+
+    const interaction = {
+      pickable: interactionConfig.pickable,
+      highlightColor: getColorArray(interactionConfig.highlightColor),
+      autoHighlight: interactionConfig.autoHighlight,
+      ...this.getDistrictTooltipInterAction()
+    };
+
+    const weightDomain = this.calculateLayerDomain(this.data.features, this.visualChannels.weight);
+    const colorRange = visConfig.colorRange;
+    const scale = this.getVisChannelScale(SCALE_TYPES.linear, weightDomain, colorRange, visConfig.fixedRadius);
+    const dataAccessors = {
+      getPolygon: d => d.geometry.coordinates,
+      getFillColor: d => {
+        const value = d['properties'][visConfig.weightField];
+        return value == undefined ? [0,0,0,0] : getColorArray(scale(value));
+      },
+      getLineColor: d => visConfig.strokeColor,
+      getLineWidth: d => visConfig.strokeWidth
+    };
+
+    const updateTriggers = {
+      getFillColor: {
+        weightField: visConfig.weightField,
+        colorRange: visConfig.colorRange
+      },
+      getLineColor: [visConfig.strokeColor],
+      getLineWidth: [visConfig.strokeWidth]
+    };
+
+    return {
+      id: `${this.id}-${visConfig.heatMapType}-layer`,
+      type: PolygonLayer,
       data: this.data.features,
       ...layerProps,
       ...interaction,
