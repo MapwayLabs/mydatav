@@ -72,9 +72,9 @@ export default class GeoJSONLayer extends Layer {
                 opacity: 1,
                 textureSrc: null, // 如果设置贴图，则面采用图片贴图
                 textureConfig: {
-                    offset: [0, 0],
-                    repeat: [0.01, 0.01],
-                    rotation: 0
+                    offset: [0, 0], // 偏移量 0- 1
+                    repeat: [0.01, 0.01], // 重复
+                    rotation: 0 // 旋转角度，0-360度
                 }
             },
             extrudeMaterial: { // 侧面材质,如果为 null，则与面材质相同
@@ -118,8 +118,10 @@ export default class GeoJSONLayer extends Layer {
         this.type = 'geojson';
         // this._initFeatures();
         this._features = this.createFeatureArray(this._data);
+        // 边缘轮廓数据
         if (outlineData != null) {
             this._outlineFeatures = this.createFeatureArray(outlineData);
+            this._outlineRings = [];
         }
     }
 
@@ -131,6 +133,7 @@ export default class GeoJSONLayer extends Layer {
         }
         this._drawBaseLayer();
         this._draw();
+        // this.drawBaseOutLine();
         // FIXME: 文字的碰撞计算 worldToScreen 需要等底图绘制完成才能计算准确
         this.updateLabels();
         if (this.options.hightLight.show) {
@@ -371,7 +374,8 @@ export default class GeoJSONLayer extends Layer {
             }
         }
     }
-
+    
+    // 绘制边缘轮廓和拉伸
     _drawBaseLayer() {
         if (!this._outlineFeatures || !this._outlineFeatures.length) return;
 
@@ -388,6 +392,7 @@ export default class GeoJSONLayer extends Layer {
                         if (this._map.options.crs === mapHelper.CRS.epsg3857) {
                             convert_array = this.convertCoordinates(coordinate_array);
                         }
+                        this._outlineRings.push(convert_array);
                         this.drawBasePolygon(convert_array, null, featureGroup);
                     }
                 } else if (geometry.type == 'MultiPolygon') {
@@ -398,6 +403,7 @@ export default class GeoJSONLayer extends Layer {
                             if (this._map.options.crs === mapHelper.CRS.epsg3857) {
                                 convert_array = this.convertCoordinates(coordinate_array);
                             }
+                            this._outlineRings.push(convert_array);
                             this.drawBasePolygon(convert_array, null, featureGroup);
                         }
                     }
@@ -422,7 +428,7 @@ export default class GeoJSONLayer extends Layer {
             texture1.wrapT = THREE.RepeatWrapping;
             texture1.offset.set(areaMaterial.textureConfig.offset[0], areaMaterial.textureConfig.offset[1]);
             texture1.repeat.set(areaMaterial.textureConfig.repeat[0], areaMaterial.textureConfig.repeat[1]);
-            texture1.rotation = areaMaterial.textureConfig.rotation;
+            texture1.rotation = THREE.Math.degToRad(areaMaterial.textureConfig.rotation);
             texture1.center.set(0.5, 0.5);
         }
         material1 = new THREE.MeshPhongMaterial({
@@ -467,6 +473,20 @@ export default class GeoJSONLayer extends Layer {
         mesh.rotateX(-Math.PI/2);
         mesh.userData = Util.extend({type: 'area_base'}, userData);
         container.add(mesh);
+    }
+
+    drawBaseOutLine() {
+        if (this.options.outline.top.show && this._outlineRings.length) {
+            let featureGroup = new THREE.Group();
+            this._container.add(featureGroup);
+            this._outlineRings.forEach(points => {
+                this.drawOutLine2(points, featureGroup, Util.extend({
+                    offset: this.options.isExtrude ? this.options.depth : 0,
+                    // renderOrder: 99
+                }, this.options.outline.top));
+            });
+            featureGroup.rotateX(-Math.PI/2);
+        }
     }
 
     getCanvasTextureElement(width, height, colorstop) {
@@ -634,8 +654,10 @@ export default class GeoJSONLayer extends Layer {
         if (lineOptions.offset) {
             line.translateZ(lineOptions.offset);
         }
-        // line.renderOrder = 80;
-        // line.material.depthTest = false;
+        if (lineOptions.renderOrder) {
+            line.renderOrder = lineOptions.renderOrder;
+            line.material.depthTest = false;
+        }
         mesh.add(line);
     }
 
@@ -665,8 +687,10 @@ export default class GeoJSONLayer extends Layer {
         if (options.offset) {
             lineMesh.translateZ(options.offset);
         }
-        lineMesh.renderOrder = options.renderOrder || 0;
-        lineMesh.material.depthTest = false;
+        if (options.renderOrder) {
+            lineMesh.renderOrder = options.renderOrder;
+            lineMesh.material.depthTest = false;
+        }
         mesh.add(lineMesh);
     }
 
@@ -686,8 +710,7 @@ export default class GeoJSONLayer extends Layer {
         let geometry;
         if (options.isExtrude) {
             let extrudeSettings = {
-                depth: options.depth,
-                UVGenerator : WorldUVGenerator,
+                depth: options.depth, 
                 bevelEnabled: false   // 是否用斜角
             };
             geometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings);
@@ -728,11 +751,8 @@ export default class GeoJSONLayer extends Layer {
                 texture2 = new THREE.CanvasTexture(canvas);
             }
             if (texture2) {
-                // texture2.wrapS = THREE.RepeatWrapping;
-                // texture2.wrapT = THREE.RepeatWrapping;
-                // texture2.repeat.set(4, 4);
-                // texture2.center = new THREE.Vector2(0.5, 0.5);
-                // texture2.rotation = Math.PI;
+                texture2.center = new THREE.Vector2(0.5, 0.5);
+                texture2.rotation = Math.PI;
                 material2 = new THREE.MeshPhongMaterial({
                     map: texture2
                 });
@@ -752,11 +772,12 @@ export default class GeoJSONLayer extends Layer {
                 offset: isExtrude ? this.options.depth : 0,
                 renderOrder: 10
             }, this.options.outline.normal);
-            if (options.width <= 1) {
-                this.drawOutLine(points, mesh, options);
-            } else {
-                this.drawOutLine2(points, mesh, options);
-            }
+            this.drawOutLine(points, mesh, options);
+            // if (options.width <= 1) {
+            //     this.drawOutLine(points, mesh, options);
+            // } else {
+            //     this.drawOutLine2(points, mesh, options);
+            // }
         }
 
         mesh.rotateX(-Math.PI/2);

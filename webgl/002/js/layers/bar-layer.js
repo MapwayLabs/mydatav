@@ -191,7 +191,6 @@ export default class BarLayer extends Layer {
             let xlength = x.data.length;
             let i = 0;
             for (; i < xlength; i++) {
-                if (f.geometry == null) break;
                 let ismatch = this.isMatch(x.data[i], f);
                 // 如果匹配到底图
                 if (ismatch) {
@@ -427,6 +426,7 @@ export default class BarLayer extends Layer {
             material.opacity = barStyle.opacity;
         }
         const mesh = new THREE.Mesh(geometry, material);
+        // const mesh = new THREE.Mesh(geometry, [material,material]);
         let lnglat = [center[0], center[1], yoffset];
         let projCenter = this._map.projectLngLat(lnglat);
 
@@ -455,8 +455,8 @@ export default class BarLayer extends Layer {
             // 将柱子放到球面上
             mesh.position.set(projCenter[0], projCenter[1], projCenter[2]);
         }
-        // mesh.renderOrder = 90;
-        // mesh.material.depthTest=false; // 是否采用深度测试，必须加
+        mesh.renderOrder = 99;
+        mesh.material.depthTest=false; // 是否采用深度测试，必须加
         return mesh;
     }
     _addTextLayer() {

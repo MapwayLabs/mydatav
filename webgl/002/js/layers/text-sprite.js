@@ -180,18 +180,13 @@ export default class TextSprite {
             const r = Math.min(radius, this._textWidth/2);
             ctx.arc(point.x, point.y, r*dpr, 0, Math.PI * 2);
             ctx.clip();
-            if (this.options.labelPointStyle.image) {
-                 const img = this.options.labelPointStyle.image;
-                // const img = new Image();
-                // img.onload = e => {
-                    ctx.globalCompositeOperation = "destination-over";
-                    // ctx.drawImage(img, point.x-r*dpr, point.y-r*dpr, r*dpr*2, r*dpr*2);
-                    ctx.drawImage(img, point.x-img.width/2, point.y-img.height/2);
-                    // ctx.fillRect(point.x-r*dpr, point.y-r*dpr, r*dpr*2, r*dpr*2);
-                // };
-                // img.src = this.options.labelPointStyle.imageSrc;
+            const img = this.options.labelPointStyle.image;
+            if (img) {
+                 ctx.globalCompositeOperation = "destination-over";
+                 ctx.drawImage(img, point.x-img.width/2, point.y-img.height/2);
+            } else {
+                ctx.fill();
             }
-            // ctx.fill();
             ctx.restore();
         }
 
