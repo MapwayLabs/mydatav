@@ -63,6 +63,9 @@ export default class HeatMapLayer extends BaseLayer {
     } else if (visConfig.heatMapType === 'district') {
       this._districtLayer = new MapboxLayer(this.getDistrictHeatMapLayerProps());
       this.map.addLayer(this._districtLayer);
+    } else if (visConfig.heatMapType === '3d') {
+      this._3dLayer = new MapboxLayer(this.get3DHeatMapLayerProps());
+      this.map.addLayer(this._3dLayer);
     }
   }
 
@@ -98,7 +101,7 @@ export default class HeatMapLayer extends BaseLayer {
       name: '热力图层',
       visConfig: {
         isVisible: true, // 热力图是否可见
-        heatMapType: 'basic', // 热力图类型：'basic' | 'grid' | 'hexagon' | 'district'
+        heatMapType: 'basic', // 热力图类型：'basic' | 'grid' | 'hexagon' | 'district' | '3d'
 
         weightField: null, // 热度基于字段名
         weightFieldType: ALL_FIELD_TYPES.real,
@@ -118,7 +121,9 @@ export default class HeatMapLayer extends BaseLayer {
         stroked: true,
         strokeColor: '#f00',
         strokeWidth: 1,
-        regionCode: '100000'
+        regionCode: '100000',
+
+        enable3d: false
       },
       interactionConfig: {
         pickable: false
@@ -366,6 +371,66 @@ export default class HeatMapLayer extends BaseLayer {
       },
       getLineColor: [visConfig.strokeColor],
       getLineWidth: [visConfig.strokeWidth]
+    };
+
+    return {
+      id: `${this.id}-${visConfig.heatMapType}-layer`,
+      type: PolygonLayer,
+      data: this.data.features,
+      ...layerProps,
+      ...interaction,
+      ...dataAccessors,
+      updateTriggers
+    };
+  }
+
+  get3DHeatMapLayerProps() {
+    const visConfig = this.config.visConfig;
+    const interactionConfig = this.config.interactionConfig;
+
+    const layerProps = {
+      isVisible: visConfig.isVisible,
+      opacity: visConfig.opacity,
+      filled: true,
+      stroked: visConfig.stroked,
+      extruded: true,
+      lineWidthUnits: 'pixels',
+      elevationScale: 1000
+    };
+
+    const interaction = {
+      pickable: interactionConfig.pickable,
+      highlightColor: getColorArray(interactionConfig.highlightColor),
+      autoHighlight: interactionConfig.autoHighlight,
+      ...this.getDistrictTooltipInterAction()
+    };
+
+    const weightDomain = this.calculateLayerDomain(this.data.features, this.visualChannels.weight);
+    const colorRange = visConfig.colorRange;
+    const scale = this.getVisChannelScale(SCALE_TYPES.linear, weightDomain, colorRange, visConfig.fixedRadius);
+    const elevationScale = this.getVisChannelScale(SCALE_TYPES.linear, weightDomain, [0, 100]);
+    const dataAccessors = {
+      getPolygon: d => d.geometry.coordinates[0],
+      getFillColor: d => {
+        const value = d['properties'][visConfig.weightField];
+        return value == undefined ? [0,0,0,0] : getColorArray(scale(value));
+      },
+      getLineColor: d => visConfig.strokeColor,
+      getLineWidth: d => visConfig.strokeWidth,
+      getElevation: d => {
+        const value = elevationScale(d['properties'][visConfig.weightField]);
+        return value;
+      }
+    };
+    
+    const updateTriggers = {
+      getFillColor: {
+        weightField: visConfig.weightField,
+        colorRange: visConfig.colorRange
+      },
+      getLineColor: [visConfig.strokeColor],
+      getLineWidth: [visConfig.strokeWidth],
+      getElevation: [visConfig.weightField]
     };
 
     return {
