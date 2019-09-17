@@ -19,9 +19,9 @@
 // THE SOFTWARE.
 
 import {registerShaderModules, setParameters} from 'luma.gl';
-import brushingModule from './shaderlib/brushing-module';
+import brushingModule from '../shaderlib/brushing-module';
 // import {LAYER_BLENDINGS} from 'constants/default-settings';
-import {LAYER_BLENDINGS} from './config';
+import {LAYER_BLENDINGS} from '../config';
 import GL from '@luma.gl/constants';
 
 const getGlConst = d => GL[d];

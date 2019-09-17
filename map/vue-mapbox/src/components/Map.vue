@@ -13,8 +13,8 @@ import mapboxgl from '../../node_modules/mapbox-gl/dist/mapbox-gl-unminified';
 import {Deck} from '@deck.gl/core';
 import {GeoJsonLayer, ArcLayer} from '@deck.gl/layers';
 import ScatterplotBrushingLayer from '../layers/deckgl-layers/scatterplot-brushing-layer/scatterplot-brushing-layer';
-import { onWebGLInitialized, setLayerBlending } from '../layers/gl-utils';
-import ToolTip from '../layers/tooltip';
+import { onWebGLInitialized, setLayerBlending } from '../layers/utils/gl-utils';
+import ToolTip from '../layers/tooltip/tooltip';
 import { SCALE_TYPES } from '../layers/config';
 
 import scatterData from '../data/bart-stations.json';
