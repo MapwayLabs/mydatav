@@ -123,7 +123,7 @@ export default class HeatMapLayer extends BaseLayer {
         strokeWidth: 1,
         regionCode: '100000',
 
-        enable3d: false
+        // enable3d: false
       },
       interactionConfig: {
         pickable: false
