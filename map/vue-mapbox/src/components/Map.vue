@@ -227,11 +227,25 @@ export default {
         data: poinData,      
         visConfig: {
           isVisible: true, // 热力图是否可见
-          heatMapType: 'basic', // 热力图类型：'basic' | 'quadrilateral' | 'hexagon' | 'district'
+          heatMapType: 'grid', // 热力图类型：
           weightField: 'exits', // 热度基于字段
-          colorRange: ["#5A1846", "#900C3F", "#C70039", "#E3611C", "#F1920E", "#FFC300"], // 热力颜色
+          colorRange: ["#f00","#0f0", "#00f", "#ff0"], // 热力颜色
+          aggregationType: 'maximum',
           opacity: 1, // 热力透明度
-          radius: 30 // 热力半径（单位：pixels）
+          radius: 2000 // 热力半径（单位：pixels）
+        },
+        interactionConfig: {
+          pickable: true,
+          autoHighlight: true,          
+          tooltip: {
+              id: 'tooltip',
+              enabled: true,
+              config: {
+                style: 'font-size:12px;', // css样式
+                triggerType: 'hover', // 触发方式， 'hover' or 'click'
+                displayField: [{name:'exits'}], //显示字段，对象数组 [{name: '字段名', type:'字段类型', ... }]
+              }
+          }
         }
       });
       // this.map.addLayer(pointLayer);

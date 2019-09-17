@@ -82,6 +82,9 @@ export default class BaseLayer {
             sizeField: null
         },
         interactionConfig: {
+          pickable: false,
+          highlightColor: 'rgba(0, 0, 128, 0.5)',
+          autoHighlight: false,
           tooltip: {
               id: 'tooltip',
               enabled: true,
@@ -164,5 +167,32 @@ export default class BaseLayer {
         default:
           return getLinearDomain(filteredIndexForDomain, indexValueAccessor);
       }
+    }
+
+    getTooltipInterAction() {
+      const interactionConfig = this.config.interactionConfig;
+      if (interactionConfig.tooltip.enabled) {
+        const triggerType = interactionConfig.tooltip.config.triggerType === 'hover' ? 'onHover' : 'onClick';
+        const displayField = interactionConfig.tooltip.config.displayField;
+        return {
+          [triggerType]: (info, event) => {
+            if (info.picked) {
+              const keyValuePairs = [];
+              displayField.forEach(f => {
+                keyValuePairs.push({
+                  key: f.name,
+                  value: info.object['properties'][f.name]
+                });
+              });
+              const lnglat = info.lngLat;
+              this.map.tooltip.open(keyValuePairs, lnglat);
+            } else {
+              this.map.tooltip.close();
+            }
+            return true;
+          }
+        }
+      };
+      return {};
     }
 }

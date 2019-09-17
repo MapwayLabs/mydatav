@@ -18,9 +18,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-import {unique} from 'utils/data-utils';
+import {unique} from '../../utils/data-utils';
 
-import {SCALE_TYPES, SCALE_FUNC} from 'constants/default-settings';
+import {SCALE_TYPES, SCALE_FUNC} from '../../config';
 
 // Enable render color by customized color Scale
 export function getBinColorDomain(scaleType, bins, [lowerIdx, upperIdx]) {

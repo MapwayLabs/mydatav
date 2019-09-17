@@ -153,28 +153,29 @@ export default class PointLayer extends BaseLayer {
         highlightColor: getColorArray(interactionConfig.highlightColor),
         autoHighlight: interactionConfig.autoHighlight,
         enableBrushing,
-        brushRadius: interactionConfig.brush.config.size * 1000
+        brushRadius: interactionConfig.brush.config.size * 1000,
+        ...this.getTooltipInterAction()
       };
-      if (interactionConfig.tooltip.enabled) {
-        const triggerType = interactionConfig.tooltip.config.triggerType === 'hover' ? 'onHover' : 'onClick';
-        const displayField = interactionConfig.tooltip.config.displayField;
-        interaction[triggerType] = (info, event) => {
-          if (info.picked) {
-            const keyValuePairs = [];
-            displayField.forEach(f => {
-              keyValuePairs.push({
-                key: f.name,
-                value: info.object['properties'][f.name]
-              });
-            });
-            const lnglat = info.lngLat;
-            this.map.tooltip.open(keyValuePairs, lnglat);
-          } else {
-            this.map.tooltip.close();
-          }
-          return true;
-        };
-      }
+      // if (interactionConfig.tooltip.enabled) {
+      //   const triggerType = interactionConfig.tooltip.config.triggerType === 'hover' ? 'onHover' : 'onClick';
+      //   const displayField = interactionConfig.tooltip.config.displayField;
+      //   interaction[triggerType] = (info, event) => {
+      //     if (info.picked) {
+      //       const keyValuePairs = [];
+      //       displayField.forEach(f => {
+      //         keyValuePairs.push({
+      //           key: f.name,
+      //           value: info.object['properties'][f.name]
+      //         });
+      //       });
+      //       const lnglat = info.lngLat;
+      //       this.map.tooltip.open(keyValuePairs, lnglat);
+      //     } else {
+      //       this.map.tooltip.close();
+      //     }
+      //     return true;
+      //   };
+      // }
 
       const dataAccessors = {
         getPosition: d => d.geometry.coordinates,
@@ -210,6 +211,11 @@ export default class PointLayer extends BaseLayer {
           strokeWidth: visConfig.strokeWidth
         }
       };
+      
+      // Fix z-fighting Bug: https://deck.gl/#/documentation/developer-guide/tips-and-tricks?section=z-fighting-and-depth-testing
+      const parameters = {
+        depthTest: false
+      };
 
       return {
         id: `${this.id}-scatter`,
@@ -218,7 +224,8 @@ export default class PointLayer extends BaseLayer {
         ...layerProps,
         ...interaction,
         ...dataAccessors,
-        updateTriggers
+        updateTriggers,
+        parameters
       };
     }
 

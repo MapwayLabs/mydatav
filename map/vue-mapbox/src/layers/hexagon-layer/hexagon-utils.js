@@ -18,38 +18,39 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-import {HexagonLayer} from '@deck.gl/layers';
-import {pointToHexbin} from './hexagon-aggregator';
+import {WebMercatorViewport} from 'deck.gl';
 
-import {getColorValueDomain, getColorScaleFunction} from '../layer-utils/utils';
+export function hexagonToPolygonGeo({object}, properties, radius, mapState) {
+  const viewport = new WebMercatorViewport(mapState);
 
-const defaultProps = {
-  ...HexagonLayer.defaultProps,
-  hexagonAggregator: pointToHexbin,
-  colorScale: 'quantile'
-};
+  const screenCenter = viewport.projectFlat(object.position);
+  const {pixelsPerMeter} = viewport.getDistanceScales();
+  const pixRadius = radius * pixelsPerMeter[0];
 
-export default class EnhancedHexagonLayer extends HexagonLayer {
-  getDimensionUpdaters() {
-    const dimensionUpdaters = super.getDimensionUpdaters();
-    // add colorScale to dimension updates
-    dimensionUpdaters.getFillColor[1].triggers.push('colorScale');
-    dimensionUpdaters.getElevation[1].triggers.push('sizeScale');
-    return dimensionUpdaters;
+  const coordinates = [];
+
+  for (let i = 0; i < 6; i++) {
+    const vertex = hex_corner(screenCenter, pixRadius, i);
+    coordinates.push(viewport.unprojectFlat(vertex));
   }
 
-  /*
-   * override default layer method to calculate color domain
-   * and scale function base on color scale type
-   */
-  getColorValueDomain() {
-    getColorValueDomain(this);
-  }
+  coordinates.push(coordinates[0]);
 
-  getColorScale() {
-    getColorScaleFunction(this);
-  }
+  return {
+    geometry: {
+      coordinates,
+      type: 'LineString'
+    },
+    properties
+  };
 }
 
-EnhancedHexagonLayer.layerName = 'EnhancedHexagonLayer';
-EnhancedHexagonLayer.defaultProps = defaultProps;
+function hex_corner(center, radius, i) {
+  const angle_deg = 60 * i + 30;
+  const angle_rad = Math.PI / 180 * angle_deg;
+
+  return [
+    center[0] + radius * Math.cos(angle_rad),
+    center[1] + radius * Math.sin(angle_rad)
+  ];
+}

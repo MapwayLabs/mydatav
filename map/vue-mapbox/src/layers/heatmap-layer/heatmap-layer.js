@@ -1,4 +1,5 @@
 import BaseLayer from '../base-layer';
+import { MapboxLayer } from '@deck.gl/mapbox';
 import { SCALE_FUNC, SCALE_TYPES, ALL_FIELD_TYPES, AGGREGATION_TYPES } from '../config';
 import { hexToRgb, getColorArray } from '../utils/color-utils';
 import { GridLayer } from '@deck.gl/aggregation-layers';
@@ -50,7 +51,8 @@ export default class HeatMapLayer extends BaseLayer {
       });
       this.map.addLayer(this.getBasicHeatMapLayerProps());
     } else if (visConfig.heatMapType === 'grid') {
-
+      this._gridLayer = new MapboxLayer(this.getGridHeatMapLayerProps());
+      this.map.addLayer(this._gridLayer);
     }
   }
 
@@ -96,7 +98,7 @@ export default class HeatMapLayer extends BaseLayer {
         
         colorRange: ["#5A1846", "#900C3F", "#C70039"], // 热力颜色
         opacity: 1, // 热力透明度
-        radius: 30, // 热力半径（单位：pixels）
+        radius: 30, // 热力半径（basic单位：pixels, grid单位：meters）
 
         // grid类型配置
         aggregationType: AGGREGATION_TYPES.count, // 聚合类型：'count' | 'average' | 'maximum' | 'minimum' | 'median' | 'sum'
@@ -107,6 +109,35 @@ export default class HeatMapLayer extends BaseLayer {
         pickable: false
       }
     }, super.getDefaultLayerConfig(props));
+  }
+
+  getTooltipInterAction() {
+    const interactionConfig = this.config.interactionConfig;
+    if (interactionConfig.tooltip.enabled) {
+      const triggerType = interactionConfig.tooltip.config.triggerType === 'hover' ? 'onHover' : 'onClick';
+      const displayField = interactionConfig.tooltip.config.displayField;
+      return {
+        [triggerType]: (info, event) => {
+          if (info.picked) {
+            const keyValuePairs = [];
+            displayField.forEach(f => {
+              info.object.points.forEach(p => {
+                keyValuePairs.push({
+                  key: f.name,
+                  value: p['properties'][f.name]
+                });
+              });
+            });
+            const lnglat = info.lngLat;
+            this.map.tooltip.open(keyValuePairs, lnglat);
+          } else {
+            this.map.tooltip.close();
+          }
+          return true;
+        }
+      }
+    };
+    return {};
   }
 
   getBasicHeatMapLayerProps() {
@@ -162,12 +193,12 @@ export default class HeatMapLayer extends BaseLayer {
 
   getGridHeatMapLayerProps() {
     const visConfig = this.config.visConfig;
+    const interactionConfig = this.config.interactionConfig;
 
     const layerProps = {
       isVisible: visConfig.isVisible,
       opacity: visConfig.opacity,
-      cellSize: visConfig.radius,
-      // colorDomain: []
+      cellSize: visConfig.radius, // meters
       colorRange: visConfig.colorRange.map(e => getColorArray(e)),
       coverage: 1,
       extruded: false
@@ -176,7 +207,8 @@ export default class HeatMapLayer extends BaseLayer {
     const interaction = {
       pickable: interactionConfig.pickable,
       highlightColor: getColorArray(interactionConfig.highlightColor),
-      autoHighlight: interactionConfig.autoHighlight
+      autoHighlight: interactionConfig.autoHighlight,
+      ...this.getTooltipInterAction()
     };
 
     const dataAccessors = {
@@ -184,9 +216,7 @@ export default class HeatMapLayer extends BaseLayer {
       getColorValue: points => {
         const data = points.map(e => e['properties'][visConfig.weightField]);
         return aggregate(data, visConfig.aggregationType);
-      },
-      // getColorWeight: point => {}
-      // colorAggregation:
+      }
     };
 
     const updateTriggers = {
@@ -197,13 +227,13 @@ export default class HeatMapLayer extends BaseLayer {
     };
 
     return {
-      id: `${this.id}-${visConfig.heatMapType}`,
+      id: `${this.id}-${visConfig.heatMapType}-layer`,
       type: GridLayer,
       data: this.data.features,
       ...layerProps,
       ...interaction,
       ...dataAccessors,
-      ...updateTriggers
+      updateTriggers
     };
   }
 }
