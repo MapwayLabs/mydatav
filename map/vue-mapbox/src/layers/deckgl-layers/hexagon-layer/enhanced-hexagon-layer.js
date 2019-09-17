@@ -18,7 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-import {HexagonLayer} from '@deck.gl/layers';
+import {HexagonLayer} from '@deck.gl/aggregation-layers';
 import {pointToHexbin} from './hexagon-aggregator';
 
 import {getColorValueDomain, getColorScaleFunction} from '../layer-utils/utils';

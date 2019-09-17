@@ -4,6 +4,9 @@ import { SCALE_FUNC, SCALE_TYPES, ALL_FIELD_TYPES, AGGREGATION_TYPES } from '../
 import { hexToRgb, getColorArray } from '../utils/color-utils';
 import { GridLayer } from '@deck.gl/aggregation-layers';
 import { aggregate } from '../utils/aggregate-utils';
+// import HexagonLayer from '../deckgl-layers/hexagon-layer/enhanced-hexagon-layer';
+import {HexagonLayer} from '@deck.gl/aggregation-layers';
+
 /**
  *
  * @param {Object} colorRange
@@ -53,6 +56,9 @@ export default class HeatMapLayer extends BaseLayer {
     } else if (visConfig.heatMapType === 'grid') {
       this._gridLayer = new MapboxLayer(this.getGridHeatMapLayerProps());
       this.map.addLayer(this._gridLayer);
+    } else if (visConfig.heatMapType === 'hexagon') {
+      this._hexagonLayer = new MapboxLayer(this.getHexagonHeatMapLayerProps());
+      this.map.addLayer(this._hexagonLayer);
     }
   }
 
@@ -229,6 +235,52 @@ export default class HeatMapLayer extends BaseLayer {
     return {
       id: `${this.id}-${visConfig.heatMapType}-layer`,
       type: GridLayer,
+      data: this.data.features,
+      ...layerProps,
+      ...interaction,
+      ...dataAccessors,
+      updateTriggers
+    };
+  }
+
+  getHexagonHeatMapLayerProps() {
+    const visConfig = this.config.visConfig;
+    const interactionConfig = this.config.interactionConfig;
+
+    const layerProps = {
+      isVisible: visConfig.isVisible,
+      opacity: visConfig.opacity,
+      radius: visConfig.radius, // meters
+      colorRange: visConfig.colorRange.map(e => getColorArray(e)),
+      coverage: 1,
+      extruded: false
+    };
+
+    const interaction = {
+      pickable: interactionConfig.pickable,
+      highlightColor: getColorArray(interactionConfig.highlightColor),
+      autoHighlight: interactionConfig.autoHighlight,
+      ...this.getTooltipInterAction()
+    };
+
+    const dataAccessors = {
+      getPosition: d => d.geometry.coordinates,
+      getColorValue: points => {
+        const data = points.map(e => e['properties'][visConfig.weightField]);
+        return aggregate(data, visConfig.aggregationType);
+      }
+    };
+
+    const updateTriggers = {
+      getColorValue: {
+        weightField: visConfig.weightField,
+        aggregationType: visConfig.aggregationType
+      }
+    };
+
+    return {
+      id: `${this.id}-${visConfig.heatMapType}-layer`,
+      type: HexagonLayer,
       data: this.data.features,
       ...layerProps,
       ...interaction,

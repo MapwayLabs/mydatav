@@ -227,10 +227,10 @@ export default {
         data: poinData,      
         visConfig: {
           isVisible: true, // 热力图是否可见
-          heatMapType: 'grid', // 热力图类型：
+          heatMapType: 'hexagon', // 热力图类型：
           weightField: 'exits', // 热度基于字段
           colorRange: ["#f00","#0f0", "#00f", "#ff0"], // 热力颜色
-          aggregationType: 'maximum',
+          aggregationType: 'count',
           opacity: 1, // 热力透明度
           radius: 2000 // 热力半径（单位：pixels）
         },
