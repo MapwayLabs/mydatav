@@ -4,8 +4,10 @@
     <meta charset='utf-8' />
     <title>heatmap_3d</title>
     <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
-    <link href='../../lib/mapbox-gl.css' rel='stylesheet' />
-    <script src='../../lib/mapbox-gl.js'></script>
+    <!-- <link href='../../lib/mapbox-gl.css' rel='stylesheet' />
+    <script src='../../lib/mapbox-gl.js'></script> -->
+    <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.4.0/mapbox-gl.css' rel='stylesheet' />
+    <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v1.4.0/mapbox-gl.js'></script>
     <script src='../../lib/threejs/three.min.js'></script>
     <script src='../../lib/heatmap.js'></script>
     <style>
@@ -25,10 +27,28 @@ var map = new mapboxgl.Map({
     style: 'mapbox://styles/linghuam/cjc7nwxxk1j722snvn6biyaa8',
     // style: 'mapbox://styles/linghuam/cjxlossd012rv1ckcsbpsvrp1',
     center: [116, 40],
-    zoom: 3
+    zoom: 3,
+    renderWorldCopies: false,
+    // maxBounds: [-180, -85, 180, 85]
 });
 
+function screenToWorld(screenPoint, map, camera) {
+    const mapSize = {
+      width: map.getContainer().clientWidth,
+      height: map.getContainer().clientHeight
+    };
+    //屏幕坐标转标准设备坐标
+    const x = (screenPoint.x / mapSize.width) * 2 - 1;
+    const y = -(screenPoint.y / mapSize.height) * 2 + 1;
+    //标准设备坐标
+    const standardVector = new THREE.Vector3(x, y, 0);
+    //标准设备坐标转世界坐标
+    const worldVector = standardVector.unproject(camera);
+    return [worldVector.x, worldVector.y, worldVector.z];
+}
+
 map.on('load', function() {
+  map.addControl(new mapboxgl.NavigationControl());
   var heatmapInstance = h337.create({
     // only container is required, the rest will be defaults
     container: document.querySelector('.heatmap')
@@ -64,7 +84,7 @@ map.on('load', function() {
   heatmapInstance.setData(data);
      
   var customLayer = {
-    id: 'customlayer',
+    id: '3dheatmap-customlayer',
     type: 'custom',
     renderingMode: '3d',
     onAdd: function(map, gl) {
@@ -80,33 +100,61 @@ map.on('load', function() {
         antialias: true
       });
       this.renderer.autoClear = false;
-    },
-    onRemove: function() {},
-    render: function(gl, matrix) {
-      var geometry = new THREE.PlaneGeometry( 0, 0,255,255 );
-      
+
+      // onAdd 
+      var geometry = new THREE.PlaneGeometry( 0, 0,255,255 ); 
       let geolen = geometry.vertices.length
       var mdata ;
+      console.time('逐像素赋值耗时');
       for(let i = 0; i<geolen; i++)
       {
           geometry.vertices[i].z = heatmapInstance.getValueAt({ x:i%256, y:Math.trunc(i/256) }) /(256*2);
       }
+      console.timeEnd('逐像素赋值耗时');
       let texture = new THREE.CanvasTexture( heatmapInstance._renderer.canvas );
       var material = new THREE.MeshBasicMaterial( { map: texture, transparent: true , side:THREE.DoubleSide , depthTest :true} ) ;
       var plane = new THREE.Mesh( geometry, material );
-      //plane.rotateX( - Math.PI / 2 );
-      plane.scale.set(10, 10, 10);
-      // var v = threeLayer.coordinateToVector3(new maptalks.Coordinate(map.getCenter()));
-      // plane.position.x = v.x;
-      // plane.position.y = v.y;
-      // plane.position.z = v.z;
+      var screenCoodinate = this.map.project(this.map.getCenter());
+      var worldCoodinate = screenToWorld(screenCoodinate, this.map, this.camera);
+      plane.position.x = worldCoodinate[0] + 0.5;
+      plane.position.y = worldCoodinate[1] + 0.5;
       this.scene.add( plane );
+    },
+    onRemove: function() {},
+    prerender: function(gl, matrix) {
+      // console.log('prerender');
+      // var geometry = new THREE.PlaneGeometry( 0, 0,255,255 );
+      
+      // let geolen = geometry.vertices.length
+      // var mdata ;
+      // console.time('逐像素赋值耗时');
+      // for(let i = 0; i<geolen; i++)
+      // {
+      //     geometry.vertices[i].z = heatmapInstance.getValueAt({ x:i%256, y:Math.trunc(i/256) }) /(256*2);
+      // }
+      // console.timeEnd('逐像素赋值耗时');
+      // let texture = new THREE.CanvasTexture( heatmapInstance._renderer.canvas );
+      // var material = new THREE.MeshBasicMaterial( { map: texture, transparent: true , side:THREE.DoubleSide , depthTest :true} ) ;
+      // var plane = new THREE.Mesh( geometry, material );
+      // // plane.rotateX( - Math.PI / 2 );
+      // // plane.scale.set(10, 10, 10);
+      // // var v = threeLayer.coordinateToVector3(new maptalks.Coordinate(map.getCenter()));
+      // // plane.position.x = v.x;
+      // // plane.position.y = v.y;
+      // // plane.position.z = v.z;
+      // this.scene.add( plane );
 
-      var m = new THREE.Matrix4().fromArray(matrix);
-      // this.camera.projectionMatrix.elements = matrix;
+      // var m = new THREE.Matrix4().fromArray(matrix);
+      // // this.camera.projectionMatrix.elements = matrix;
+      // this.renderer.state.reset();
+      // this.renderer.render(this.scene, this.camera);
+      // this.map.triggerRepaint();
+    },
+    render: function(gl, matrix) {
+      this.camera.projectionMatrix.elements = matrix;
       this.renderer.state.reset();
       this.renderer.render(this.scene, this.camera);
-      // this.map.triggerRepaint();
+      this.map.triggerRepaint();
     }
   }
   map.addLayer(customLayer);
