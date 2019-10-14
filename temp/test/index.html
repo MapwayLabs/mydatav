@@ -1,0 +1,77 @@
+<html>
+<head>
+  <meta charset=utf-8 />
+  <title>Esri Leaflet Quickstart</title>
+  <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+
+    <link rel="stylesheet" href="./leaflet.css" />
+    <script type="text/javascript" src="./leaflet-src.js"></script>
+    <script type="text/javascript" src="./proj4.js"></script>
+    <script type="text/javascript" src="./proj4leaflet.js"></script>
+    <script type="text/javascript" src="./esri-leaflet.js"></script>
+  <style>
+    body { margin:0; padding:0; }
+    #map { position: absolute; width: 100%; top:0; bottom:0; right:0; left:0; }
+  </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<!--湖北襄阳-->
+<!-- <script> 
+    var crs = new L.Proj.CRS("EPSG:4490", "+proj=longlat +ellps=GRS80 +no_defs",
+    {
+        origin: [ -400.0 , 400.0 ],  
+        resolutions: [0.7039144156840451, 0.35195720784202256, 0.17597860392101008, 0.08798930196050625, 0.043994650980251924, 0.021997325490125962, 0.010998662745064171, 0.005499331372532086, 0.002749665686264853, 0.0013748328431324266, 6.874164215662133E-4,3.4370821078310665E-4, 1.7185410539155332E-4, 8.592705269577666E-5, 4.296352634907807E-5, 2.1481763174539033E-5, 1.0740881586079784E-5, 5.370440794229623E-6, 2.685220395925081E-6]
+    });
+    // 中心点
+    // var fullextent = [112.07048399317894,  32.05328117884243, 112.3390095391418, 32.2116229815975];
+    // var minPoint = crs.projection.unproject(L.point(fullextent[0], fullextent[1]));
+    // var maxPoint = crs.projection.unproject(L.point(fullextent[2], fullextent[3]));
+    // var bounds = L.latLngBounds(minPoint, maxPoint);
+    // var centerPoint = bounds.getCenter();
+    var mapOptions = {
+        center: [31.740,111.194],
+        zoom: 10,
+        crs: crs,
+        // attributionControl: true,
+    };
+    var map = L.map('map', mapOptions);
+
+    var layers = ["http://192.168.240.59:6080/arcgis/rest/services/BasicGISService/%E8%A5%84%E9%98%B3%E7%A4%BE%E7%AE%A1%E5%BB%BA%E7%AD%91%E7%89%A9%E6%A0%87%E6%B3%A8%E9%85%8D%E5%9B%BE/MapServer","http://192.168.240.59:6080/arcgis/rest/services/BasicGISService/%E6%A8%8A%E5%9F%8E%E7%A4%BE%E7%AE%A1%E5%BB%BA%E7%AD%91%E7%89%A9%E6%A0%87%E6%B3%A8%E9%85%8D%E5%9B%BE/MapServer","http://192.168.240.59:6080/arcgis/rest/services/BasicGISService/%E9%AB%98%E6%96%B0%E7%A4%BE%E7%AE%A1%E5%BB%BA%E7%AD%91%E7%89%A9%E6%A0%87%E6%B3%A8%E9%85%8D%E5%9B%BE/MapServer","http://192.168.240.59:6080/arcgis/rest/services/BasicGISService/%E8%A5%84%E5%9F%8E%E7%A4%BE%E7%AE%A1%E5%BB%BA%E7%AD%91%E7%89%A9%E6%A0%87%E6%B3%A8%E9%85%8D%E5%9B%BE/MapServer","http://192.168.240.59:6080/arcgis/rest/services/BasicGISService/%E8%A5%84%E5%B7%9E%E7%A4%BE%E7%AE%A1%E5%BB%BA%E7%AD%91%E7%89%A9%E6%A0%87%E6%B3%A8%E9%85%8D%E5%9B%BE/MapServer","http://192.168.240.59:6080/arcgis/rest/services/BasicGISService/%E4%BF%9D%E5%BA%B7%E7%A4%BE%E7%AE%A1%E5%BB%BA%E7%AD%91%E7%89%A9%E6%A0%87%E6%B3%A8%E9%85%8D%E5%9B%BE/MapServer","http://192.168.240.59:6080/arcgis/rest/services/BasicGISService/%E8%B0%B7%E5%9F%8E%E7%A4%BE%E7%AE%A1%E5%BB%BA%E7%AD%91%E7%89%A9%E6%A0%87%E6%B3%A8%E9%85%8D%E5%9B%BE/MapServer","http://192.168.240.59:6080/arcgis/rest/services/BasicGISService/%E8%80%81%E6%B2%B3%E5%8F%A3%E7%A4%BE%E7%AE%A1%E5%BB%BA%E7%AD%91%E7%89%A9%E6%A0%87%E6%B3%A8%E9%85%8D%E5%9B%BE/MapServer","http://192.168.240.59:6080/arcgis/rest/services/BasicGISService/%E5%8D%97%E6%BC%B3%E7%A4%BE%E7%AE%A1%E5%BB%BA%E7%AD%91%E7%89%A9%E6%A0%87%E6%B3%A8%E9%85%8D%E5%9B%BE/MapServer","http://192.168.240.59:6080/arcgis/rest/services/BasicGISService/%E5%AE%9C%E5%9F%8E%E7%A4%BE%E7%AE%A1%E5%BB%BA%E7%AD%91%E7%89%A9%E6%A0%87%E6%B3%A8%E9%85%8D%E5%9B%BE/MapServer","http://192.168.240.59:6080/arcgis/rest/services/BasicGISService/%E9%B1%BC%E6%A2%81%E6%B4%B2%E7%A4%BE%E7%AE%A1%E5%BB%BA%E7%AD%91%E7%89%A9%E6%A0%87%E6%B3%A8%E9%85%8D%E5%9B%BE/MapServer","http://192.168.240.59:6080/arcgis/rest/services/BasicGISService/%E6%9E%A3%E9%98%B3%E7%A4%BE%E7%AE%A1%E5%BB%BA%E7%AD%91%E7%89%A9%E6%A0%87%E6%B3%A8%E9%85%8D%E5%9B%BE/MapServer","http://192.168.240.59:6080/arcgis/rest/services/BasicGISService/%E4%B8%9C%E6%B4%A5%E7%A4%BE%E7%AE%A1%E5%BB%BA%E7%AD%91%E7%89%A9%E6%A0%87%E6%B3%A8%E9%85%8D%E5%9B%BE/MapServer"].map(url => L.esri.tiledMapLayer({url: url}))
+    
+    L.layerGroup(layers).addTo(map);
+
+    /*
+    var tileLayer = L.esri.tiledMapLayer({
+      url: "http://192.168.240.59:6080/arcgis/rest/services/BasicGISService/%E8%A5%84%E9%98%B3%E7%A4%BE%E7%AE%A1%E5%BB%BA%E7%AD%91%E7%89%A9%E6%A0%87%E6%B3%A8%E9%85%8D%E5%9B%BE/MapServer",
+      maxZoom: 18,
+      minZoom: 0,
+      // tileSize: 256,
+      // continuousWorld: true
+    });
+    // 测试点 
+    L.marker(crs.projection.unproject(L.point(111.948, 31.926))).addTo(map);
+    map.on('click', e => {
+      console.log(e);
+    });
+    map.addLayer(tileLayer);
+    */
+</script> -->
+
+<!--新疆克拉玛依-->
+<script>
+  var mapOptions = {
+      center: [45.6166,84.8496],
+      zoom: 8,
+      crs: L.CRS.EPSG3857
+  };
+  // 中心点对应切片 http://104.73.1.242/title/8/188/91.png
+  var map = L.map('map', mapOptions);
+  var url = "http://104.73.1.242/title/{z}/{x}/{y}.png";
+  L.tileLayer(url).addTo(map);
+</script>
+
+</body>
+</html>

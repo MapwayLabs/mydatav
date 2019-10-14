@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <script src="https://unpkg.com/deck.gl@latest/dist.min.js"></script>
+  <!-- optional if mapbox base map is needed -->
+  <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v1.4.1/mapbox-gl.js'></script>
+  <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v1.4.1/mapbox-gl.css' rel='stylesheet' />
+  <title>deck</title>
+</head>
+<body>
+  <script>
+    new deck.Deck({
+      // mapboxApiAccessToken: 'pk.eyJ1IjoibGluZ2h1YW0iLCJhIjoiY2o1dWYzYzlqMDQ4OTJxbzRiZWl5OHdtcyJ9._Ae66CF7CGUIoJlVdrXjqA',
+      // mapStyle: 'mapbox://styles/mapbox/light-v9',
+      id: 'deck-canvas',
+      width: window.innerWidth,
+      height: window.innerHeight,
+      viewState: {
+        longitude: -122.45,
+        latitude: 37.8,
+        zoom: 15
+      },
+      layers: [
+        new deck.ScatterplotLayer({
+          data: [
+            {position: [-122.45, 37.8], color: [255, 0, 0], radius: 100}
+          ],
+          getColor: d => d.color,
+          getRadius: d => d.radius
+        })
+      ]
+    });
+  </script>
+</body>
+</html>
