@@ -1437,6 +1437,7 @@ function MeshLineMaterial( parameters ) {
 'uniform float period;',
 'uniform float spotSize;',
 'uniform bool hasEffect;',
+'uniform bool isFlyBaseLine;',
 '',
 'varying vec2 vUV;',
 'varying vec4 vColor;',
@@ -1530,6 +1531,7 @@ function MeshLineMaterial( parameters ) {
 'uniform float alphaTest;',
 'uniform vec2 repeat;',
 'uniform bool hasEffect;',
+'uniform bool isFlyBaseLine;',
 'uniform vec4 baseColor;',
 '',
 'varying vec2 vUV;',
@@ -1551,8 +1553,10 @@ function MeshLineMaterial( parameters ) {
 	'',
 	'gl_FragColor = baseColor * vColor;',
 	'#endif',
-	'',
-	'gl_FragColor.a *= fade;',
+	'', 
+	// fix：设置定时播放时，底线也随之消隐问题
+	'if( isFlyBaseLine ) { gl_FragColor.a *= 1.0; } else { gl_FragColor.a *= fade; }',
+	// 'gl_FragColor.a *= fade;',
 '} else {',
 '    vec4 c = vColor;',
 '    if( useMap == 1. ) c *= texture2D( map, vUV * repeat );',
@@ -1593,6 +1597,7 @@ function MeshLineMaterial( parameters ) {
 	this.visibility = check( parameters.visibility, 1 );
 	this.alphaTest = check( parameters.alphaTest, 0 );
 	this.repeat = check( parameters.repeat, new THREE.Vector2( 1, 1 ) );
+	this.isFlyBaseLine = check( parameters.isFlyBaseLine, 0 );
 
 	var material = new THREE.RawShaderMaterial( {
 		uniforms:{
@@ -1613,7 +1618,8 @@ function MeshLineMaterial( parameters ) {
 			useDash: { type: 'f', value: this.useDash },
 			visibility: {type: 'f', value: this.visibility},
 			alphaTest: {type: 'f', value: this.alphaTest},
-			repeat: { type: 'v2', value: this.repeat }
+			repeat: { type: 'v2', value: this.repeat },
+			isFlyBaseLine: { type: 'b', value: this.isFlyBaseLine }
 		},
 		vertexShader: vertexShaderSource.join( '\r\n' ),
         fragmentShader: fragmentShaderSource.join( '\r\n' ),
@@ -1640,6 +1646,7 @@ function MeshLineMaterial( parameters ) {
 	delete parameters.visibility;
 	delete parameters.alphaTest;
 	delete parameters.repeat;
+	delete parameters.isFlyBaseLine;
 
 	material.type = 'MeshLineMaterial';
 
@@ -1987,6 +1994,7 @@ class FlyLineLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
             color: lineColor,
             opacity: opacity,
             sizeAttenuation: false,
+            isFlyBaseLine: true, // fix：设置定时播放时，底线也随之消隐问题
             lineWidth: this.options.lineStyle.width
         });
 
@@ -2115,64 +2123,6 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-
-
-var WorldUVGenerator = {
-
-	generateTopUV: function ( geometry, vertices, indexA, indexB, indexC ) {
-
-		var a_x = vertices[ indexA * 3 ];
-		var a_y = vertices[ indexA * 3 + 1 ];
-		var b_x = vertices[ indexB * 3 ];
-		var b_y = vertices[ indexB * 3 + 1 ];
-		var c_x = vertices[ indexC * 3 ];
-		var c_y = vertices[ indexC * 3 + 1 ];
-
-		return [
-			new THREE.Vector2( a_x, a_y ),
-			new THREE.Vector2( b_x, b_y ),
-			new THREE.Vector2( c_x, c_y )
-		];
-
-	},
-
-	generateSideWallUV: function ( geometry, vertices, indexA, indexB, indexC, indexD ) {
-
-		var a_x = vertices[ indexA * 3 ];
-		var a_y = vertices[ indexA * 3 + 1 ];
-		var a_z = vertices[ indexA * 3 + 2 ];
-		var b_x = vertices[ indexB * 3 ];
-		var b_y = vertices[ indexB * 3 + 1 ];
-		var b_z = vertices[ indexB * 3 + 2 ];
-		var c_x = vertices[ indexC * 3 ];
-		var c_y = vertices[ indexC * 3 + 1 ];
-		var c_z = vertices[ indexC * 3 + 2 ];
-		var d_x = vertices[ indexD * 3 ];
-		var d_y = vertices[ indexD * 3 + 1 ];
-		var d_z = vertices[ indexD * 3 + 2 ];
-
-		if ( Math.abs( a_y - b_y ) < 0.01 ) {
-
-			return [
-				new THREE.Vector2( a_x, 1 - a_z ),
-				new THREE.Vector2( b_x, 1 - b_z ),
-				new THREE.Vector2( c_x, 1 - c_z ),
-				new THREE.Vector2( d_x, 1 - d_z )
-			];
-
-		} else {
-
-			return [
-				new THREE.Vector2( a_y, 1 - a_z ),
-				new THREE.Vector2( b_y, 1 - b_z ),
-				new THREE.Vector2( c_y, 1 - c_z ),
-				new THREE.Vector2( d_y, 1 - d_z )
-			];
-
-		}
-
-	}
-};
 
 // geojson 地图
 class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
@@ -2857,7 +2807,7 @@ class GeoJSONLayer extends _layer__WEBPACK_IMPORTED_MODULE_0__["default"] {
         if (options.isExtrude) {
             let extrudeSettings = {
                 depth: options.depth,
-                UVGenerator : WorldUVGenerator,
+                // UVGenerator : WorldUVGenerator,
                 bevelEnabled: false   // 是否用斜角
             };
             geometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings);

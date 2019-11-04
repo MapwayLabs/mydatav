@@ -290,6 +290,7 @@ export default class FlyLineLayer extends Layer {
             color: lineColor,
             opacity: opacity,
             sizeAttenuation: false,
+            isFlyBaseLine: true, // fix：设置定时播放时，底线也随之消隐问题
             lineWidth: this.options.lineStyle.width
         });
 
