@@ -264,6 +264,7 @@ export function MeshLineMaterial( parameters ) {
 'uniform float period;',
 'uniform float spotSize;',
 'uniform bool hasEffect;',
+'uniform bool isFlyBaseLine;',
 '',
 'varying vec2 vUV;',
 'varying vec4 vColor;',
@@ -357,6 +358,7 @@ export function MeshLineMaterial( parameters ) {
 'uniform float alphaTest;',
 'uniform vec2 repeat;',
 'uniform bool hasEffect;',
+'uniform bool isFlyBaseLine;',
 'uniform vec4 baseColor;',
 '',
 'varying vec2 vUV;',
@@ -378,8 +380,10 @@ export function MeshLineMaterial( parameters ) {
 	'',
 	'gl_FragColor = baseColor * vColor;',
 	'#endif',
-	'',
-	'gl_FragColor.a *= fade;',
+	'', 
+	// fix：设置定时播放时，底线也随之消隐问题
+	'if( isFlyBaseLine ) { gl_FragColor.a *= 1.0; } else { gl_FragColor.a *= fade; }',
+	// 'gl_FragColor.a *= fade;',
 '} else {',
 '    vec4 c = vColor;',
 '    if( useMap == 1. ) c *= texture2D( map, vUV * repeat );',
@@ -420,6 +424,7 @@ export function MeshLineMaterial( parameters ) {
 	this.visibility = check( parameters.visibility, 1 );
 	this.alphaTest = check( parameters.alphaTest, 0 );
 	this.repeat = check( parameters.repeat, new THREE.Vector2( 1, 1 ) );
+	this.isFlyBaseLine = check( parameters.isFlyBaseLine, 0 );
 
 	var material = new THREE.RawShaderMaterial( {
 		uniforms:{
@@ -440,7 +445,8 @@ export function MeshLineMaterial( parameters ) {
 			useDash: { type: 'f', value: this.useDash },
 			visibility: {type: 'f', value: this.visibility},
 			alphaTest: {type: 'f', value: this.alphaTest},
-			repeat: { type: 'v2', value: this.repeat }
+			repeat: { type: 'v2', value: this.repeat },
+			isFlyBaseLine: { type: 'b', value: this.isFlyBaseLine }
 		},
 		vertexShader: vertexShaderSource.join( '\r\n' ),
         fragmentShader: fragmentShaderSource.join( '\r\n' ),
@@ -467,6 +473,7 @@ export function MeshLineMaterial( parameters ) {
 	delete parameters.visibility;
 	delete parameters.alphaTest;
 	delete parameters.repeat;
+	delete parameters.isFlyBaseLine;
 
 	material.type = 'MeshLineMaterial';
 

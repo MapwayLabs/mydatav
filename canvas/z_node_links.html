@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <script src="../lib/zrender/zrender.js"></script>
+  <script src="../lib/d3.v4.min.js"></script>
+  <title>z_nodelinks</title>
+</head>
+<body>
+  <div id="main" style="width:400px;height:300px;background:#999;"></div>
+  <script>
+    var zr = zrender.init(document.getElementById('main'), {
+      renderer: 'canvas'
+    });
+    var g = new zrender.Group();
+    var circle1 = new zrender.Circle({
+      draggable: true,
+      silent: false,
+      shape: {
+          cx: 150,
+          cy: 50,
+          r: 10
+      },
+      style: {
+          fill: '#f00'
+      }
+  });
+  g.add(circle1);
+  var circle2 = new zrender.Circle({
+      draggable: true,
+      shape: {
+          cx: 250,
+          cy: 100,
+          r: 10
+      },
+      style: {
+          fill: '#0f0'
+      }
+  });
+  g.add(circle2);
+  var bezier = new zrender.BezierCurve({
+    shape: {
+      x1: 150,
+      y1: 50,
+      x2: 250,
+      y2: 100,
+      cpx1: 170,
+      cpy1: 80
+    },
+    style: {
+      stroke: '#000'
+    }
+  });
+  g.add(bezier);
+  zr.add(g);
+  </script>
+</body>
+</html>

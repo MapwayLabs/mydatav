@@ -710,7 +710,12 @@ export default class GeoJSONLayer extends Layer {
         let geometry;
         if (options.isExtrude) {
             let extrudeSettings = {
+<<<<<<< HEAD
                 depth: options.depth, 
+=======
+                depth: options.depth,
+                // UVGenerator : WorldUVGenerator,
+>>>>>>> af03992fe0742f55e30246f5ad5965bd1a7b6b80
                 bevelEnabled: false   // 是否用斜角
             };
             geometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings);
