@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <script src="https://d3js.org/d3.v5.js"></script>
+  <title>d3-node-links</title>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+  <script>
+  var context = document.getElementById('canvas');
+  var link = d3.linkVertical()
+      .x(function(d){
+          return d[0];
+        })
+      .y(function(d){
+          return d[1];
+        })
+        .source(function(d){
+          return d.source;
+        })
+        .target(function(d){
+          return d.target
+        });
+  link({
+    source: [10, 10],
+    target: [100, 100]
+  });
+  link.source(function(d){
+    return d.source;
+  });
+  link.target(function(d){
+    return d.target
+  });
+  link.context(context);
+  </script>
+</body>
+</html>
