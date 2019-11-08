@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <script src="../lib/zrender/zrender.js"></script>
-  <script src="../lib/d3.v4.min.js"></script>
+  <script src="../../lib/zrender/zrender.js"></script>
+  <script src="../../lib/d3.v4.min.js"></script>
   <title>z_nodelinks</title>
 </head>
 <body>
@@ -328,17 +328,31 @@
     var count = 0;
     zr.on('mousemove', e => {
       // console.log('mousemove:' + count++,e);
+      zr.clearHover();
+      if (e.target) {
+        zr.addHover(e.target, {
+          stroke: '#f00'
+        });
+      } else {
+        zr.setCursorStyle("move");
+      }
     });
 
     var drag = d3.drag()
     .on("start", function(e) {
-      console.log('start', d3.event, '\n');
+      const result = zr.findHover(d3.event.x, d3.event.y);
+      if (result.target) {
+        return false;
+      } else {
+
+      }
+      // console.log('start', d3.event, '\n');
     })
     .on("drag", function(e) {
-      console.log('drag', d3.event, '\n');
+      // console.log('drag', d3.event, '\n');
     })
     .on("end", function(e) {
-      console.log('end', d3.event, '\n');
+      // console.log('end', d3.event, '\n');
     });
     // d3.select("#main").call(drag);
 
