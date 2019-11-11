@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>cytoscape</title>
+  <script src="../lib/cytoscape.min.js"></script>
+  <script src="../data/dmc-node-links.js"></script>
+  <style>
+  #layout {
+    position: absolute;
+  }
+  </style>
+</head>
+<body>
+  <div id="cy" style="position:absolute;left:0;right:0;top:0;bottom:0;width:100%;height:100%;"></div>
+  <div id="layout">
+  <form action="">
+   <select name="layoutSelect" id="layout-select">
+      <option value="random">随机布局</option>
+      <option value="grid">网格布局</option>
+      <option value="circle">圆形布局</option>
+      <option value="concentric">同心布局</option>
+      <option value="breadthfirst">广度布局</option>
+      <option value="cose">cose布局</option>
+   </select>
+  </form>
+  </div>
+  <script>
+
+  var nodes = data.node_meta.map(d => {
+    d.id = d.key;
+    return {
+      data: d
+    };
+  });
+
+  var edges = data.line_meta.map(d => {
+    d.id = d.__gohashid;
+    d.source = d.from;
+    d.target = d.to;
+    return {
+      data: d
+    };
+  });
+
+  var cy = cytoscape({
+
+  container: document.getElementById('cy'),
+
+  elements: [ // flat array of nodes and edges
+  ...nodes,
+  ...edges
+  ],
+
+  layout: {
+    name: 'random'
+  },
+
+  // so we can see the ids
+  style: [
+    {
+      selector: 'node',
+      style: {
+        'label': 'data(title)',
+        'shape': 'rectangle',
+        'width': 30,
+        'height': 30
+      }
+    },
+    {
+      selector: 'edge',
+      style: {
+         "curve-style": "unbundled-bezier",
+        // 'curve-style': 'bezier',
+        // 'line-color': '#f00'
+      }
+    }
+  ]
+
+});
+
+  var selectEle = document.getElementById('layout-select');
+  selectEle.addEventListener('change', e => {
+    cy.layout({ name: e.target.value }).run();
+  });
+  </script>
+</body>
+</html>
