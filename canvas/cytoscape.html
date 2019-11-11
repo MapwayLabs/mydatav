@@ -7,6 +7,50 @@
   <title>cytoscape</title>
   <script src="../lib/cytoscape.min.js"></script>
   <script src="../data/dmc-node-links.js"></script>
+
+  <script src="./cyto-lib//cola.min.js"></script>
+  <script src="./cyto-lib/cytoscape-cola.js"></script>
+
+  <script src="https://unpkg.com/layout-base/layout-base.js"></script>
+	<script src="https://unpkg.com/avsdf-base/avsdf-base.js"></script>
+  <script src="./cyto-lib/cytoscape-avsdf.js"></script>
+
+  <!-- <script src="https://unpkg.com/layout-base/layout-base.js"></script> -->
+	<script src="https://unpkg.com/avsdf-base/avsdf-base.js"></script>
+	<script src="https://unpkg.com/cose-base/cose-base.js"></script>
+	<script src="https://unpkg.com/cytoscape-graphml/cytoscape-graphml.js"></script>
+	<script src="https://raw.githack.com/iVis-at-Bilkent/cytoscape.js-layvo/unstable/cytoscape-layvo.js"></script>
+  <script src="./cyto-lib/cytoscape-cise.js"></script>
+
+  <!-- <script src="https://unpkg.com/layout-base/layout-base.js"></script> -->
+  <!-- <script src="https://unpkg.com/cose-base/cose-base.js"></script> -->
+  <script src="./cyto-lib/cytoscape-cose-bilkent.js"></script>
+
+  <script src="./cyto-lib/dagre.js"></script>
+  <script src="./cyto-lib/cytoscape-dagre.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/elkjs@0.3.0/lib/elk.bundled.js"></script>
+  <script src="./cyto-lib/cytoscape-elk.js"></script>
+
+  <script src="./cyto-lib/cytoscape-euler.js"></script>
+
+  <script src="https://unpkg.com/numeric/numeric-1.2.6.js"></script>
+  <script src="https://unpkg.com/cytoscape-layout-utilities/cytoscape-layout-utilities.js"></script>
+  <script src="./cyto-lib/cytoscape-fcose.js"></script>
+
+  <script src="https://unpkg.com/klayjs@0.4.1/klay.js"></script>
+	<script src="./cyto-lib/cytoscape-klay.js"></script>
+
+  <script src="./cyto-lib/cytoscape-ngraph.forcelayout.js"></script>
+
+  <!-- <script src="./cyto-lib/polywas-layout.js"></script> -->
+ 
+  <script src="https://unpkg.com/weaverjs@1.2.0/dist/weaver.min.js"></script>
+  <script src="./cyto-lib/cytoscape-spread.js"></script>
+
+  <script src="./cyto-lib/springy.js"></script>
+  <script src="./cyto-lib/cytoscape-springy.js"></script>
+
   <style>
   #layout {
     position: absolute;
@@ -24,6 +68,23 @@
       <option value="concentric">同心布局</option>
       <option value="breadthfirst">广度布局</option>
       <option value="cose">cose布局</option>
+      <option value="cola">cola布局</option>
+      <option value="avsdf">avsdf布局</option>
+      <option value="cise">cise布局</option>
+      <option value="cose-bilkent">cose-bilkent布局</option>
+      <option value="dagre">dagre布局</option>
+      <option value="elk">elk布局</option>
+      <option value="euler">euler布局</option>
+      <option value="fcose">fcose布局</option>
+      <option value="klay">klay布局</option>
+      <option value="cytoscape-ngraph.forcelayout">forcelayout布局</option>
+      <!-- <option value="polywas">polywas布局</option> -->
+      <option value="spread">spread布局</option>
+      <option value="springy">springy布局</option>
+   </select>
+   <select name="lineSelect" id="line-select">
+      <option value="straight">直线</option>
+      <option value="unbundled-bezier">曲线</option>
    </select>
   </form>
   </div>
@@ -63,7 +124,7 @@
     {
       selector: 'node',
       style: {
-        'label': 'data(title)',
+        // 'label': 'data(title)',
         'shape': 'rectangle',
         'width': 30,
         'height': 30
@@ -72,9 +133,10 @@
     {
       selector: 'edge',
       style: {
-         "curve-style": "unbundled-bezier",
-        // 'curve-style': 'bezier',
-        // 'line-color': '#f00'
+         "curve-style": "straight",
+         'target-arrow-shape': 'triangle',
+         'line-color': '#dd4de2',
+         'target-arrow-color': '#dd4de2'
       }
     }
   ]
@@ -82,8 +144,17 @@
 });
 
   var selectEle = document.getElementById('layout-select');
+  var lineSelectEle = document.getElementById('line-select');
   selectEle.addEventListener('change', e => {
     cy.layout({ name: e.target.value }).run();
+  });
+  lineSelectEle.addEventListener('change', e => {
+    cy.style()
+    .selector('edge')
+    .style({
+      "curve-style": e.target.value
+    })
+    .update(); // indicate the end of your new stylesheet so that it can be updated on element
   });
   </script>
 </body>
