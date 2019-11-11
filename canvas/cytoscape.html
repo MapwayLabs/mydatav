@@ -90,6 +90,34 @@
   </div>
   <script>
 
+  var LayoutOptions = {
+    'random': {},
+    'grid': {},
+    'circle': {},
+    'concentric': {},
+    'breadthfirst': {},
+    'cose': {},
+    'cola': {},
+    'avsdf': {},
+    'cise': {},
+    'cose-bilkent': {},
+    'dagre': {},
+    'elk': {},
+    'euler': {},
+    'fcose': {},
+    'klay': {
+      klay: {
+        aspectRatio: 10,
+        direction: 'RIGHT',
+        spacing: 40
+      }
+    },
+    'cytoscape-ngraph.forcelayout': {},
+    'polywas': {},
+    'spread': {},
+    'springy': {}
+  };
+
   var nodes = data.node_meta.map(d => {
     d.id = d.key;
     return {
@@ -146,7 +174,10 @@
   var selectEle = document.getElementById('layout-select');
   var lineSelectEle = document.getElementById('line-select');
   selectEle.addEventListener('change', e => {
-    cy.layout({ name: e.target.value }).run();
+    var name = e.target.value;
+    var options = LayoutOptions[name];
+    options.name = name;
+    cy.layout(options).run();
   });
   lineSelectEle.addEventListener('change', e => {
     cy.style()
