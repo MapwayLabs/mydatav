@@ -91,7 +91,8 @@
   </form>
   </div>
   <script>
-
+  
+  var currentLayoutName = 'random';
   var LayoutOptions = {
     'random': {},
     'grid': {},
@@ -120,30 +121,48 @@
     'springy': {}
   };
 
-  var nodes = data.node_meta.map(d => {
-    d.id = d.key;
-    return {
-      data: d
-    };
-  });
+  function setLayout(name) {
+    var options = LayoutOptions[name];
+    options.name = name;
+    currentLayoutName = name;
+    Object.assign(options, {
+      fit: true,
+      avoidOverlap: true,
+      avoidOverlapPadding: 20,
+    });
+    cy.layout(options).run();
+  }
+  
+  function setData(data) {
+    var nodes = data.node_meta.map(d => {
+      d.id = d.key;
+      return {
+        data: d
+      };
+    });
+  
+    var edges = data.line_meta.map(d => {
+      d.id = d.__gohashid;
+      d.source = d.from;
+      d.target = d.to;
+      return {
+        data: d
+      };
+    });
 
-  var edges = data.line_meta.map(d => {
-    d.id = d.__gohashid;
-    d.source = d.from;
-    d.target = d.to;
-    return {
-      data: d
-    };
-  });
+    var elements = [...nodes, ...edges];
+
+    cy.remove("node, edge");
+    cy.add(elements);
+
+    setLayout(currentLayoutName);
+  }
 
   var cy = cytoscape({
 
    container: document.getElementById('cy'),
  
-   elements: [ // flat array of nodes and edges
-     ...nodes,
-     ...edges
-   ],
+   elements: [],// flat array of nodes and edges
  
    layout: {
      name: 'random'
@@ -178,29 +197,52 @@
            "curve-style": "straight", // straight | unbundled-bezier | taxi
            'control-point-distances': [-20, 20], // [-20, 20, -20],
            'control-point-weights':[0.25, 0.75], // [0.25, 0.5, 0.75], 
+           'edge-distances': 'intersection',
            'target-arrow-shape': 'triangle',
+           'target-arrow-color': '#A2C5FF',
            'line-color': '#A2C5FF',
            'line-style': 'dashed',
-           'target-arrow-color': '#A2C5FF'
+        }
+      },
+      {
+        selector: 'node.active',
+        style: {
+          'background-color': '#E2f7f7',
+          'border-color': '#E2f7f7',
+        }
+      },
+      {
+        selector: 'edge.active',
+        style: {
+          'line-color': '#A2C5FF',
+          'width': 6
         }
       }
    ]
 
   });
   
+  setData(data);
+
   cy.boxSelectionEnabled(true);
+  
+  cy.on('mouseover', 'node, edge', function(evt){
+    evt.target.addClass('active');
+  });
+  cy.on('mouseout', 'node, edge', function(evt){
+    evt.target.removeClass('active');
+  });
+  // cy.on('mousemove', '*', function(evt){
+  //   var element = evt.target;
+  //   cy.$("*").removeClass('active');
+  //   if (element.isNode() || element.isEdge()) {
+  //     element.addClass('active');
+  //   }
+  // });
 
   var selectEle = document.getElementById('layout-select');
   selectEle.addEventListener('change', e => {
-    var name = e.target.value;
-    var options = LayoutOptions[name];
-    options.name = name;
-    Object.assign(options, {
-      fit: false,
-      avoidOverlap: true,
-       avoidOverlapPadding: 20,
-    });
-    cy.layout(options).run();
+    setLayout(e.target.value);
   });
 
   var lineSelectEle = document.getElementById('line-select');
