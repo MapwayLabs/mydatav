@@ -61,6 +61,7 @@
   <div id="cy" style="position:absolute;left:0;right:0;top:0;bottom:0;width:100%;height:100%;"></div>
   <div id="layout">
   <form action="">
+   <label>布局:</label>
    <select name="layoutSelect" id="layout-select">
       <option value="random">随机布局</option>
       <option value="grid">网格布局</option>
@@ -76,14 +77,16 @@
       <option value="elk">elk布局</option>
       <option value="euler">euler布局</option>
       <option value="fcose">fcose布局</option>
-      <option value="klay">klay布局</option>
+      <option selected value="klay">klay布局</option>
       <option value="cytoscape-ngraph.forcelayout">forcelayout布局</option>
       <!-- <option value="polywas">polywas布局</option> -->
       <option value="spread">spread布局</option>
       <option value="springy">springy布局</option>
    </select>
+   <label>线样式:</label>
    <select name="lineSelect" id="line-select">
       <option value="straight">直线</option>
+      <!-- <option value="bezier">bezier</option> -->
       <option value="unbundled-bezier">曲线</option>
       <option value="taxi">折线</option>
    </select>
@@ -92,7 +95,7 @@
   </div>
   <script>
   
-  var currentLayoutName = 'random';
+  var currentLayoutName = 'klay';
   var LayoutOptions = {
     'random': {},
     'grid': {},
@@ -104,11 +107,18 @@
     'avsdf': {},
     'cise': {},
     'cose-bilkent': {},
-    'dagre': {},
+    'dagre': {
+      'nodeSep': 20,
+      'edgeSep': 22,
+      'rankSep': 30,
+      'rankDir': 'LR'
+    },
     'elk': {},
     'euler': {},
     'fcose': {},
     'klay': {
+      fit: true,
+      nodeDimensionsIncludeLabels: false,
       klay: {
         aspectRatio: 10,
         direction: 'RIGHT',
@@ -125,11 +135,11 @@
     var options = LayoutOptions[name];
     options.name = name;
     currentLayoutName = name;
-    Object.assign(options, {
-      fit: true,
-      avoidOverlap: true,
-      avoidOverlapPadding: 20,
-    });
+    // Object.assign(options, {
+    //   fit: false,
+    //   avoidOverlap: true,
+    //   avoidOverlapPadding: 20,
+    // });
     cy.layout(options).run();
   }
   
@@ -194,9 +204,11 @@
       {
         selector: 'edge',
         style: {
-           "curve-style": "straight", // straight | unbundled-bezier | taxi
-           'control-point-distances': [-20, 20], // [-20, 20, -20],
-           'control-point-weights':[0.25, 0.75], // [0.25, 0.5, 0.75], 
+           "curve-style": "unbundled-bezier", // straight | unbundled-bezier | taxi
+           'control-point-distances': [-20], // [-20, 20, -20],
+           'control-point-weights':[0.5], // [0.25, 0.5, 0.75], 
+          //  'taxi-direction': 'auto',
+          //  'taxi-turn': '20px',
            'edge-distances': 'intersection',
            'target-arrow-shape': 'triangle',
            'target-arrow-color': '#A2C5FF',
