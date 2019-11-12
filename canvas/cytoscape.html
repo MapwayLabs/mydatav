@@ -85,7 +85,9 @@
    <select name="lineSelect" id="line-select">
       <option value="straight">直线</option>
       <option value="unbundled-bezier">曲线</option>
+      <option value="taxi">折线</option>
    </select>
+   <button id="lockBtn">锁定</button>
   </form>
   </div>
   <script>
@@ -136,54 +138,72 @@
 
   var cy = cytoscape({
 
-  container: document.getElementById('cy'),
-
-  elements: [ // flat array of nodes and edges
-  ...nodes,
-  ...edges
-  ],
-
-  layout: {
-    name: 'random'
-  },
-
-  // so we can see the ids
-  style: [
-    {
-      selector: 'node',
-      style: {
-        // 'label': 'data(title)',
-        'shape': 'round-rectangle',
-        'background-color': '#fff',
-        'background-image': './cyto-lib/img/preview.svg',
-        'border-width': 1,
-        'border-color': '#ccc',
-        'width': 50,
-        'height': 50
+   container: document.getElementById('cy'),
+ 
+   elements: [ // flat array of nodes and edges
+     ...nodes,
+     ...edges
+   ],
+ 
+   layout: {
+     name: 'random'
+   },
+ 
+   // so we can see the ids
+   style: [
+      {
+        selector: 'node',
+        style: {
+          'label': 'data(title)',
+          'text-halign': 'center',
+          'text-valign': 'bottom',
+          'color': '#000',
+          'font-size': 12,
+          'text-wrap': 'ellipsis',
+          'text-max-width': '100px',
+          'line-height': 1.2,
+          'text-margin-y': 6,
+          'shape': 'round-rectangle',
+          'background-color': '#fff',
+          'background-image': './cyto-lib/img/preview.svg',
+          'border-width': 1,
+          'border-color': '#ccc',
+          'width': 50,
+          'height': 50
+        }
+      },
+      {
+        selector: 'edge',
+        style: {
+           "curve-style": "straight", // straight | unbundled-bezier | taxi
+           'control-point-distances': [-20, 20], // [-20, 20, -20],
+           'control-point-weights':[0.25, 0.75], // [0.25, 0.5, 0.75], 
+           'target-arrow-shape': 'triangle',
+           'line-color': '#A2C5FF',
+           'line-style': 'dashed',
+           'target-arrow-color': '#A2C5FF'
+        }
       }
-    },
-    {
-      selector: 'edge',
-      style: {
-         "curve-style": "straight",
-         'target-arrow-shape': 'triangle',
-         'line-color': '#A2C5FF',
-         'line-style': 'dashed',
-         'target-arrow-color': '#A2C5FF'
-      }
-    }
-  ]
+   ]
 
-});
+  });
+  
+  cy.boxSelectionEnabled(true);
 
   var selectEle = document.getElementById('layout-select');
-  var lineSelectEle = document.getElementById('line-select');
   selectEle.addEventListener('change', e => {
     var name = e.target.value;
     var options = LayoutOptions[name];
     options.name = name;
+    Object.assign(options, {
+      fit: false,
+      avoidOverlap: true,
+       avoidOverlapPadding: 20,
+    });
     cy.layout(options).run();
   });
+
+  var lineSelectEle = document.getElementById('line-select');
   lineSelectEle.addEventListener('change', e => {
     cy.style()
     .selector('edge')
@@ -191,6 +211,20 @@
       "curve-style": e.target.value
     })
     .update(); // indicate the end of your new stylesheet so that it can be updated on element
+  });
+
+  var lockBtn = document.getElementById('lockBtn');
+  var locked = false;
+  lockBtn.addEventListener('click', e => {
+    e.preventDefault();
+    locked = !locked;
+    if (locked) {
+      cy.autolock(true);
+      lockBtn.textContent = '解锁';
+    } else {
+      cy.autolock(false);
+      lockBtn.textContent = '锁定';
+    }
   });
   </script>
 </body>
