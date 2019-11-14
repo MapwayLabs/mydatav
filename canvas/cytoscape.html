@@ -365,9 +365,9 @@
         classes: ['child_nodes', 'out_node']
     };
     if (n.data().type === 'input') {
-      arrowNodes.push(inNode);
-    } else if (n.data().type === 'output') {
       arrowNodes.push(outNode);
+    } else if (n.data().type === 'output') {
+      arrowNodes.push(inNode);
     } else {
       arrowNodes.push(inNode);
       arrowNodes.push(outNode);
