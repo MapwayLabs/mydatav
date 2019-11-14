@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>cytoscape</title>
+  <title>cytoscape复合节点</title>
   <script src="../lib/cytoscape.min.js"></script>
   <script src="../data/dmc-node-links.js"></script>
 
@@ -138,20 +138,25 @@
     var options = LayoutOptions[name];
     options.name = name;
     currentLayoutName = name;
-    // Object.assign(options, {
-    //   fit: false,
-    //   avoidOverlap: true,
-    //   avoidOverlapPadding: 20,
-    // });
     cy.layout(options).run();
   }
   
   function setData(data) {
-    var nodes = data.node_meta.map(d => {
+    var childNodes = [];
+    var nodes = data.node_meta.map((d,i) => {
       d.id = d.key;
+      const childNode = {
+        group: 'nodes',
+        data: {
+          id: d.id + '_' + i,
+          parent: d.id
+        },
+        classes: ['child_nodes']
+      };
+      childNodes.push(childNode);
       return {
         data: d,
-        classes: ['main_nodes']
+        classes: ['parent_nodes']
       };
     });
   
@@ -164,7 +169,7 @@
       };
     });
 
-    var elements = [...nodes, ...edges];
+    var elements = [...nodes, ...childNodes, ...edges];
 
     cy.remove("node, edge");
     cy.add(elements);
@@ -185,7 +190,7 @@
    // so we can see the ids
    style: [
       {
-        selector: 'node.main_nodes',
+        selector: 'node.parent_nodes',
         style: {
           'label': 'data(title)',
           'text-halign': 'center',
@@ -203,6 +208,15 @@
           'border-color': '#ccc',
           'width': 50,
           'height': 50
+        }
+      },
+      {
+        selector: 'node.child_nodes',
+        style: {
+          'shape': 'triangle',
+          'width': 16,
+          'height': 16,
+          'background-color': '#f00'
         }
       },
       {
@@ -230,29 +244,22 @@
           //  'target-arrow-shape': 'triangle',
            'source-endpoint': ['50%', '0%'],
            'target-endpoint': ['-50%', '0%'],
-          //  'target-arrow-color': '#A2C5FF',
+           'target-arrow-color': '#A2C5FF',
            'line-color': '#A2C5FF',
            'line-style': 'dashed',
         }
       },
-      {
-        selector: 'node.child_nodes.in_node',
-        style: {
-          'shape': 'triangle',
-          'width': 16,
-          'height': 16,
-          'background-color': '#f00'
-        }
-      },
-      {
-        selector: 'node.child_nodes.out_node',
-        style: {
-          'shape': 'ellipse',
-          'width': 16,
-          'height': 16,
-          'background-color': '#0f0'
-        }
-      },
+      // {
+      //   selector: 'edge',
+      //   style: {
+      //     'source-arrow-shape': 'triangle',
+      //     'source-arrow-color': '#f00',
+      //     'source-arrow-fill': '#f00',
+      //     'target-arrow-shape': 'circle',
+      //     'target-arrow-color': '#0f0',
+      //     'target-arrow-fill': '#0f0',
+      //   }
+      // },
       {
         selector: 'node.active',
         style: {
@@ -281,12 +288,12 @@
   cy.on('mouseout', 'node, edge', function(evt){
     evt.target.removeClass('active');
   });
-  cy.on('layoutstop', function(evt){
-    console.log('layoutstop');
-  });
-  // cy.on('ready', function(evt){
-  //   console.log('ready');
+  // cy.on('layoutstop', function(evt){
+  //   console.log('layoutstop');
   // });
+  cy.on('ready', function(evt){
+    console.log('ready');
+  });
   // cy.on('render', function(evt){
   //   console.log('render');
   // });
@@ -328,62 +335,6 @@
       cy.autolock(false);
       lockBtn.textContent = '锁定';
     }
-  });
-  
-  /*******增加节点两端子节点************/
-  var arrowNodes = []; 
-  cy.$('node.main_nodes').forEach((n,i) => {
-    var inNode, outNode;
-    inNode = {
-        group: 'nodes',
-        data: {
-          id: n.id() + '_' + 'in_node',
-          pid: n.id(),
-          type: 'input'
-        },
-        position: {
-          x:  n.position().x - n.width() / 2 - 8,
-          y:  n.position().y
-        },
-        locked: false,
-        grabbable: false,
-        classes: ['child_nodes', 'in_node']
-    };
-    outNode = {
-        group: 'nodes',
-        data: {
-          id: n.id() + '_' + 'out_node',
-          pid: n.id(),
-          type: 'output'
-        },
-        position: {
-          x:  n.position().x + n.width() / 2 + 8,
-          y:  n.position().y
-        },
-        locked: false,
-        grabbable: false,
-        classes: ['child_nodes', 'out_node']
-    };
-    if (n.data().type === 'input') {
-      arrowNodes.push(inNode);
-    } else if (n.data().type === 'output') {
-      arrowNodes.push(outNode);
-    } else {
-      arrowNodes.push(inNode);
-      arrowNodes.push(outNode);
-    }
-  });
-  cy.add(arrowNodes);
-
-  cy.$('node.main_nodes').on('position', e => {
-    // console.log('position', e);
-    var child_nodes = cy.$(`node.child_nodes[pid="${ e.target.id() }"]`);
-    child_nodes.forEach(child => {
-      child.position({
-        x: child.data().type === 'input' ? e.target.position().x - e.target.width() / 2 - 8 : e.target.position().x + e.target.width() / 2 + 8,
-        y: e.target.position().y
-      });
-    });
   });
   </script>
 </body>
