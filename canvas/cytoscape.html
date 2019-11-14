@@ -230,9 +230,9 @@
           //  'taxi-direction': 'auto',
           //  'taxi-turn': '20px',
            'edge-distances': 'intersection',
-          //  'target-arrow-shape': 'triangle',
-           'source-endpoint': ['50%', '0%'],
-           'target-endpoint': ['-50%', '0%'],
+           'target-arrow-shape': 'triangle',
+          //  'source-endpoint': ['50%', '0%'],
+          //  'target-endpoint': ['-50%', '0%'],
           //  'target-arrow-color': '#A2C5FF',
            'line-color': '#A2C5FF',
            'line-style': 'dashed',
@@ -334,6 +334,7 @@
   });
   
   /*******增加节点两端子节点************/
+  /*
   var arrowNodes = []; 
   cy.$('node.main_nodes').forEach((n,i) => {
     var inNode, outNode;
@@ -388,20 +389,21 @@
       });
     });
   });
+  */
 
   /*节点连接功能*/
   // the default values of each option are outlined below:
   let defaults = {
-    preview: true, // whether to show added edges preview before releasing selection
+    preview: false, // whether to show added edges preview before releasing selection
     hoverDelay: 150, // time spent hovering over a target node before it is considered selected
-    handleNodes: 'node.child_nodes', // selector/filter function for whether edges can be made from a given node
-    snap: false, // when enabled, the edge can be drawn by just moving close to a target node
-    snapThreshold: 50, // the target node must be less than or equal to this many pixels away from the cursor/finger
+    handleNodes: 'node[type!="input"][type!="output"]', // selector/filter function for whether edges can be made from a given node
+    snap: true, // when enabled, the edge can be drawn by just moving close to a target node
+    snapThreshold: 150, // the target node must be less than or equal to this many pixels away from the cursor/finger
     snapFrequency: 15, // the number of times per second (Hz) that snap checks done (lower is less expensive)
-    noEdgeEventsInDraw: false, // set events:no to edges during draws, prevents mouseouts on compounds
+    noEdgeEventsInDraw: true, // set events:no to edges during draws, prevents mouseouts on compounds
     disableBrowserGestures: true, // during an edge drawing gesture, disable browser gestures such as two-finger trackpad swipe and pinch-to-zoom
     handlePosition: function( node ){
-      return 'middle top'; // sets the position of the handle in the format of "X-AXIS Y-AXIS" such as "left top", "middle top"
+      return 'right middle'; // sets the position of the handle in the format of "X-AXIS Y-AXIS" such as "left top", "middle top"
     },
     handleInDrawMode: false, // whether to show the handle in draw mode
     edgeType: function( sourceNode, targetNode ){
