@@ -257,6 +257,16 @@
         }
       },
       {
+        selector: 'node.status_node',
+        style: {
+          'shape': 'rectangle',
+          'width': 16,
+          'height': 16,
+          'background-opacity': 0,
+          'background-image': './cyto-lib/img/status.svg',
+        }
+      },
+      {
         selector: 'node.active',
         style: {
           'background-color': '#E2f7f7',
@@ -391,12 +401,44 @@
   });
   */
 
+  var statusNodes = []; 
+  cy.$('node.main_nodes').forEach((n,i) => {
+    const node = {
+        group: 'nodes',
+        data: {
+          id: n.id() + '_' + 'status_node',
+          pid: n.id(),
+          type: 'status'
+        },
+        position: {
+          x:  n.position().x + n.width() / 2,
+          y:  n.position().y - n.height() / 2
+        },
+        locked: false,
+        grabbable: false,
+        classes: ['status_node']
+    };
+    statusNodes.push(node);
+  });
+  cy.add(statusNodes);
+
+  cy.$('node.main_nodes').on('position', e => {
+    // console.log('position', e);
+    var child_nodes = cy.$(`node.status_node[pid="${ e.target.id() }"]`);
+    child_nodes.forEach(child => {
+      child.position({
+        x: e.target.position().x + e.target.width() / 2,
+        y: e.target.position().y - e.target.height() / 2
+      });
+    });
+  });
+
   /*节点连接功能*/
   // the default values of each option are outlined below:
   let defaults = {
     preview: false, // whether to show added edges preview before releasing selection
     hoverDelay: 150, // time spent hovering over a target node before it is considered selected
-    handleNodes: 'node[type!="input"][type!="output"]', // selector/filter function for whether edges can be made from a given node
+    handleNodes: 'node.main_nodes[type!="input"][type!="output"]', // selector/filter function for whether edges can be made from a given node
     snap: true, // when enabled, the edge can be drawn by just moving close to a target node
     snapThreshold: 150, // the target node must be less than or equal to this many pixels away from the cursor/finger
     snapFrequency: 15, // the number of times per second (Hz) that snap checks done (lower is less expensive)
