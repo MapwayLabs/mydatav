@@ -236,6 +236,7 @@
           //  'target-arrow-color': '#A2C5FF',
            'line-color': '#A2C5FF',
            'line-style': 'dashed',
+           'width': 2
         }
       },
       {
@@ -276,8 +277,8 @@
       {
         selector: 'edge.active',
         style: {
-          'line-color': '#A2C5FF',
-          'width': 6
+          'line-color': '#f00',
+          'width': 2
         }
       },
       {
@@ -299,9 +300,18 @@
   
   cy.on('mouseover', 'node, edge', function(evt){
     evt.target.addClass('active');
+    // 找出所有与输出边关联的边，并高亮路径
+    if (evt.target.isEdge() && evt.target.target().data().type === 'output') {
+      var predesors = evt.target.target().predecessors("edge");
+      predesors.forEach(f=>f.addClass('active'));
+    }
   });
   cy.on('mouseout', 'node, edge', function(evt){
     evt.target.removeClass('active');
+    if (evt.target.isEdge() && evt.target.target().data().type === 'output') {
+      var predesors = evt.target.target().predecessors("edge");
+      predesors.forEach(f=>f.removeClass('active'));
+    }
   });
   cy.on('layoutstop', function(evt){
     console.log('layoutstop');
@@ -520,7 +530,7 @@
       // fired when draw mode disabled
     }
   };
-  let eh = cy.edgehandles( defaults );
+    var eh = cy.edgehandles( defaults );
   </script>
 </body>
 </html>
