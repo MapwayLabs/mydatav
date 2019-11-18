@@ -22675,150 +22675,37 @@
 
     var multi = edgeIsUnbundled;
     rs.edgeType = multi ? 'multibezier' : 'bezier';
-    var x1 = edge.source().position().x;
-    var x2 = edge.target().position().x;
-    var w = edge.source().width();
-    var nx1 = x1 <= x2 ? x1 + w / 2 : x1 - w / 2;
-    var nx2 = x1 <= x2 ? x2 - w / 2 : x2 + w / 2;
-    rs.ctrlpts = getCtrlPoints(x1 + w / 2, edge.source().position().y, x2 - w / 2, edge.target().position().y, 1, edge.source().width(), edge.source().height()); // for( let b = 0; b < bezierN; b++ ){
-    //   let normctrlptDist = (0.5 - pairInfo.eles.length / 2 + i) * stepSize * (edgeIsSwapped ? -1 : 1);
-    //   let manctrlptDist;
-    //   let sign = math.signum( normctrlptDist );
-    //   if( multi ){
-    //     ctrlptDist = ctrlptDists ? ctrlptDists.pfValue[ b ] : stepSize; // fall back on step size
-    //     ctrlptWeight = ctrlptWs.value[ b ];
-    //   }
-    //   if( edgeIsUnbundled ){ // multi or single unbundled
-    //     manctrlptDist = ctrlptDist;
-    //   } else {
-    //     manctrlptDist = ctrlptDist !== undefined ? sign * ctrlptDist : undefined;
-    //   }
-    //   let distanceFromMidpoint = manctrlptDist !== undefined ? manctrlptDist : normctrlptDist;
-    //   let w1 = 1 - ctrlptWeight;
-    //   let w2 = ctrlptWeight;
-    //   let midptPts = edgeDistances === 'node-position' ? posPts : intersectionPts;
-    //   let adjustedMidpt = {
-    //     x: midptPts.x1 * w1 + midptPts.x2 * w2,
-    //     y: midptPts.y1 * w1 + midptPts.y2 * w2
-    //   };
-    //   rs.ctrlpts.push(
-    //     adjustedMidpt.x + vectorNormInverse.x * distanceFromMidpoint,
-    //     adjustedMidpt.y + vectorNormInverse.y * distanceFromMidpoint
-    //   );
-    // }
+    rs.ctrlpts = [];
+
+    for (var b = 0; b < bezierN; b++) {
+      var normctrlptDist = (0.5 - pairInfo.eles.length / 2 + i) * stepSize * (edgeIsSwapped ? -1 : 1);
+      var manctrlptDist = void 0;
+      var sign = signum(normctrlptDist);
+
+      if (multi) {
+        ctrlptDist = ctrlptDists ? ctrlptDists.pfValue[b] : stepSize; // fall back on step size
+
+        ctrlptWeight = ctrlptWs.value[b];
+      }
+
+      if (edgeIsUnbundled) {
+        // multi or single unbundled
+        manctrlptDist = ctrlptDist;
+      } else {
+        manctrlptDist = ctrlptDist !== undefined ? sign * ctrlptDist : undefined;
+      }
+
+      var distanceFromMidpoint = manctrlptDist !== undefined ? manctrlptDist : normctrlptDist;
+      var w1 = 1 - ctrlptWeight;
+      var w2 = ctrlptWeight;
+      var midptPts = edgeDistances === 'node-position' ? posPts : intersectionPts;
+      var adjustedMidpt = {
+        x: midptPts.x1 * w1 + midptPts.x2 * w2,
+        y: midptPts.y1 * w1 + midptPts.y2 * w2
+      };
+      rs.ctrlpts.push(adjustedMidpt.x + vectorNormInverse.x * distanceFromMidpoint, adjustedMidpt.y + vectorNormInverse.y * distanceFromMidpoint);
+    }
   };
-
-function getCtrlPoints(e, t, i, o, n, S, O) {
-    var w = .75;
-    var a = o - t
-      , r = i - e
-      , s = Math.sqrt(a * a + r * r)
-      , d = w;
-    if (0 < r * n ? s < S && (d = .75 - (S - s) / S * .75) : d = .4 - .2 * Math.max(0, (S - Math.min(Math.abs(r), Math.abs(a))) / S),
-    0 < r * n)
-        // return "M " + e + " " + t + " C " + (e + n * (S * d)) + " " + (t + 0 * O) + " " + (i - n * d * S) + " " + (o - 0 * O) + " " + i + " " + o;
-        // return ( path.moveTo(e, t), path.bezierCurveTo((e + n * (S * d)), (t + 0 * O), (i - n * d * S), (o - 0 * O),i, o) );
-        return [e + n * (S * d), t + 0 * O, i - n * d * S, o - 0 * O];
-    var l = Math.floor(i - r / 2)
-      , c = Math.floor(o - a / 2);
-    0 == a && (c = o + O);
-    var p = O / 2
-      , u = (o + c) / 2
-      , f = e + n * S * d
-      , h = 0 < a ? Math.min(u - a / 2, t + p) : Math.max(u - a / 2, t - p)
-      , g = i - n * S * d
-      , v = 0 < a ? Math.max(u, o - p) : Math.min(u, o + p)
-      , b = (e + f) / 2
-      , m = 0 < a ? 1 : -1
-      , y = [[b, t], [f, 0 < a ? Math.max(t, h - p) : Math.min(t, h + p)], [b, 0 < a ? Math.min(c, h + p) : Math.max(c, h - p)], [g, 0 < a ? Math.max(c, v - p) : Math.min(c, v + p)], [(i + g) / 2, o]];
-    return y[2][1] === h + m * p && (Math.abs(a) < 10 * p && (y[1][1] = h - m * p / 2,
-    y[3][1] = v - m * p / 2),
-    y[2][0] = f), y.flat();
-        // path.moveTo(e, t),
-        // path.bezierCurveTo(
-        //   y[0][0], y[0][1],
-        //   y[1][0], y[1][1],
-        //   f, h
-        // ),
-        // path.bezierCurveTo(
-        //   f * 2 - y[1][0], h * 2 - y[1][1],
-        //   y[2][0], y[2][1],
-        //   l, c
-        // ),
-        // path.bezierCurveTo(
-        //   l * 2 - y[2][0], c * 2 - y[2][1],
-        //   y[3][0], y[3][1],
-        //   g, v
-        // ),
-        // path.bezierCurveTo(
-        //   g * 2 - y[3][0], v * 2 - y[3][1],
-        //   y[4][0], y[4][1],
-        //   i, o
-        // );
-    // "M " + e + " " + t + " C " + y[0][0] + " " + y[0][1] + " " + y[1][0] + " " + y[1][1] + " " + f + " " + h + " S " + y[2][0] + " " + y[2][1] + " " + l + " " + c + " S " + y[3][0] + " " + y[3][1] + " " + g + " " + v + " S " + y[4][0] + " " + y[4][1] + " " + i + " " + o
-}
-
-  function getCtrlPoints333333(e, t, i, o, n, S, O) {
-    var w = .75;
-    var a = o - t,
-        r = i - e,
-        s = Math.sqrt(a * a + r * r),
-        d = w;
-
-    if (0 < r * n ? s < S && (d = .75 - (S - s) / S * .75) : d = .4 - .2 * Math.max(0, (S - Math.min(Math.abs(r), Math.abs(a))) / S), 0 < r * n) ;
-
-    if (0 < r * n) {
-      // path.moveTo(e, t);
-      // path.bezierCurveTo(
-      //   (e + n * (S * d)), (t + 0 * O),
-      //   (i - n * d * S), (o - 0 * O),
-      //   i, o
-      // );
-      return [e + n * (S * d), t + 0 * O, i - n * d * S, o - 0 * O];
-    } // return "M " + e + " " + t + " C " + (e + n * (S * d)) + " " + (t + 0 * O) + " " + (i - n * d * S) + " " +   (o - 0 * O) + " " + i + " " + o;
-
-
-    var c = Math.floor(o - a / 2);
-    0 == a && (c = o + O);
-    var p = O / 2,
-        u = (o + c) / 2,
-        f = e + n * S * d,
-        h = 0 < a ? Math.min(u - a / 2, t + p) : Math.max(u - a / 2, t - p),
-        g = i - n * S * d,
-        v = 0 < a ? Math.max(u, o - p) : Math.min(u, o + p),
-        b = (e + f) / 2,
-        m = 0 < a ? 1 : -1,
-        y = [[b, t], [f, 0 < a ? Math.max(t, h - p) : Math.min(t, h + p)], [b, 0 < a ? Math.min(c, h + p) : Math.max(c, h - p)], [g, 0 < a ? Math.max(c, v - p) : Math.min(c, v + p)], [(i + g) / 2, o]];
-
-    if (y[2][1] === h + m * p && (Math.abs(a) < 10 * p && (y[1][1] = h - m * p / 2, y[3][1] = v - m * p / 2), y[2][0] = f)) {
-      // path.moveTo(e, t);
-      // path.bezierCurveTo(
-      //   y[0][0], y[0][1],
-      //   y[1][0], y[1][1],
-      //   f, h
-      // );
-      // path.bezierCurveTo(
-      //   f * 2 - y[1][0], h * 2 - y[1][1],
-      //   y[2][0], y[2][1],
-      //   l, c
-      // );
-      // path.bezierCurveTo(
-      //   l * 2 - y[2][0], c * 2 - y[2][1],
-      //   y[3][0], y[3][1],
-      //   g, v
-      // );
-      // path.bezierCurveTo(
-      //   g * 2 - y[3][0], v * 2 - y[3][1],
-      //   y[4][0], y[4][1],
-      //   i, o
-      // );
-      return y.flat();
-    } // return y[2][1] === h + m * p && (Math.abs(a) < 10 * p && (y[1][1] = h - m * p / 2,
-    // y[3][1] = v - m * p / 2),
-    // y[2][0] = f),
-    // "M " + e + " " + t + " C " + y[0][0] + " " + y[0][1] + " " + y[1][0] + " " + y[1][1] + " " + f + " " + h + "   S " + y[2][0] + " " + y[2][1] + " " + l + " " + c + " S " + y[3][0] + " " + y[3][1] + " " + g + " " + v + " S "   + y[4][0] + " " + y[4][1] + " " + i + " " + o
-
-  }
 
   BRp$3.findTaxiPoints = function (edge, pairInfo) {
     // Taxicab geometry with two turns maximum
@@ -23021,7 +22908,7 @@ function getCtrlPoints(e, t, i, o, n, S, O) {
           x: rs.ctrlpts[0] + cpM.x * 2 * radius,
           y: rs.ctrlpts[1] + cpM.y * 2 * radius
         };
-        var srcCtrlPtIntn = srcintersectLine(srcPos.x, srcPos.y, srcW, srcH, cpProj.x, cpProj.y, 0);
+        var srcCtrlPtIntn = srcShape.intersectLine(srcPos.x, srcPos.y, srcW, srcH, cpProj.x, cpProj.y, 0);
 
         if (closeStartACp) {
           rs.ctrlpts[0] = rs.ctrlpts[0] + cpM.x * (minCpADist - startACpDist);

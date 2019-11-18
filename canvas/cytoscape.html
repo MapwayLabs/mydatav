@@ -217,21 +217,22 @@
         selector: 'edge',
         style: {
            "curve-style": "unbundled-bezier", // straight | unbundled-bezier | taxi
-           'control-point-distances': function(e) {
-            //  console.log(e.source().position());
-             let k = e.scratch('klay');
-             if (k && k.sourcePoint && k.targetPoint) {
-               if (k.sourcePoint.y > k.targetPoint.y) {
-                 return [-20];
-               } else if (k.sourcePoint.y < k.targetPoint.y) {
-                 return [20];
-               } else {
-                 return [0];
-               }
-             }
-             return [-20];
-            }, // [-20, 20, -20],
-           'control-point-weights':[0.5], // [0.25, 0.5, 0.75], 
+           'control-point-distances': [-10, 10],
+          //  function(e) {
+          //   //  console.log(e.source().position());
+          //    let k = e.scratch('klay');
+          //    if (k && k.sourcePoint && k.targetPoint) {
+          //      if (k.sourcePoint.y > k.targetPoint.y) {
+          //        return [-20];
+          //      } else if (k.sourcePoint.y < k.targetPoint.y) {
+          //        return [20];
+          //      } else {
+          //        return [0];
+          //      }
+          //    }
+          //    return [-20];
+          //   }, // [-20, 20, -20],
+           'control-point-weights':[0.25, 0.75], // [0.25, 0.5, 0.75], 
           //  'taxi-direction': 'auto',
           //  'taxi-turn': '20px',
            'edge-distances': 'intersection',
@@ -240,7 +241,7 @@
           //  'target-endpoint': ['-50%', '0%'],
           //  'target-arrow-color': '#A2C5FF',
            'line-color': '#A2C5FF',
-           'line-style': 'dashed',
+          //  'line-style': 'dashed',
            'width': 2
         }
       },
