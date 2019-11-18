@@ -22657,17 +22657,6 @@
     var edgeDistances = edge.pstyle('edge-distances').value;
     var stepSize = edge.pstyle('control-point-step-size').pfValue;
     var ctrlptDists = edge.pstyle('control-point-distances');
-
-    if (edge) {
-      if (edge.source().position().y > edge.target().position().y) {
-        ctrlptDists.pfValue = ctrlptDists.value = [-20];
-      } else if (edge.source().position().y < edge.target().position().y) {
-        ctrlptDists.pfValue = ctrlptDists.value = [20];
-      } else {
-        ctrlptDists.pfValue = ctrlptDists.value = [0];
-      }
-    }
-
     var ctrlptWs = edge.pstyle('control-point-weights');
     var bezierN = ctrlptDists && ctrlptWs ? Math.min(ctrlptDists.value.length, ctrlptWs.value.length) : 1;
     var ctrlptDist = ctrlptDists ? ctrlptDists.pfValue[0] : undefined;
@@ -31951,7 +31940,7 @@
     return style;
   };
 
-  var version = "snapshot";
+  var version = "3.12.0";
 
   var cytoscape = function cytoscape(options) {
     // if no options specified, use default
