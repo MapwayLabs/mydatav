@@ -523,6 +523,14 @@
     cy.data('positionChanged', true);
     cy.$('edge').updateStyle();
   });
+  cy.on('click', function(evt) {
+    console.log('click', evt);
+    if (!evt.target || evt.target === cy) {
+      // 点击空白处。。。
+    } else if (evt.target.isNode()) {
+      // 点击节点
+    }
+  });
   // cy.on('ready', function(evt){
   //   console.log('ready');
   // });
