@@ -10293,7 +10293,12 @@
     var currPosKey = getBoundingBoxPosKey(ele);
     var isPosKeySame = _p.bbCachePosKey === currPosKey;
     var useCache = opts.useCache && isPosKeySame;
-    var needRecalc = !useCache || _p.bbCache == null;
+
+    var isDirty = function isDirty(ele) {
+      return ele._private.bbCache == null;
+    };
+
+    var needRecalc = !useCache || isDirty(ele) || isEdge && isDirty(ele.source()) || isDirty(ele.target());
 
     if (needRecalc) {
       if (!isPosKeySame) {
@@ -22558,20 +22563,29 @@
     var segmentWs = edge.pstyle('segment-weights');
     var segmentDs = edge.pstyle('segment-distances');
     var segmentsN = Math.min(segmentWs.pfValue.length, segmentDs.pfValue.length);
+    var k = edge.scratch('klay');
+    var isUserGrabbed = edge.source().grabbed() || edge.target().grabbed();
+    var isPositionChanged = this.cy.data('positionChanged') || isUserGrabbed;
     rs.edgeType = 'segments';
     rs.segpts = [];
 
-    for (var s = 0; s < segmentsN; s++) {
-      var w = segmentWs.pfValue[s];
-      var d = segmentDs.pfValue[s];
-      var w1 = 1 - w;
-      var w2 = w;
-      var midptPts = edgeDistances === 'node-position' ? posPts : intersectionPts;
-      var adjustedMidpt = {
-        x: midptPts.x1 * w1 + midptPts.x2 * w2,
-        y: midptPts.y1 * w1 + midptPts.y2 * w2
-      };
-      rs.segpts.push(adjustedMidpt.x + vectorNormInverse.x * d, adjustedMidpt.y + vectorNormInverse.y * d);
+    if (k && k.bendPoints) {
+      k.bendPoints.forEach(function (p) {
+        rs.segpts.push(p.x, p.y);
+      });
+    } else {
+      for (var s = 0; s < segmentsN; s++) {
+        var w = segmentWs.pfValue[s];
+        var d = segmentDs.pfValue[s];
+        var w1 = 1 - w;
+        var w2 = w;
+        var midptPts = edgeDistances === 'node-position' ? posPts : intersectionPts;
+        var adjustedMidpt = {
+          x: midptPts.x1 * w1 + midptPts.x2 * w2,
+          y: midptPts.y1 * w1 + midptPts.y2 * w2
+        };
+        rs.segpts.push(adjustedMidpt.x + vectorNormInverse.x * d, adjustedMidpt.y + vectorNormInverse.y * d);
+      }
     }
   };
 
@@ -23399,6 +23413,8 @@
     var tgtManEndptVal = overrideEndpts ? 'outside-to-node' : tgtManEndpt.value;
     rs.srcManEndpt = srcManEndpt;
     rs.tgtManEndpt = tgtManEndpt;
+    var isUserGrabbed = edge.source().grabbed() || edge.target().grabbed();
+    var isPositionChanged = this.cy.data('positionChanged') || isUserGrabbed;
     var p1; // last known point of edge on target side
 
     var p2; // last known point of edge on source side
@@ -23469,10 +23485,17 @@
 
     var arrowEnd = shortenIntersection(intersect, p1, r.arrowShapes[tgtArShape].spacing(edge) + tgtDist);
     var edgeEnd = shortenIntersection(intersect, p1, r.arrowShapes[tgtArShape].gap(edge) + tgtDist);
-    rs.endX = edgeEnd[0];
-    rs.endY = edgeEnd[1];
-    rs.arrowEndX = arrowEnd[0];
-    rs.arrowEndY = arrowEnd[1];
+    rs.endX = edgeEnd[0]; // rs.endY = edgeEnd[1];
+
+    rs.arrowEndX = arrowEnd[0]; // rs.arrowEndY = arrowEnd[1];
+
+    if (edge.pstyle('curve-style').value === 'segments' && !isPositionChanged) {
+      rs.endY = rs.segpts[rs.segpts.length - 1];
+      rs.arrowEndY = rs.segpts[rs.segpts.length - 1];
+    } else {
+      rs.endY = edgeEnd[1];
+      rs.arrowEndY = arrowEnd[1];
+    }
 
     if (srcManEndptVal === 'inside-to-node') {
       intersect = [srcPos.x, srcPos.y];
@@ -23527,10 +23550,17 @@
 
     var arrowStart = shortenIntersection(intersect, p2, r.arrowShapes[srcArShape].spacing(edge) + srcDist);
     var edgeStart = shortenIntersection(intersect, p2, r.arrowShapes[srcArShape].gap(edge) + srcDist);
-    rs.startX = edgeStart[0];
-    rs.startY = edgeStart[1];
-    rs.arrowStartX = arrowStart[0];
-    rs.arrowStartY = arrowStart[1];
+    rs.startX = edgeStart[0]; // rs.startY = edgeStart[1];
+
+    rs.arrowStartX = arrowStart[0]; // rs.arrowStartY = arrowStart[1];
+
+    if (edge.pstyle('curve-style').value === 'segments' && !isPositionChanged) {
+      rs.startY = rs.segpts[1];
+      rs.arrowStartY = rs.segpts[1];
+    } else {
+      rs.startY = edgeStart[1];
+      rs.arrowStartY = arrowStart[1];
+    }
 
     if (hasEndpts) {
       if (!number(rs.startX) || !number(rs.startY) || !number(rs.endX) || !number(rs.endY)) {
@@ -28928,10 +28958,17 @@
     }
 
     if (!extent || boundingBoxesIntersect(bb, extent)) {
-      r.drawCachedElementPortion(context, ele, eleTxrCache, pxRatio, lvl, reason, getZeroRotation, getOpacity);
-      r.drawCachedElementPortion(context, ele, lblTxrCache, pxRatio, lvl, reason, getLabelRotation, getTextOpacity);
+      var isEdge = ele.isEdge();
 
-      if (ele.isEdge()) {
+      var badLine = ele.element()._private.rscratch.badLine;
+
+      r.drawCachedElementPortion(context, ele, eleTxrCache, pxRatio, lvl, reason, getZeroRotation, getOpacity);
+
+      if (!isEdge || !badLine) {
+        r.drawCachedElementPortion(context, ele, lblTxrCache, pxRatio, lvl, reason, getLabelRotation, getTextOpacity);
+      }
+
+      if (isEdge && !badLine) {
         r.drawCachedElementPortion(context, ele, slbTxrCache, pxRatio, lvl, reason, getSourceLabelRotation, getTextOpacity);
         r.drawCachedElementPortion(context, ele, tlbTxrCache, pxRatio, lvl, reason, getTargetLabelRotation, getTextOpacity);
       }
@@ -29524,12 +29561,14 @@
       context.textAlign = justification;
       context.textBaseline = 'bottom';
     } else {
+      var badLine = ele.element()._private.rscratch.badLine;
+
       var _label = ele.pstyle('label');
 
       var srcLabel = ele.pstyle('source-label');
       var tgtLabel = ele.pstyle('target-label');
 
-      if ((!_label || !_label.value) && (!srcLabel || !srcLabel.value) && (!tgtLabel || !tgtLabel.value)) {
+      if (badLine || (!_label || !_label.value) && (!srcLabel || !srcLabel.value) && (!tgtLabel || !tgtLabel.value)) {
         return;
       }
 
@@ -31940,7 +31979,7 @@
     return style;
   };
 
-  var version = "3.12.0";
+  var version = "snapshot";
 
   var cytoscape = function cytoscape(options) {
     // if no options specified, use default

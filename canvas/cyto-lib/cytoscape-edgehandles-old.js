@@ -522,8 +522,6 @@ function makeEdges() {
     added = added.merge(interNode).merge(source2inter).merge(inter2target);
   } else {
     // flat
-    classes += ' ';
-    classes += cy.data('currentLine');
     var source2target = cy.add(getEleJson({
       group: 'edges',
       data: {
@@ -685,7 +683,7 @@ function updateEdge() {
           source: sourceNode.id(),
           target: ghostNode.id()
         }),
-        classes: 'eh-ghost eh-ghost-edge' + ' ' + cy.data('currentLine')
+        classes: 'eh-ghost eh-ghost-edge'
       }));
 
       ghostEdge.style({

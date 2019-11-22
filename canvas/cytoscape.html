@@ -9,50 +9,50 @@
   <script src="./cyto-lib/cytoscape.umd-old.js"></script>
   <script src="../data/dmc-node-links.js"></script>
 
-  <script src="./cyto-lib/cola.min.js"></script>
-  <script src="./cyto-lib/cytoscape-cola.js"></script>
+  <!-- <script src="./cyto-lib/cola.min.js"></script>
+  <script src="./cyto-lib/cytoscape-cola.js"></script> -->
 
-  <script src="https://unpkg.com/layout-base/layout-base.js"></script>
-	<script src="https://unpkg.com/avsdf-base/avsdf-base.js"></script>
-  <script src="./cyto-lib/cytoscape-avsdf.js"></script>
+  <!-- <script src="https://unpkg.com/layout-base/layout-base.js"></script>
+	<script src="https://unpkg.com/avsdf-base/avsdf-base.js"></script> -->
+  <!-- <script src="./cyto-lib/cytoscape-avsdf.js"></script> -->
 
   <!-- <script src="https://unpkg.com/layout-base/layout-base.js"></script> -->
-	<script src="https://unpkg.com/avsdf-base/avsdf-base.js"></script>
+	<!-- <script src="https://unpkg.com/avsdf-base/avsdf-base.js"></script>
 	<script src="https://unpkg.com/cose-base/cose-base.js"></script>
 	<script src="https://unpkg.com/cytoscape-graphml/cytoscape-graphml.js"></script>
 	<script src="https://raw.githack.com/iVis-at-Bilkent/cytoscape.js-layvo/unstable/cytoscape-layvo.js"></script>
-  <script src="./cyto-lib/cytoscape-cise.js"></script>
+  <script src="./cyto-lib/cytoscape-cise.js"></script> -->
 
   <!-- <script src="https://unpkg.com/layout-base/layout-base.js"></script> -->
   <!-- <script src="https://unpkg.com/cose-base/cose-base.js"></script> -->
-  <script src="./cyto-lib/cytoscape-cose-bilkent.js"></script>
+  <!-- <script src="./cyto-lib/cytoscape-cose-bilkent.js"></script> -->
 
-  <script src="./cyto-lib/dagre.js"></script>
-  <script src="./cyto-lib/cytoscape-dagre.js"></script>
+  <!-- <script src="./cyto-lib/dagre.js"></script>
+  <script src="./cyto-lib/cytoscape-dagre.js"></script> -->
 
-  <script src="https://cdn.jsdelivr.net/npm/elkjs@0.3.0/lib/elk.bundled.js"></script>
-  <script src="./cyto-lib/cytoscape-elk.js"></script>
+  <!-- <script src="https://cdn.jsdelivr.net/npm/elkjs@0.3.0/lib/elk.bundled.js"></script>
+  <script src="./cyto-lib/cytoscape-elk.js"></script> -->
 
-  <script src="./cyto-lib/cytoscape-euler.js"></script>
+  <!-- <script src="./cyto-lib/cytoscape-euler.js"></script> -->
 
-  <script src="https://unpkg.com/numeric/numeric-1.2.6.js"></script>
+  <!-- <script src="https://unpkg.com/numeric/numeric-1.2.6.js"></script>
   <script src="https://unpkg.com/cytoscape-layout-utilities/cytoscape-layout-utilities.js"></script>
-  <script src="./cyto-lib/cytoscape-fcose.js"></script>
+  <script src="./cyto-lib/cytoscape-fcose.js"></script> -->
 
   <script src="https://unpkg.com/klayjs@0.4.1/klay.js"></script>
 	<script src="./cyto-lib/cytoscape-klay.js"></script>
 
-  <script src="./cyto-lib/cytoscape-ngraph.forcelayout.js"></script>
+  <!-- <script src="./cyto-lib/cytoscape-ngraph.forcelayout.js"></script> -->
 
   <!-- <script src="./cyto-lib/polywas-layout.js"></script> -->
  
-  <script src="https://unpkg.com/weaverjs@1.2.0/dist/weaver.min.js"></script>
-  <script src="./cyto-lib/cytoscape-spread.js"></script>
+  <!-- <script src="https://unpkg.com/weaverjs@1.2.0/dist/weaver.min.js"></script>
+  <script src="./cyto-lib/cytoscape-spread.js"></script> -->
 
-  <script src="./cyto-lib/springy.js"></script>
-  <script src="./cyto-lib/cytoscape-springy.js"></script>
+  <!-- <script src="./cyto-lib/springy.js"></script>
+  <script src="./cyto-lib/cytoscape-springy.js"></script> -->
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.10/lodash.js"></script>
+  <script src="../lib/lodash.min.js"></script>
   <script src="./cyto-lib/cytoscape-edgehandles.js"></script>
 
   <link rel="stylesheet" href="./cyto-lib/cytoscape-context-menus.css">
@@ -71,40 +71,43 @@
   <form action="">
    <label>布局:</label>
    <select name="layoutSelect" id="layout-select">
+      <option selected value="preset">默认布局</option>
       <option value="random">随机布局</option>
       <option value="grid">网格布局</option>
       <option value="circle">圆形布局</option>
       <option value="concentric">同心布局</option>
       <option value="breadthfirst">广度布局</option>
       <option value="cose">cose布局</option>
-      <option value="cola">cola布局</option>
+      <!-- <option value="cola">cola布局</option>
       <option value="avsdf">avsdf布局</option>
       <option value="cise">cise布局</option>
       <option value="cose-bilkent">cose-bilkent布局</option>
       <option value="dagre">dagre布局</option>
       <option value="elk">elk布局</option>
       <option value="euler">euler布局</option>
-      <option value="fcose">fcose布局</option>
-      <option selected value="klay">klay布局</option>
-      <option value="cytoscape-ngraph.forcelayout">forcelayout布局</option>
+      <option value="fcose">fcose布局</option> -->
+      <option  value="klay">klay布局</option>
+      <!-- <option value="cytoscape-ngraph.forcelayout">forcelayout布局</option> -->
       <!-- <option value="polywas">polywas布局</option> -->
-      <option value="spread">spread布局</option>
-      <option value="springy">springy布局</option>
+      <!-- <option value="spread">spread布局</option>
+      <option value="springy">springy布局</option> -->
    </select>
    <label>线样式:</label>
    <select name="lineSelect" id="line-select">
       <option value="straight">直线</option>
-      <!-- <option value="bezier">bezier</option> -->
+      <option value="curve">弧线</option>
       <option value="unbundled-bezier">曲线</option>
       <option value="taxi">折线</option>
    </select>
+   <button id="oneKeyLayout">一键布局</button>
    <button id="lockBtn">锁定</button>
   </form>
   </div>
   <script>
   
-  var currentLayoutName = 'klay';
+  var currentLayoutName = 'preset';
   var LayoutOptions = {
+    'preset': {},
     'random': {},
     'grid': {},
     'circle': {},
@@ -148,7 +151,7 @@
       nodeDimensionsIncludeLabels: false,
       klay: {
         // Following descriptions taken from http://layout.rtsys.informatik.uni-kiel.de:9444/Providedlayout.html?algorithm=de.cau.cs.kieler.klay.layered
-        addUnnecessaryBendpoints: false, // Adds bend points even if an edge does not change direction.
+        addUnnecessaryBendpoints: true,// false Adds bend points(拐点) even if an edge does not change direction.
         aspectRatio: window.innerWidth / window.innerHeight,// 1.6, // The aimed aspect ratio of the drawing, that is the quotient of width by height
         borderSpacing: 20, // Minimal amount of space to be left to the border
         compactComponents: false, // Tries to further compact components (disconnected sub-graphs).
@@ -197,7 +200,7 @@
     'springy': {}
   };
 
-  function setLayout(name) {
+  function setLayout(name, ele) {
     var options = LayoutOptions[name];
     options.name = name;
     currentLayoutName = name;
@@ -206,14 +209,32 @@
     //   avoidOverlap: true,
     //   avoidOverlapPadding: 20,
     // });
-    cy.layout(options).run();
+    var layoutEle = cy.$('node.main_nodes, edge');
+    if (ele) {
+      layoutEle = ele;
+    }
+    var layout = layoutEle.layout(options);
+    layout.removeAllListeners();
+    layout.on('layoutstop', function(){
+      console.log('布局完成！');
+      cy.data('positionChanged', false);
+      if (name === 'klay' && cy.data('currentLine') === 'taxi') {
+        cy.style().selector('edge').style({
+          'curve-style': 'segments',
+          'segment-distances': 0
+          }).update();
+      }
+    });
+    layout.run();
   }
   
   function setData(data) {
     var nodes = data.node_meta.map(d => {
       d.id = d.key;
+      let pos = d.loc.split(' ');
       return {
         data: d,
+        position: { x: parseInt(pos[0]), y: parseInt(pos[1]) },
         classes: ['main_nodes']
       };
     });
@@ -223,7 +244,8 @@
       d.source = d.from;
       d.target = d.to;
       return {
-        data: d
+        data: d,
+        classes: ['straight']
       };
     });
 
@@ -276,27 +298,31 @@
       {
         selector: 'edge',
         style: {
-           "curve-style": "unbundled-bezier", // straight | unbundled-bezier | taxi
-           'control-point-distances': 
-           function(e) {
-            //  console.log(e.source().position());
-             let k = e.scratch('klay');
-             const dis = 30;
-             if (k && k.sourcePoint && k.targetPoint) {
-               if (k.sourcePoint.y > k.targetPoint.y) {
-                 return [dis, -dis];
-               } else if (k.sourcePoint.y < k.targetPoint.y) {
-                 return [-dis, dis];
-               } else {
-                 return [0, 0];
-               }
-             }
-             return [-dis, dis];
-            }, // [-20, 20, -20],
-           'control-point-weights':[0.25, 0.75], // [0.25, 0.5, 0.75], 
+          //  "curve-style": "straight", // straight | unbundled-bezier | taxi
+          //  'control-point-distances': 
+          //  function(e) {
+          //    var sp = e.source().position();
+          //    var tp = e.target().position();
+          //   //  console.log(e.source().position());
+          //   //  let k = e.scratch('klay');
+          //    const dis = 23;
+          //    if (sp.x !== tp.x || sp.y !== tp.y) {
+          //      if (sp.y > tp.y) {
+          //        return [dis, -dis];
+          //      } else if (sp.y < tp.y) {
+          //        return [-dis, dis];
+          //      } else {
+          //        return [0, 0];
+          //      }
+          //    }
+          //    return [-dis, dis];
+          //   }, // [-20, 20, -20],
+          //  'control-point-weights':[0.15, 0.75], // [0.25, 0.5, 0.75], 
+          //  'segment-distances': 0,
+          //  'segment-weights': 0.5,
           //  'taxi-direction': 'auto',
           //  'taxi-turn': '20px',
-           'edge-distances': 'intersection',
+          //  'edge-distances': 'intersection',
            'target-arrow-shape': 'triangle',
           //  'source-endpoint': ['50%', '0%'],
           //  'target-endpoint': ['-50%', '0%'],
@@ -306,6 +332,80 @@
            'line-color': '#A2C5FF',
           //  'line-style': 'dashed',
            'width': 2
+        }
+      },
+      {
+        selector: 'edge.straight',
+        style: {
+          "curve-style": 'straight'
+        }
+      },
+      {
+        selector: 'edge.curve',
+        style: {
+          "curve-style": 'unbundled-bezier',
+          'control-point-distances': function(e) {
+               const sp = e.source().position();
+               const tp = e.target().position();
+               const dis = 25;
+               const thesold = 5;
+               if (sp.x !== tp.x || sp.y !== tp.y) {
+                 if (Math.abs(sp.y - tp.y) < thesold) {
+                   return 0;
+                 } else if (sp.y > tp.y) {
+                   return dis;
+                 } else {
+                   return -dis;
+                 }
+                //  if (sp.y > tp.y) {
+                //    return dis;
+                //  } else if (sp.y < tp.y) {
+                //    return -dis;
+                //  } else {
+                //    return 0;
+                //  }
+               }
+          },
+          'control-point-weights':0.5
+        }
+      },
+      {
+        selector: 'edge.unbundled-bezier',
+        style: {
+          "curve-style": 'unbundled-bezier',
+          'control-point-distances': function(e) {
+               const sp = e.source().position();
+               const tp = e.target().position();
+               const dis = 36;
+               const thesold = 5;
+               if (sp.x !== tp.x || sp.y !== tp.y) {
+                 if (Math.abs(sp.y - tp.y) < thesold) {
+                   return [0, 0];
+                 } else {
+                  return [dis, -dis];
+                 }
+                //  if (sp.y > tp.y) {
+                //    return [dis, -dis];
+                //  } else if (sp.y < tp.y) {
+                //    return [-dis, dis];
+                //  } else {
+                //    return [0, 0];
+                //  }
+               }
+          },
+          'control-point-weights': [0.25, 0.75] // [0.1, 0.8]
+        }
+      },
+      {
+        selector: 'edge.taxi',
+        style: {
+          "curve-style": 'taxi'
+        }
+      },
+      {
+        selector: 'edge.eh-ghost-edge',
+        style: {
+          
         }
       },
       {
@@ -366,7 +466,7 @@
    },
 
    layoutstop: function() {
-     console.log('layoutstop');
+    //  console.log('layoutstop');
    }
 
   });
@@ -391,7 +491,12 @@
     }
   });
   cy.on('layoutstop', function(evt){
-    console.log('layoutstop');
+    // console.log('layoutstop');
+  });
+  cy.$("node.main_nodes").on('position', function(evt){
+    // console.log(evt);
+    cy.data('positionChanged', true);
+    cy.$('edge').updateStyle();
   });
   // cy.on('ready', function(evt){
   //   console.log('ready');
@@ -410,19 +515,36 @@
   //   }
   // });
 
+  cy.data('currentLine', 'straight');
+
   var selectEle = document.getElementById('layout-select');
   selectEle.addEventListener('change', e => {
     setLayout(e.target.value);
   });
 
   var lineSelectEle = document.getElementById('line-select');
-  lineSelectEle.addEventListener('change', e => {
-    cy.style()
-    .selector('edge')
-    .style({
-      "curve-style": e.target.value
-    })
-    .update(); // indicate the end of your new stylesheet so that it can be updated on element
+  lineSelectEle.addEventListener('change', evt => {
+    var value = evt.target.value;
+    // cy.$("edge").removeClass('straight');
+    // cy.$("edge").removeClass('curve');
+    // cy.$("edge").removeClass('unbundled-bezier');
+    cy.$("edge").removeClass(cy.data('currentLine'));
+    cy.$("edge").addClass(value);
+    cy.data('currentLine', value);
+    if (value === 'straight') {
+       cy.style().selector('edge').style({'curve-style': 'straight'}).update();
+    } else if (value === 'taxi') {
+       cy.style().selector('edge').style({'curve-style': 'taxi'}).update();
+    } else {
+       cy.style().selector('edge').style({'curve-style': 'unbundled-bezier'}).update();
+    }
+
+    // cy.style()
+    // .selector('edge')
+    // .style({
+    //   "curve-style": e.target.value
+    // })
+    // .update(); // indicate the end of your new stylesheet so that it can be updated on element
   });
 
   var lockBtn = document.getElementById('lockBtn');
@@ -439,6 +561,11 @@
     }
   });
   
+  var oneKeyLayout = document.getElementById('oneKeyLayout');
+  oneKeyLayout.addEventListener('click', e => {
+    e.preventDefault();
+    setLayout('klay')
+  });
   /*******增加节点两端子节点************/
   /*
   var arrowNodes = []; 
@@ -577,6 +704,7 @@
       // fired when the handle is hidden
     },
     start: function( sourceNode ){
+      cy.data('positionChanged', true);
       // fired when edgehandles interaction starts (drag on handle)
     },
     complete: function( sourceNode, targetNode, addedEles ){

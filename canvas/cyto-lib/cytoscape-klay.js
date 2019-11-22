@@ -174,7 +174,8 @@ var getPos = function getPos(ele) {
     p.x += kp.x;
     p.y += kp.y;
   }
-
+  p.x += ele.width()/2;
+  p.y += ele.height()/2;
   return p;
 };
 
@@ -322,6 +323,9 @@ Layout.prototype.run = function () {
   nodes.filter(function (n) {
     return !n.isParent();
   }).layoutPositions(layout, options, getPos);
+
+  edges.updateStyle();
+  // edges[1].scratch('klay')
 
   return this;
 };
