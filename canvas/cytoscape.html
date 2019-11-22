@@ -235,7 +235,9 @@
       return {
         data: d,
         position: { x: parseInt(pos[0]), y: parseInt(pos[1]) },
-        classes: ['main_nodes']
+        classes: ['main_nodes'],
+        selectable: true,
+        grabbable: true
       };
     });
   
@@ -273,6 +275,29 @@
  
    // so we can see the ids
    style: [
+     {
+       selector: 'core',
+       style: {
+         // 鼠标点击空白处的背景
+         'active-bg-color': '#f00',
+         'active-bg-opacity': 0.3,
+         'active-bg-size': 20,
+         // 框选样式
+         'selection-box-color': '#0f0',
+         'selection-box-border-color': '#000',
+         'selection-box-border-width': 1,
+         'selection-box-opacity': 1
+       }
+     },
+     // 激活的点或边覆盖样式
+     {
+       selector: ':active',
+       style: {
+         'overlay-color': '#0f0',
+         'overlay-padding': 4,
+         'overlay-opacity': 0.5
+       }
+     },
       {
         selector: 'node.main_nodes',
         style: {
@@ -376,7 +401,7 @@
           'control-point-distances': function(e) {
                const sp = e.source().position();
                const tp = e.target().position();
-               const dis = 36;
+               const dis = 20;
                const thesold = 5;
                if (sp.x !== tp.x || sp.y !== tp.y) {
                  if (Math.abs(sp.y - tp.y) < thesold) {
@@ -393,7 +418,7 @@
                 //  }
                }
           },
-          'control-point-weights': [0.25, 0.75] // [0.1, 0.8]
+          'control-point-weights':[0.1, 0.8] // [0.25, 0.75] [0.1, 0.8]
         }
       },
       {
