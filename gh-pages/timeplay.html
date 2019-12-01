@@ -1,0 +1,42 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <title>时序播放</title>
+  <link rel="stylesheet" href="./timeplay/lib/leaflet/leaflet.css" />
+  <link rel="stylesheet" href="./timeplay/L.Control.TimePlay.css">
+  <script src="./timeplay/lib/leaflet/leaflet-src.js"></script>
+  <script src="./timeplay/lib/Tween.js"></script>
+  <script src="./timeplay/lib/jquery.min.js"></script>
+  <script src="./timeplay/lib/bezier.js"></script>
+  <script src="./timeplay/L.CanvasLayer.js"></script>
+  <script src="./timeplay/L.GoogleLayer.js"></script>
+  <script src="./timeplay/Intensity.js"></script>
+  <script src="./timeplay/L.Control.TimePlay.js"></script>
+</head>
+
+<body>
+  <div id="map" style="position:absolute;left:0;top:0;right:0;bottom:0;width:100%;height:100%"></div>
+  <script>
+    // init map
+    var map = L.map("map", {
+      center: [39.90923, 116.397428],
+      zoom: 4,
+      worldCopyJump: true
+    });
+    new L.GoogleLayer().addTo(map);
+  </script>
+  <script>
+    function ajaxCallback(data) {
+      console.log(data);
+      window.timeplay = new L.Control.TimePlay(data).addTo(map);
+    }
+    $.getJSON('./timeplay/timeplay.json', ajaxCallback);
+  </script>
+</body>
+
+</html>
