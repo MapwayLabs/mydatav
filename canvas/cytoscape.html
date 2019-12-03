@@ -59,6 +59,9 @@
   <script src="https://code.jquery.com/jquery-2.0.3.min.js"></script>
   <script src="./cyto-lib/cytoscape-context-menus.js"></script>
 
+  <link rel="stylesheet" href="./cyto-lib/cytoscape.js-navigator.css">
+  <script src="./cyto-lib/cytoscape-navigator.js"></script>
+
   <style>
   #layout {
     position: absolute;
@@ -290,39 +293,94 @@
        }
      },
      // 激活的点或边覆盖样式
-     {
-       selector: ':active',
-       style: {
-         'overlay-color': '#0f0',
-         'overlay-padding': 4,
-         'overlay-opacity': 0.5
-       }
-     },
+    //  {
+    //    selector: ':active',
+    //    style: {
+    //      'overlay-color': '#0f0',
+    //      'overlay-padding': 4,
+    //      'overlay-opacity': 0.5
+    //    }
+    //  },
       {
         selector: 'node.main_nodes',
         style: {
-          'label': 'data(title)',
-          'text-halign': 'center',
-          'text-valign': 'bottom',
-          'color': '#000',
-          'font-size': 12,
-          'text-wrap': 'ellipsis',
-          'text-max-width': '100px',
-          'line-height': 1.2,
-          'text-margin-y': 6,
-          'shape': 'round-rectangle',
-          'background-color': '#fff',
-          'background-image': './cyto-lib/img/preview.svg',
-          'background-opacity': 1,
-          'border-width': 1,
-          'border-color': '#ccc',
-          'width': 50,
-          'height': 50
+        'width': 48,
+        'height': 48,
+        'shape':'round-rectangle',
+
+        'background-color': '#FFFFFF',
+        'background-blacken': 0,
+        'background-opacity': 1,
+        'background-fill': 'solid',
+        'background-image': './cyto-lib/img/preview.svg',
+        'background-width': 32,
+        'background-height': 32,
+        // 'background-fit': 'contain',
+        'background-repeat': 'no-repeat',
+
+        'border-width': 2,
+        'border-style': 'solid',
+        'border-color': 'rgb(255, 0, 0)',
+        'border-opacity': 1,
+
+
+        'label': 'data(title)',
+        'color': '#3E3B3B',
+        'text-opacity': 1,
+        'font-family': 'PingFang SC',
+        'font-size': 12,
+        'font-style': 'Regular',
+        'font-weight': 'normal',
+        'text-wrap': 'ellipsis',
+        'text-max-width': '100px',
+        'line-height': 1.2,
+        'text-halign': 'center',
+        'text-valign': 'bottom',
+        'text-margin-y': 6,
+
+        'ghost': 'no',
+        'ghost-offset-x': 10,
+        'ghost-offset-y': 10,
+        'ghost-opacity': 0.9,
+
+        // padding: 0
+          // 'label': 'data(title)',
+          // 'text-halign': 'center',
+          // 'text-valign': 'bottom',
+          // 'color': '#000',
+          // 'font-size': 12,
+          // 'text-wrap': 'ellipsis',
+          // 'text-max-width': '100px',
+          // 'line-height': 1.2,
+          // 'text-margin-y': 6,
+          // 'shape': 'round-rectangle',
+          // 'background-color': '#fff',
+          // 'background-image': function(e){
+          //   console.log('background-image', e.data('type'));
+          //   return './cyto-lib/img/preview.svg';
+          // } ,
+          // 'background-opacity': 1,
+          // 'border-width': 1,
+          // 'border-color': '#ccc',
+          // 'width': 50,
+          // 'height': 50
         }
       },
       {
         selector: 'edge',
         style: {
+        'width': 2,
+        'line-color': 'rgb(15, 34, 67)',
+        'line-style': 'solid',
+        'opacity': 1,
+        'source-arrow-color': '#000',
+        'source-arrow-shape': 'circle',
+        'source-arrow-fill': 'hollow',
+        'target-arrow-color': '#000',
+        'target-arrow-shape': 'chevron',
+        'target-arrow-fill': 'filled',
+        'source-distance-from-node': 3,
+        'target-distance-from-node': 3
           //  "curve-style": "straight", // straight | unbundled-bezier | taxi
           //  'control-point-distances': 
           //  function(e) {
@@ -348,18 +406,18 @@
           //  'taxi-direction': 'auto',
           //  'taxi-turn': '20px',
           //  'edge-distances': 'intersection',
-           'source-arrow-shape': 'circle',
-           'source-arrow-fill': 'hollow',
-           'target-arrow-shape': 'chevron',
-           'target-arrow-fill': 'filled',
-          //  'source-endpoint': ['50%', '0%'],
-          //  'target-endpoint': ['-50%', '0%'],
-          //  'target-arrow-color': '#A2C5FF',
-          'source-distance-from-node': 3,
-          'target-distance-from-node': 3,
-           'line-color': '#A2C5FF',
-          //  'line-style': 'dashed',
-           'width': 2
+          //  'source-arrow-shape': 'circle',
+          //  'source-arrow-fill': 'hollow',
+          //  'target-arrow-shape': 'chevron',
+          //  'target-arrow-fill': 'filled',
+          // //  'source-endpoint': ['50%', '0%'],
+          // //  'target-endpoint': ['-50%', '0%'],
+          // //  'target-arrow-color': '#A2C5FF',
+          // 'source-distance-from-node': 3,
+          // 'target-distance-from-node': 3,
+          //  'line-color': '#A2C5FF',
+          // //  'line-style': 'dashed',
+          //  'width': 2
         }
       },
       {
@@ -465,17 +523,24 @@
         }
       },
       {
-        selector: 'node.active',
+        selector: 'node.main_nodes.active',
         style: {
-          'background-color': '#E2f7f7',
-          'border-color': '#E2f7f7',
+          // 'background-color': '#E2f7f7',
+          // 'border-color': '#f00',
+          // 'border-opacity': 0.3,
+          'overlay-color': 'rgb(0,0,0)',
+          'overlay-padding': 4,
+          'overlay-opacity': 0.3
         }
       },
       {
         selector: 'edge.active',
         style: {
-          'line-color': '#f00',
-          'width': 2
+          // 'line-color': '#f00',
+          // 'width': 2,
+          'overlay-color': '#0f0',
+          'overlay-padding': 4,
+          'overlay-opacity': 1,
         }
       },
       {
@@ -502,6 +567,10 @@
   setData(data);
 
   cy.boxSelectionEnabled(true);
+
+  cy.navigator({
+    
+  });
   
   cy.on('mouseover', 'node, edge', function(evt){
     evt.target.addClass('active');
