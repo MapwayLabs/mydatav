@@ -245,7 +245,7 @@
     });
   
     var edges = data.line_meta.map(d => {
-      d.id = d.__gohashid;
+      // d.id = d.__gohashid;
       d.source = d.from;
       d.target = d.to;
       return {
@@ -515,10 +515,16 @@
       {
         selector: 'node.status_node',
         style: {
-          'shape': 'rectangle',
+          'shape': 'ellipse',
           'width': 16,
           'height': 16,
+          'background-color': '#FFF',
+          // 'background-fit': 'none',
+          'background-width': 16,
+          'background-height': 16,
+          'background-image-opacity': 1,
           'background-opacity': 0,
+          // 'background-clip': 'node',
           'background-image': './cyto-lib/img/status.svg',
         }
       },
@@ -586,12 +592,13 @@
       var predesors = evt.target.target().predecessors("edge");
       predesors.forEach(f=>f.removeClass('active'));
     }
+     eh && eh.hide();
   });
   cy.on('layoutstop', function(evt){
     // console.log('layoutstop');
   });
   cy.$("node.main_nodes").on('position', function(evt){
-    // console.log(evt);
+    console.log('position-change');
     cy.data('positionChanged', true);
     cy.$('edge').updateStyle();
   });
@@ -814,6 +821,14 @@
     },
     complete: function( sourceNode, targetNode, addedEles ){
       // fired when edgehandles is done and elements are added
+      cy.add({
+        group: 'edges',
+        data: {
+          source: sourceNode.id(),
+          target: targetNode.id()
+        },
+        classes: [cy.data('currentLine')]
+      });
     },
     stop: function( sourceNode ){
       // fired when edgehandles interaction is stopped (either complete with added edges or incomplete)
@@ -823,9 +838,11 @@
     },
     hoverover: function( sourceNode, targetNode ){
       // fired when a target is hovered
+      console.log('hoverover');
     },
     hoverout: function( sourceNode, targetNode ){
       // fired when a target isn't hovered anymore
+      console.log('hoverout');
     },
     previewon: function( sourceNode, targetNode, previewEles ){
       // fired when preview is shown

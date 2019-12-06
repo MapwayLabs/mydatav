@@ -522,17 +522,17 @@ function makeEdges() {
     added = added.merge(interNode).merge(source2inter).merge(inter2target);
   } else {
     // flat
-    classes += ' ';
-    classes += cy.data('currentLine');
-    var source2target = cy.add(getEleJson({
-      group: 'edges',
-      data: {
-        source: source.id(),
-        target: target.id()
-      }
-    }, options.edgeParams(source, target, 0), classes));
+    // classes += ' ';
+    // classes += cy.data('currentLine');
+    // var source2target = cy.add(getEleJson({
+    //   group: 'edges',
+    //   data: {
+    //     source: source.id(),
+    //     target: target.id()
+    //   }
+    // }, options.edgeParams(source, target, 0), classes));
 
-    added = added.merge(source2target);
+    // added = added.merge(source2target);
   }
 
   if (preview) {

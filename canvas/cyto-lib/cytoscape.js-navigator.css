@@ -3,10 +3,11 @@
 	border: 1px solid #000;
 	background: #fff;
 	z-index: 99999;
-	width: 400px;
-	height: 400px;
-	bottom: 0;
-	right: 0;
+	width: 160px;
+	height: 120px;
+	bottom: 10px;
+	right: 10px;
+	padding: 10px;
 	overflow: hidden;
 }
 

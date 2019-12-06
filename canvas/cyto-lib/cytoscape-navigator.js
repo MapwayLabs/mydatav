@@ -887,8 +887,9 @@
       }
 
       $img.style['position'] = 'absolute';
-      $img.style['left'] = translate.x + 'px';
-      $img.style['top'] = translate.y + 'px';
+      $img.style['left'] = '50%'; // translate.x + 'px';
+      $img.style['top'] = '50%'; //translate.y + 'px';
+      $img.style['transform'] = 'translate(-50%, -50%)';
     }
 
     this._onRenderHandler = throttle(render, that.options.rerenderDelay)

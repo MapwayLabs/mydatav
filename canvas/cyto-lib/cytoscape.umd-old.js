@@ -28960,10 +28960,10 @@
     if (!extent || boundingBoxesIntersect(bb, extent)) {
       var isEdge = ele.isEdge();
 
-      var badLine = ele.element()._private.rscratch.badLine;
+      var badLine = ele.element()._private.rscratch.badLine; // fix: overlay画在节点和线下面，避免遮挡
+
 
       r.drawElementOverlay(context, ele);
-
       r.drawCachedElementPortion(context, ele, eleTxrCache, pxRatio, lvl, reason, getZeroRotation, getOpacity);
 
       if (!isEdge || !badLine) {
@@ -28973,9 +28973,8 @@
       if (isEdge && !badLine) {
         r.drawCachedElementPortion(context, ele, slbTxrCache, pxRatio, lvl, reason, getSourceLabelRotation, getTextOpacity);
         r.drawCachedElementPortion(context, ele, tlbTxrCache, pxRatio, lvl, reason, getTargetLabelRotation, getTextOpacity);
-      }
+      } // r.drawElementOverlay( context, ele );
 
-      // r.drawElementOverlay(context, ele);
     }
   };
 
