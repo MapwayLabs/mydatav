@@ -19,5 +19,8 @@
   "bugs": {
     "url": "https://github.com/linghuam/mydatav/issues"
   },
-  "homepage": "https://github.com/linghuam/mydatav#readme"
+  "homepage": "https://github.com/linghuam/mydatav#readme",
+  "dependencies": {
+    "base64-img": "^1.0.4"
+  }
 }
