@@ -3,7 +3,7 @@
  * 用途：模型连线优化功能，模型图标采用 base64 可降低网络请求，优化图片加载速度
  * 使用方法：
  * 1. 修改 `baseUrl` 路径参数，指定要转换的 svg 图片所在的文件夹
- * 2. 执行 `node svgTo64.js` 即可在 baseUrl 文件夹下生成同名的 .js 文件
+ * 2. 执行 `node svg-to-base64.js` 即可在 baseUrl 文件夹下生成同名的 .js 文件
  * 3. 使用 `import` 加载 js 中的 base64 编码图片在业务代码中使用
  */
 var fs = require('fs');
