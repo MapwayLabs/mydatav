@@ -7,7 +7,7 @@
   <title>cytoscape</title>
   <!-- <script src="../lib/cytoscape.min.js"></script> -->
   <script src="./cyto-lib/cytoscape.umd-old.js"></script>
-  <script src="../data/dmc-node-links.js"></script>
+  <script src="../data/dmc-node-links2.js"></script>
 
   <!-- <script src="./cyto-lib/cola.min.js"></script>
   <script src="./cyto-lib/cytoscape-cola.js"></script> -->
@@ -80,20 +80,20 @@
       <option value="circle">圆形布局</option>
       <option value="concentric">同心布局</option>
       <option value="breadthfirst">广度布局</option>
-      <option value="cose">cose布局</option>
-      <!-- <option value="cola">cola布局</option>
-      <option value="avsdf">avsdf布局</option>
-      <option value="cise">cise布局</option>
-      <option value="cose-bilkent">cose-bilkent布局</option>
+      <!-- <option value="cose">cose布局</option> -->
+      <!-- <option value="cola">cola布局</option> -->
+      <!-- <option value="avsdf">avsdf布局</option> -->
+      <!-- <option value="cise">cise布局</option> -->
+      <!-- <option value="cose-bilkent">cose-bilkent布局</option> -->
       <option value="dagre">dagre布局</option>
-      <option value="elk">elk布局</option>
-      <option value="euler">euler布局</option>
-      <option value="fcose">fcose布局</option> -->
+      <!-- <option value="elk">elk布局</option> -->
+      <!-- <option value="euler">euler布局</option> -->
+      <!-- <option value="fcose">fcose布局</option> -->
       <option  value="klay">klay布局</option>
       <!-- <option value="cytoscape-ngraph.forcelayout">forcelayout布局</option> -->
       <!-- <option value="polywas">polywas布局</option> -->
-      <!-- <option value="spread">spread布局</option>
-      <option value="springy">springy布局</option> -->
+      <!-- <option value="spread">spread布局</option> -->
+      <!-- <option value="springy">springy布局</option> -->
    </select>
    <label>线样式:</label>
    <select name="lineSelect" id="line-select">
@@ -117,9 +117,9 @@
     'concentric': {},
     'breadthfirst': {
       fit: true, // whether to fit the viewport to the graph
-      directed: true, // whether the tree is directed downwards (or edges can point in any direction if false)
+      directed: false, // whether the tree is directed downwards (or edges can point in any direction if false)
       padding: 10, // padding on fit
-      circle: false, // put depths in concentric circles if true, put depths top down if false
+      circle: true, // put depths in concentric circles if true, put depths top down if false
       grid: true, // whether to create an even grid into which the DAG is placed (circle:false only)
       spacingFactor: 1.75, // positive spacing factor, larger => more space between nodes (N.B. n/a if causes     overlap)
       boundingBox: undefined, // constrain layout bounds; { x1, y1, x2, y2 } or { x1, y1, w, h }
@@ -137,14 +137,53 @@
     },
     'cose': {},
     'cola': {},
-    'avsdf': {},
+    'avsdf': {
+      // Called on `layoutready`
+      ready: function () {
+      },
+      // Called on `layoutstop`
+      stop: function () {
+      },
+      // number of ticks per frame; higher is faster but more jerky
+      refresh: 30,
+      // Whether to fit the network view after when done
+      fit: true,
+      // Padding on fit
+      padding: 10,
+      // Prevent the user grabbing nodes during the layout (usually with animate:true)
+      ungrabifyWhileSimulating: false,
+      // Type of layout animation. The option set is {'during', 'end', false}
+      animate: 'end',
+      // Duration for animate:end
+      animationDuration: 500,   
+      // How apart the nodes are
+      nodeSeparation: 60
+    },
     'cise': {},
     'cose-bilkent': {},
     'dagre': {
-      'nodeSep': 20,
-      'edgeSep': 22,
-      'rankSep': 30,
-      'rankDir': 'LR'
+       // dagre algo options, uses default value on undefined
+       nodeSep: 60, // the separation between adjacent nodes in the same rank
+       edgeSep: 20, // the separation between adjacent edges in the same rank
+       rankSep: 60, // the separation between each rank in the layout
+       rankDir: 'LR', // 'TB' for top to bottom flow, 'LR' for left to right,
+       ranker: 'network-simplex', // Type of algorithm to assign a rank to each node in the input graph. Possible values:      'network-simplex', 'tight-tree' or 'longest-path'
+       minLen: function( edge ){ return 1; }, // number of ranks to keep between the source and target of the edge
+       edgeWeight: function( edge ){ return 1; }, // higher weight edges are generally made shorter and straighter      than lower weight edges
+     
+       // general layout options
+       fit: true, // whether to fit to viewport
+       padding: 20, // fit padding
+       spacingFactor: undefined, // Applies a multiplicative factor (>0) to expand or compress the overall area that      the nodes take up
+       nodeDimensionsIncludeLabels: false, // whether labels should be included in determining the space used by a      node
+       animate: false, // whether to transition the node positions
+       animateFilter: function( node, i ){ return true; }, // whether to animate specific nodes when animation is on;      non-animated nodes immediately go to their final positions
+       animationDuration: 500, // duration of animation in ms if enabled
+       animationEasing: undefined, // easing of animation if enabled
+       boundingBox: undefined, // constrain layout bounds; { x1, y1, x2, y2 } or { x1, y1, w, h }
+       transform: function( node, pos ){ return pos; }, // a function that applies a transform to the final node      position
+       ready: function(){}, // on layoutready
+       stop: function(){} // on layoutstop
     },
     'elk': {},
     'euler': {},
@@ -185,7 +224,7 @@
         /* NETWORK_SIMPLEX This algorithm tries to minimize the length of edges. This is the most computationally     intensive algorithm. The number of iterations after which it aborts if it hasn't found a result yet can be     set with the Maximal Iterations option.
         LONGEST_PATH A very simple algorithm that distributes nodes along their longest path to a sink node.
         INTERACTIVE Distributes the nodes into layers by comparing their positions before the layout algorithm was     started. The idea is that the relative horizontal order of nodes as it was before layout was applied is not     changed. This of course requires valid positions for all nodes to have been set on the input graph before     calling the layout algorithm. The interactive node layering algorithm uses the Interactive Reference Point     option to determine which reference point of nodes are used to compare positions. */
-        nodePlacement:'BRANDES_KOEPF', // Strategy for Node Placement
+        nodePlacement:'LINEAR_SEGMENTS', // Strategy for Node Placement
         /* BRANDES_KOEPF Minimizes the number of edge bends at the expense of diagram size: diagrams drawn with this     algorithm are usually higher than diagrams drawn with other algorithms.
         LINEAR_SEGMENTS Computes a balanced placement.
         INTERACTIVE Tries to keep the preset y coordinates of nodes from the original layout. For dummy nodes, a     guess is made to infer their coordinates. Requires the other interactive phase implementations to have run     as well.
@@ -193,7 +232,7 @@
         randomizationSeed: 1, // Seed used for pseudo-random number generators to control the layout algorithm; 0     means a new seed is generated
         routeSelfLoopInside: false, // Whether a self-loop is routed around or inside its node.
         separateConnectedComponents: true, // Whether each connected component should be processed separately
-        spacing: 70, //20, // Overall setting for the minimal amount of space to be left between objects
+        spacing: 60, //20, // Overall setting for the minimal amount of space to be left between objects
         thoroughness: 8, //7, // How much effort should be spent to produce a nice layout..
       }
     },
@@ -755,7 +794,7 @@
     };
     statusNodes.push(node);
   });
-  cy.add(statusNodes);
+  // cy.add(statusNodes);
 
   cy.$('node.main_nodes').on('position', e => {
     // console.log('position', e);
