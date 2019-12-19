@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>events</title>
+  <style>
+   .back {
+     position: absolute;
+     width: 400px;
+     height: 400px;
+     background: #ccc;
+   }
+   .front {
+     position: absolute;
+     width: 200px;
+     height: 200px;
+     background: blue;
+   }
+  </style>
+</head>
+<body>
+  <div class="back"></div>
+  <div class="front"></div>
+  <script>
+  var backEle = document.querySelector('.back');
+  var frontEle = document.querySelector('.front');
+  function moveCallback(e) {
+    console.log(e, 'window.move');
+  }
+  function backMoveCallback(e) {
+    e.stopPropagation();
+    console.log(e, 'back.move');
+  }
+  function frontMoveCallback(e) {
+    e.stopPropagation();
+    console.log(e, 'front.move');
+  }
+  window.addEventListener('mousemove', moveCallback, false);
+  backEle.addEventListener('mousemove', backMoveCallback, false);
+  frontEle.addEventListener('mousemove', frontMoveCallback, false);
+  </script>
+</body>
+</html>
