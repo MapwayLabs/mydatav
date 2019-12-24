@@ -6,9 +6,85 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <script src="../lib/jquery.min.js"></script>
     <title>input</title>
+    <style>
+    .container {
+      position: absolute;
+      left: 100px;
+      top: 100px;
+      overflow: hidden;
+      display: flex;
+      flex-flow: column nowrap;
+    }
+    .operate-div {
+      display: flex;
+      justify-content: flex-end;
+    }
+    .input {
+      width: 120px;
+      height: 28px;
+      background: rgba(10, 18, 33, 0.033017);
+      box-shadow: inset 0px -1px 0px rgba(95, 97, 102, 0.243226);
+      border-radius: 4px 4px 0px 0px;
+      border: none;
+      outline: none;
+      padding: 0;
+
+      font-family: PingFang SC;
+      font-style: normal;
+      font-weight: normal;
+      font-size: 12px;
+      line-height: 20px;
+      color: rgba(15, 34, 67, 0.72);
+      border-bottom: 2px solid #ccc;
+    }
+    .input:focus {
+      background: rgba(15, 34, 67, 0.12);
+       border-bottom: 2px solid #1F71FF;
+    }
+    .btn {
+      width:32px;
+      height: 32px;
+      border: none;
+      outline: none;
+      padding: 0;
+      border: 1px solid rgba(16, 48, 102, 0.05);
+      box-shadow: 0px 2px 4px rgba(16, 48, 102, 0.08);
+      background-color: #ffffff; 
+    }
+    .btn:hover {
+      background-color: rgba(15, 34, 67, 0.06);
+    }
+    .btn-confirm {
+      background-image: url(./ok.svg);
+      background-position: center center;
+      background-size: 16px 16px;
+      background-repeat: no-repeat;
+      border-bottom-left-radius: 8px;
+      border-top: none;
+      border-right: none;
+    }
+    .btn-cancel {
+      background-image: url(./no.svg);
+      background-position: center center;
+      background-size: 16px 16px;
+      background-repeat: no-repeat;
+      border-bottom-right-radius: 8px;
+      border-top: none;
+      border-left: none;
+    }
+    </style>
   </head>
   <body>
-    <input id="input" type="text" pattern="\w*" />
+    <!-- <input id="input" type="text" pattern="\w*" /> -->
+    <div class="container">
+       <div class="row input-div">
+         <input class="input" type="text">
+       </div>
+       <div class="row operate-div">
+         <button class="btn btn-confirm"></button>
+         <button class="btn btn-cancel"></button>
+       </div>
+    </div>
     <script>
       // 禁止输入表情
       var noEmoji = function(dom) {
