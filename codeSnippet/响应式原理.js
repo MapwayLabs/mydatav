@@ -91,4 +91,5 @@ function toResponsiveObject(obj) {
 toResponsiveObject(obj);
 
 //【 问题3 】如何通知，对象的哪个属性发生了改变，新值和旧值分别是什么？？？
-// 解决方案：树的深度遍历
+// 依赖收集：在getter中收集依赖，在setter中通知依赖更新。
+

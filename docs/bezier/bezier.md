@@ -5,11 +5,11 @@ presentation:
   height: 1200
 ---
 
-<!-- slide -->
+
 
 # bezier 曲线
 
-<!-- slide -->
+
 
 ## 什么是 bezier 曲线？
 
@@ -17,7 +17,7 @@ bezier 曲线是法国工程师为雷诺公司车身设计而开发的。
 
 ![car](./car.png)
 
-<!-- slide -->
+
 
 #### 一阶 bezier
 
@@ -37,7 +37,7 @@ bezier 曲线是法国工程师为雷诺公司车身设计而开发的。
 
 ![bezier3](./bezier3.gif)
 
-<!-- slide -->
+
 
 <p class="codepen" data-height="500" data-theme-id="0" data-default-tab="js,result" data-user="tholman" data-slug-hash="foxtn" style="height: 500px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 2px solid black; margin: 1em 0; padding: 1em;" data-pen-title="Bezier Sim">
   <span>See the Pen <a href="https://codepen.io/tholman/pen/foxtn/">
@@ -46,7 +46,7 @@ bezier 曲线是法国工程师为雷诺公司车身设计而开发的。
 </p>
 <script async src="https://static.codepen.io/assets/embed/ei.js"></script>
 
-<!-- slide -->
+
 
 特点：
 
@@ -58,7 +58,7 @@ bezier 曲线是法国工程师为雷诺公司车身设计而开发的。
 
 ![bezier3-e](./bezier3-e.png)
 
-<!-- slide -->
+
 
 ### bezier 曲线生成过程
 
@@ -80,29 +80,29 @@ bezier 曲线是法国工程师为雷诺公司车身设计而开发的。
 
 6. 取下一个 t 值，重复步骤 3，直到 t 为 1，这时就得到 bezier 曲线上所有点，连接这些点就构成 bezier 曲线。
 
-<!-- slide -->
+
 ![1](./step1.png)
-<!-- slide -->
+
 ![2](./step2.png)
-<!-- slide -->
+
 ![3](./step3.png)
-<!-- slide -->
+
 ![4](./step4.png)
-<!-- slide -->
+
 ![5](./step5.png)
-<!-- slide -->
+
 ![6](./step6.png)
-<!-- slide -->
+
 ![7](./step7.png)
-<!-- slide -->
+
 ![8](./step8.png)
-<!-- slide -->
+
 ![9](./step9.png)
-<!-- slide -->
+
 
 [演示示例](http://192.168.8.159:8080/docs/bezier/bezierMaker.js/example/playground.html)
 
-<!-- slide -->
+
 
 对于 N 个控制点，步骤：
 
@@ -112,7 +112,7 @@ bezier 曲线是法国工程师为雷诺公司车身设计而开发的。
 
 3. 重复步骤 2，直到得到一个点
 
-<!-- slide -->
+
 
 ### 数学公式
 
@@ -128,11 +128,11 @@ bezier 曲线是法国工程师为雷诺公司车身设计而开发的。
 * n阶 bezier(多项式展开式)
 ![bformulan](./bformulan.png)
 
-<!-- slide -->
+
 
 ## bezier 曲线的应用
 
-<!-- slide -->
+
 
 ### 绘制优美的曲线
 
@@ -143,7 +143,7 @@ bezier 曲线是法国工程师为雷诺公司车身设计而开发的。
 </p>
 <script async src="https://static.codepen.io/assets/embed/ei.js"></script>
 
-<!-- slide -->
+
 
 ### 绘制路径文字(来自[codepen](https://codepen.io/))
 
@@ -154,7 +154,7 @@ bezier 曲线是法国工程师为雷诺公司车身设计而开发的。
 </p>
 <script async src="https://static.codepen.io/assets/embed/ei.js"></script>
 
-<!-- slide -->
+
 
 ### 艺术效果(来自[codepen](https://codepen.io/))
 
@@ -165,7 +165,7 @@ bezier 曲线是法国工程师为雷诺公司车身设计而开发的。
 </p>
 <script async src="https://static.codepen.io/assets/embed/ei.js"></script>
 
-<!-- slide -->
+
 
 ### 制作不同动效的动画
 
@@ -178,7 +178,7 @@ bezier 曲线是法国工程师为雷诺公司车身设计而开发的。
 </p>
 <script async src="https://static.codepen.io/assets/embed/ei.js"></script>
 
-<!-- slide -->
+
 
 ### 旋转动画
 
@@ -189,7 +189,7 @@ bezier 曲线是法国工程师为雷诺公司车身设计而开发的。
 </p>
 <script async src="https://static.codepen.io/assets/embed/ei.js"></script>
 
-<!-- slide -->
+
 ### js 动画
 
 <p class="codepen" data-height="500" data-theme-id="0" data-default-tab="js,result" data-user="linghuam" data-slug-hash="zXGzQv" style="height: 500px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 2px solid black; margin: 1em 0; padding: 1em;" data-pen-title="tween-example">
@@ -199,7 +199,7 @@ bezier 曲线是法国工程师为雷诺公司车身设计而开发的。
 </p>
 <script async src="https://static.codepen.io/assets/embed/ei.js"></script>
 
-<!-- slide -->
+
 缓动函数
 ![linear](./linear.png)
 ![ease](./ease.png)
@@ -207,7 +207,7 @@ bezier 曲线是法国工程师为雷诺公司车身设计而开发的。
 ![ease-out](./ease-out.png)
 ![ease-in-out](./ease-in-out.png)
 
-<!-- slide -->
+
 
 ### 酷炫效果(来自[codepen](https://codepen.io/))
 
@@ -218,11 +218,11 @@ bezier 曲线是法国工程师为雷诺公司车身设计而开发的。
 </p>
 <script async src="https://static.codepen.io/assets/embed/ei.js"></script>
 
-<!-- slide -->
+
 
 [时序图示例](http://192.168.8.159:8080/map/timeplay/)
 
-<!-- slide -->
+
 
 ## 参考文档
 
