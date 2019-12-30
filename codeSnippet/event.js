@@ -23,7 +23,7 @@ export default class EventEmiter {
         var self = this;
 
         function on() {
-            self.off(event, cb, context);
+            self.off(event, on, context);
             cb.apply(context, arguments);
         }
         on.fn = cb;
