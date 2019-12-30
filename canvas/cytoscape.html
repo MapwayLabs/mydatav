@@ -308,6 +308,10 @@
   var cy = cytoscape({
 
    container: document.getElementById('cy'),
+
+   boxSelectionEnabled: true,
+
+   selectionType: 'single',
  
    elements: [],// flat array of nodes and edges
  
@@ -325,10 +329,10 @@
          'active-bg-opacity': 0.3,
          'active-bg-size': 20,
          // 框选样式
-         'selection-box-color': '#0f0',
-         'selection-box-border-color': '#000',
-         'selection-box-border-width': 1,
-         'selection-box-opacity': 1
+        //  'selection-box-color': '#0f0',
+        //  'selection-box-border-color': '#000',
+        //  'selection-box-border-width': 1,
+        //  'selection-box-opacity': 1
        }
      },
      // 激活的点或边覆盖样式
@@ -596,7 +600,14 @@
           'height': 16,
           'background-color': '#0f0'
         }
+      },
+      {
+      selector: ':selected',
+      style: {
+        'border-color': 'rgb(0, 255, 0)',
+        'line-color': 'rgb(90, 34, 67)'
       }
+    }
    ],
 
    ready: function(e) {
@@ -665,6 +676,12 @@
   //     element.addClass('active');
   //   }
   // });
+
+  cy.on('boxend', function(evt){
+    console.log('boxend;');
+    // cy.$("*").removeClass("selected");
+    // cy.$(":selected").addClass("selected");
+  })
 
   cy.data('currentLine', 'straight');
 
