@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>custom_chart</title>
+  <style>
+  .container {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  .custom_chart {
+    width: 400px;
+    height: 200px;
+    border: 1px solid red;
+  }
+  </style>
+</head>
+<body>
+  <div class="container"></div>
+  <!--放置一个空 iframe 用于加载自定义图表第三方库-->
+  <iframe id="custom_chart_iframe" style="display:none;"></iframe>
+
+  <script src="./realms-shim.umd.min.js"></script>
+  <script src="./data.js"></script>
+
+  <script>
+  var chartContainer = document.querySelector(".container");
+  var iframe = document.getElementById("custom_chart_iframe");
+
+  // 往 iframe 导入第三方 js 库
+  var importScript = (function (oHead) {
+   function loadError (oError) {
+     throw new URIError("The script " + oError.target.src + " is not accessible.");
+   }
+   return function (sSrc, fOnload) {
+     var oScript = document.createElement("script");
+     oScript.type = "text\/javascript";
+     oScript.onerror = loadError;
+     if (fOnload) { oScript.onload = fOnload; }
+     oHead.appendChild(oScript);
+     oScript.src = sSrc;
+   }
+  })(iframe.contentWindow.document.head);
+  
+  // 创建一个 Realm 实例
+  var r = Realm.makeRootRealm();
+  
+  // 初始化图表
+  function renderChart(data) {
+    // 创建 dom
+    var customEle = document.createElement('div');
+    customEle.classList.add('custom_chart');
+    chartContainer.appendChild(customEle);
+    
+    // 导入第三方脚本
+    importScript(data.scripts, function(){
+      try {
+        r.evaluate(data.code, {
+          ...data.chartData,
+          echarts: iframe.contentWindow.echarts,
+          customEle
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    });
+  }
+  
+  // 从后台获取数据后，绘制图表
+  dataSet.forEach(d => renderChart(d));
+  </script>
+</body>
+</html>

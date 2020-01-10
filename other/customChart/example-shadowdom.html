@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>shadowDom</title>
+  <style>
+  .chart-title {
+    color: blue !important;
+  }
+  </style>
+</head>
+<body>
+  <div id="custom_chart"></div>
+
+  <script>
+
+  var elementRef = document.getElementById("custom_chart");
+  
+  // 1. 初始化一个 shadowDom
+  var shadow = elementRef.attachShadow({ mode: 'open' }); // open | closed(elementRef.shadowRoot = null)
+  
+  // 2. 创建影子DOM结构
+  var title = document.createElement('h2');
+  title.textContent = '我是影子DOM';
+  title.classList.add('chart-title');
+  var content = document.createElement('div');
+  content.classList.add('chart-content');
+  
+  // 3. 设置阴影DOM的样式
+  var style = document.createElement('style');
+  style.textContent = `
+    .chart-title {
+      color: red;
+    }
+    .chart-content {
+      width: 200px;
+      height: 100px;
+      background: silver;
+    }
+  `;
+  
+  // 4. 设置 script 脚本
+  var script = document.createElement('script');
+  // script.src = 'https://cdnjs.cloudflare.com/ajax/libs/echarts/4.6.0/echarts.min.js';
+  script.textContent = `
+     var chart = 1;
+     console.log(window);
+  `;
+  
+  // 4.将影子DOM附加到影子根
+  shadow.appendChild(style);
+  shadow.appendChild(script);
+  shadow.appendChild(title);
+  shadow.appendChild(content);
+  </script>
+  
+</body>
+</html>

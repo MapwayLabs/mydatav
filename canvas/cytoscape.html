@@ -312,6 +312,8 @@
    boxSelectionEnabled: true,
 
    selectionType: 'single',
+
+  //  pixelRatio: 2,
  
    elements: [],// flat array of nodes and edges
  
@@ -370,16 +372,18 @@
         'label': 'data(title)',
         'color': '#3E3B3B',
         'text-opacity': 1,
-        'font-family': 'PingFang SC',
+        'font-family': 'PingFang SC, Helvetica Neue, Helvetica, STHeitiSC-Light, WOL_SB, Segoe UI Semibold, Segoe UI, Tahoma, Helvetica, sans-serif',
         'font-size': 12,
-        'font-style': 'Regular',
+        // 'font-style': 'Regular',
         'font-weight': 'normal',
         'text-wrap': 'ellipsis',
         'text-max-width': '100px',
-        'line-height': 1.2,
+        // 'line-height': 1.2,
         'text-halign': 'center',
         'text-valign': 'bottom',
-        'text-margin-y': 6,
+        'text-margin-y': 8,
+        'min-zoomed-font-size': 10,
+        'text-events': 'no',
 
         'ghost': 'no',
         'ghost-offset-x': 10,

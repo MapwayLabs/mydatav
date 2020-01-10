@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>realms-shim</title>
+  <script src="./realms-shim.umd.js"></script>
+</head>
+<body>
+  <iframe id="realmContext" style="display:none;"></iframe>
+
+  <script>
+    var newContext = document.getElementById("realmContext").contentWindow;
+
+    var globalNames = Object.getOwnPropertyNames(newContext);
+
+    var whiteList = new Set([
+      'Math',
+      'Number',
+      'Object',
+      'Array',
+      'eval'
+    ]);
+
+    // var newGlobal = globalNames.reduce((obj, key) => {
+    //   if (whiteList.has(key)) {
+    //     obj[key] = newContext[key];
+    //   } else {
+    //     obj[key] = undefined;
+    //   }
+    //   return obj;
+    // }, {});
+
+    var proxy = new Proxy(newContext, {
+      get(target, prop) {
+        // if (prop in target) {
+        //   return target[prop];
+        //
+        console.log('get', prop);
+        if (whiteList.has(prop)) {
+          return target[prop];
+        }
+        return  undefined;
+      }
+    });
+
+    var evaluate = Function(`
+      with(arguments[0]) {
+        return function(){
+          return eval(arguments[0]);  // eval执行上下文是 iframe的
+        }
+      }
+    `);
+    
+    var result;
+    function simplifiedEval(proxy, userCode) {
+      var exe = Reflect.apply(evaluate, proxy, [proxy])
+      return Reflect.apply(exe, proxy, [userCode]);
+      // with (proxy) {
+      //   // try {
+      //   return eval(userCode);
+      //   // } catch(e){
+      //   //   console.error(e);
+      //   // }
+      // }
+    }
+
+    // //测试
+    result = simplifiedEval(proxy, `window`);
+
+    // var r = Realm.makeRootRealm();
+    // try {
+    //   r.evaluate(`document`);
+    // } catch (e) {
+    //   console.error(e);
+    // }
+  </script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>component</title>
+</head>
+<body>
+ <style>
+ #custom_chart {
+   border: 2px solid blue;
+ }
+ </style>
+  <div class="my-element"></div>
+  <script>
+  class CustomComponent extends HTMLElement {
+    constructor() {
+      super();
+      this.init();
+      this.run();
+    }
+
+    init() {
+       var shadowDom = this.attachShadow({ mode: 'open' });
+
+       var link = document.createElement('link');
+       link.rel = "stylesheet";
+       link.href = "./style.css";
+       shadowDom.appendChild(link);
+
+        var div = document.createElement('div');
+        div.id = "custom_chart";
+        shadowDom.appendChild(div);
+    }
+
+    run() {
+      var importScript = (function (oHead) {
+    
+       function loadError (oError) {
+         throw new URIError("The script " + oError.target.src + " is not accessible.");
+       }
+    
+       return function (sSrc, fOnload) {
+         var oScript = document.createElement("script");
+         oScript.type = "text\/javascript";
+         oScript.onerror = loadError;
+         if (fOnload) { oScript.onload = fOnload; }
+         oHead.appendChild(oScript);
+         oScript.src = sSrc;
+       }
+    
+      })(this.shadowRoot);
+
+      importScript("../../lib/echarts/echarts.min.js", e => {
+          var ele = this.shadowRoot.querySelector('#custom_chart');
+          var myChart = echarts.init(ele);
+          // 指定图表的配置项和数据
+          var option = {
+              title: {
+                  text: 'ECharts 入门示例'
+              },
+              tooltip: {},
+              legend: {
+                  data:['销量']
+              },
+              xAxis: {
+                  data: ["衬衫","羊毛衫","雪纺衫","裤子","高跟鞋","袜子"]
+              },
+              yAxis: {},
+              series: [{
+                  name: '销量',
+                  type: 'bar',
+                  data: [5, 20, 36, 10, 10, 20]
+              }]
+          };
+          // 使用刚指定的配置项和数据显示图表。
+          myChart.setOption(option);
+      });
+    }
+  }
+
+  customElements.define('custom-component', CustomComponent);
+  </script>
+  <custom-component></custom-component>
+</body>
+</html>

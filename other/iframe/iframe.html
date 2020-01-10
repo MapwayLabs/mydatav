@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>iframe page</title>
+  <script src="../../lib/echarts/echarts.min.js"></script>
+</head>
+<body>
+  <script>
+     var count = 100;
+     var start = performance.now();
+     var max = 0;
+     function createIframe(src, index) {
+       var frame = document.createElement('iframe');
+      //  frame.src = src;
+       frame.style = "width:400px;height:200px;";
+       frame.sandbox = "allow-forms allow-modals allow-pointer-lock allow-popups allow-presentation allow-same-origin allow-scripts";
+       frame.allow = "geolocation; microphone; camera; midi; vr; accelerometer; gyroscope; payment; ambient-light-sensor; encrypted-media";
+       var createTime = performance.now();
+       frame.onload = function() {
+         var now = performance.now();
+         var duration = now - start;
+         var loadTime = now - createTime;
+         max = Math.max(duration, max);
+        //  console.log('loadTime', loadTime);
+         if (index === count - 1) {
+          //  console.log('all time:', max);
+         }
+       };
+       return frame;
+     }
+     console.time('start');
+     for (let i = 0; i < count; i++) {
+       document.body.appendChild(createIframe('./iframe1.html', i));
+     }
+     console.timeEnd('start');
+  </script>
+</body>
+</html>
