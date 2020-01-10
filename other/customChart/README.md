@@ -124,7 +124,6 @@ const scopeProxy = new Proxy(whitelist, {
 2. 主线程中运行速度很快。
 3. 共享公共资源，节省内存和网络请求开支。
 4. 代码`安全性`比原来更高。
-5. 方便调试。
 
 **缺点和改进：**
 1. 兼容性：`Proxy` IE11不支持，Edge支持，chrome 49以上支持。
@@ -135,5 +134,7 @@ const scopeProxy = new Proxy(whitelist, {
 [如何安全的运行第三方 JavaScript 代码（上）？](https://www.infoq.cn/article/LDV1D4ASVSpT8H7PVCvr)
 [如何安全的运行第三方 JavaScript 代码（中）？](https://www.infoq.cn/article/5KosuiHOeBL4tbXk0HkH)
 [如何安全的运行第三方 JavaScript 代码（下）？](https://www.infoq.cn/article/SaCHSl6KW7b7erkJHIiH)
+[原文-How to build a plugin system on the web and also sleep well at night](https://www.figma.com/blog/how-we-built-the-figma-plugin-system/)
+[figma](https://www.figma.com/blog/section/engineering/)
 [Realm-shim](https://github.com/tc39/proposal-realms/#ecmascript-spec-proposal-for-realms-api)
 [Reflect](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Reflect)

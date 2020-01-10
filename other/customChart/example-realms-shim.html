@@ -11,7 +11,8 @@
   <iframe id="realmContext" style="display:none;"></iframe>
 
   <script>
-    var newContext = document.getElementById("realmContext").contentWindow;
+    var iframe = document.getElementById("realmContext");
+    var newContext = iframe.contentWindow;
 
     var globalNames = Object.getOwnPropertyNames(newContext);
 
@@ -67,14 +68,14 @@
     }
 
     // //测试
-    result = simplifiedEval(proxy, `window`);
+    // result = simplifiedEval(proxy, `window`);
 
-    // var r = Realm.makeRootRealm();
-    // try {
-    //   r.evaluate(`document`);
-    // } catch (e) {
-    //   console.error(e);
-    // }
+    var r = Realm.makeRootRealm();
+    try {
+      r.evaluate(`document`);
+    } catch (e) {
+      console.error(e);
+    }
   </script>
 </body>
 </html>
