@@ -135,6 +135,7 @@ const scopeProxy = new Proxy(whitelist, {
 [如何安全的运行第三方 JavaScript 代码（中）？](https://www.infoq.cn/article/5KosuiHOeBL4tbXk0HkH)
 [如何安全的运行第三方 JavaScript 代码（下）？](https://www.infoq.cn/article/SaCHSl6KW7b7erkJHIiH)
 [原文-How to build a plugin system on the web and also sleep well at night](https://www.figma.com/blog/how-we-built-the-figma-plugin-system/)
-[figma](https://www.figma.com/blog/section/engineering/)
+[JS中的沙箱个人见解](https://chinese.freecodecamp.org/forum/t/topic/587)
+[iframe异步加载技术及性能](https://www.open-open.com/solution/view/1319458447249)
 [Realm-shim](https://github.com/tc39/proposal-realms/#ecmascript-spec-proposal-for-realms-api)
 [Reflect](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Reflect)
