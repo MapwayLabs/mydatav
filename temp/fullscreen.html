@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>fullscreen</title>
+    <style>
+      .f {
+        position: fixed;
+        width: 100%;
+        height: 100%;
+      }
+
+      .f1 {
+        background: red;
+      }
+
+      .f2 {
+        background: green;
+        z-index: 99999;
+      }
+
+      :fullscreen {
+      }
+    </style>
+  </head>
+  <body>
+    <div class="f f1"> <h1>f1</h1> </div>
+    <div class="f f2"> <h1>f2</h1> </div>
+    <script>
+      var f1 = document.querySelector(".f1");
+      var f2 = document.querySelector(".f2");
+      // f1.requestFullscreen().then(e => {}, e => {
+      //   alert('全屏失败');
+      // });
+    </script>
+  </body>
+</html>
