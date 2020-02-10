@@ -1,0 +1,51 @@
+# bdp自定义图表改版计划
+
+要求：
+* 兼容旧版
+* 性能提升
+* 安全性提升
+
+
+## thirdPluginLoader 缺陷
+
+* 最多只能导入两个库，且必须是有独立全局变量的库（如echarts、threejs）；不能导入插件（如 jquery 插件，因为暴露的 $ 变量并不在iframe中）。
+
+* 最好提供 libId 选项，可利用缓存，不然每次在代码中需要实时重复下载库，造成图表响应慢。
+
+
+
+## 语法规范
+
+### 系统全局变量
+
+### 代码规范
+
+* 自定义代码运行在 `严格模式下`，需要遵循严格模式定义。
+
+* 不准使用 `window、eval、alert` 等关键字。
+
+* 自己声明的变量都要用 `var` 声明，否则报错。
+
+* `d3.select('chart-box')` => `d3.select(chart.$elem.get(0))`。
+
+* `$('.g2-legend')` => `customChart.find('.g2-legend')`。
+
+* `$('#custom-chart')` => `chart.$elem`。
+
+* 不要改变原生对象的原型 `Array.prototype.min、Date.prototype.formate`，这些改变的影响是全局的（所有的自定义图表）。
+
+* `chart.root` 访问 shadowDom 的根结点。
+
+* `return`只能在函数内，不能在代码体中。
+
+* 第三方库如果是独立的库，最好提供`libId`参数，该参数是字符串，表示暴露出的变量，如`libId："echarts"`。如果是插件，则
+只准引用已加载的库的变量作为全局变量，如声明 jquery 插件，`Jquery.fn.extend()`。
+
+* 第三方库不能引用图表里面的参数，如`chart.$elem、bdpChart`等外部提供的全局变量。可以通过函数传参的方式使用。
+
+* 操作DOM或计算DOM尺寸，一律只能基于`chart.$elem`作为DOM起点。以下都 _不正确_`$(".chart-box"),d3.select(".chart-box"),document.body.clientWith,$(".chart").width()`。
+
+* 如何引入多个script？引入单独库？引入插件库？
+
+* 引入css？
+

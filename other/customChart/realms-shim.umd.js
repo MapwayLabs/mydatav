@@ -683,6 +683,7 @@
       return undefined;
     }
     const iframe = document.createElement('iframe');
+    iframe.id = "custom_chart_iframe";
     iframe.style.display = 'none';
 
     document.body.appendChild(iframe);

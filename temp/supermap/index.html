@@ -1,0 +1,47 @@
+<html>
+<head>
+  <meta charset=utf-8 />
+  <title>supermap地图测试</title>
+  <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+
+    <link rel="stylesheet" href="./leaflet.css" />
+    <script type="text/javascript" src="./leaflet-src.js"></script>
+    <script type="text/javascript" src="./proj4.js"></script>
+    <script type="text/javascript" src="./proj4leaflet.js"></script>
+    <script type="text/javascript" src="./esri-leaflet.js"></script>
+    <script src="./SuperMapLeaflet.js"></script>
+  <style>
+    body { margin:0; padding:0; }
+    #map { position: absolute; width: 100%; top:0; bottom:0; right:0; left:0; }
+  </style>
+</head>
+<body>
+
+<div id="map"></div>
+<script>
+  // var crs = new L.Proj.CRS("EPSG:4326", "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs",
+  //   {
+  //       origin: [ -400.0 , 400.0 ],  
+  //       resolutions: [0.07614275218656896,0.03807137609328448,0.01903568804664224, 0.00951784402332112,0.00475892201166056,0.00237946100583028,0.00118973050291514,5.9486525145757E-4,2.97432625728785E-4,1.5228550437313792E-4,7.614275218656896E-5,3.807137609328448E-5,1.903568804664224E-5,9.51784402332112E-6,4.75892201166056E-6,2.37946100583028E-6,1.18973050291514E-6]
+  // });
+  var mapOptions = {
+      center: [39.939377,116.085648],
+      zoom: 13,
+      minZoom: 10,
+      maxZoom: 20,
+      crs: L.CRS.EPSG4326
+  };
+  var map = L.map('map', mapOptions);
+  var url = "http://14.113.1.146:8081/geoesb/proxy/services/maps/rest/1f17a4ccdeaa43a585f81d57043e5eb3/c173d347548a48adbac4e5f224370fc7";
+  // http://14.113.1.146:8081/geoesb/proxy/services/maps/rest/1f17a4ccdeaa43a585f81d57043e5eb3/c173d347548a48adbac4e5f224370fc7/tileImage.png?redirect=false&transparent=true&cacheEnabled=true&_cache=true&origin=%7B%22x%22:-180,%22y%22:90%7D&overlapDisplayed=false&x=13475&y=2278&width=256&height=256&scale=0.000027691639957137897
+  // http://14.113.1.146:8081/geoesb/proxy/services/maps/rest/1f17a4ccdeaa43a585f81d57043e5eb3/c173d347548a48adbac4e5f224370fc7/tileImage.png?width=256&height=256&redirect=false&transparent=true&cacheEnabled=true&origin=%7B%22x%22:-180,%22y%22:90%7D&overlapDisplayed=false&scale=0.000027691639957137897&x=13475&y=2278
+  // var url = "http://support.supermap.com.cn:8090/iserver/services/map-china400/rest/maps/China";
+  var tileLayer = L.supermap.tiledMapLayer(url, {
+    // prjCoordSys: {"epsgCode":4326}
+    // overlapDisplayed: false,
+    // transparent: true
+  }).addTo(map);
+</script>
+
+</body>
+</html>
