@@ -20,7 +20,7 @@
 
 ### 代码规范
 
-* 自定义代码运行在 `严格模式下`，需要遵循严格模式定义。
+* 自定义代码运行在 `严格模式下`，需要遵循严格模式定义。(已去除严格模式)
 
 * 不准使用 `window、eval、alert` 等关键字。
 
@@ -55,6 +55,7 @@
 
 * 不需自己手动销毁图表，如`chart.$elem.html('')`，可能会导致append进去的style被无意释放。
 
+* Strict mode code may not include a with statement
 
 ### 加载第三方库问题？
 
@@ -72,3 +73,18 @@ bdp.loadjs
 
 ### 动态图-表格滚动 改动大？？？
 
+
+### 存在问题
+
+1、多个库冲突解决问题？(比较棘手)
+
+2、自定义图表导出问题?(涉及 exportDashboardDirective.js、export-img.js)
+
+```js
+chartIframe.id = '_iframe_' + chart.ct_id;
+chartIframe.className = 'J-export-iframe-img';
+```
+
+3、一些公用方法的兼容性问题？（因为两套方案的实现机制不同，造成一些公用方法的使用不兼容，如`bdp.loadjs、thirdPluginLoader`等)
+
+4、整理新的语法规范文档？
