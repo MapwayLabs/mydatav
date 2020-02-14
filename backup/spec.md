@@ -78,6 +78,26 @@ bdp.loadjs
 
 1、多个库冲突解决问题？(比较棘手)
 
+* 创建多个 iframe，比较麻烦。图表销毁时要随之销毁。
+
+* figma
+
+```
+It is only possible to link to external resources from within the <iframe> created using figma.showUI(). It is not possible to directly load javascript libraries or other resouces directly from the main thread JavaScript code.
+```
+
+* 外部资源统一用 resourceUrl 事先加载（就像codepen一样），不要放在`thirdPluginLoader`在代码内部加载。缺陷：第三方库修改公共代码？？
+
+* 先获取第三方库代码，然后包装起来。
+
+```js
+var proxyWindow = new Proxy(window, {});
+(function(window){
+
+})(proxyWindow);
+````
+
+
 2、自定义图表导出问题?(涉及 exportDashboardDirective.js、export-img.js)
 
 ```js
@@ -88,3 +108,19 @@ chartIframe.className = 'J-export-iframe-img';
 3、一些公用方法的兼容性问题？（因为两套方案的实现机制不同，造成一些公用方法的使用不兼容，如`bdp.loadjs、thirdPluginLoader`等)
 
 4、整理新的语法规范文档？
+
+6、图表之间通信？
+
+7、有问题第三方库?
+
+* backup/分布图lib/d3.parsets.js
+`d3.select`
+
+* backup/动态图lib/slick-1.4.1.js
+`$(element)`
+
+8、切换出问题图表？
+
+分布图-盒形图echarts版、分布图-流线图（抖动-关系图-d3）、分布图-平行坐标图（关系图-d3）
+动态图-航班航迹（地图范围-charts-3.6）
+其他图-子弹图（报错-d3）、其他图-象形条形图（样式-3.6）

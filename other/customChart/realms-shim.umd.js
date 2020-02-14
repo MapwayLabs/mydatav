@@ -295,6 +295,7 @@
 
   // These value properties of the global object are non-writable,
   // non-configurable data properties.
+  // 全局对象的这些值属性是不可写的，不可配置的数据属性。
   const frozenGlobalPropertyNames = [
     // *** 18.1 Value Properties of the Global Object
 
@@ -310,6 +311,7 @@
   // we don't expect anyone will want to mutate them. The unstable ones
   // are the ones that we correctly initialize to writable and
   // configurable so that they can still be replaced or removed.
+  // 下面的所有stdlib项在我们的内部对象和全局对象上都具有相同的名称。
   const stableGlobalPropertyNames = [
     // *** 18.2 Function Properties of the Global Object
 
@@ -371,8 +373,14 @@
     // *** Annex B
 
     'escape',
-    'unescape'
+    'unescape',
 
+    'setTimeout',
+    'clearTimeout',
+    'setInterval',
+    'clearInterval',
+    'requestAnimationFrame',
+    'cancelAnimationFrame'
     // *** ECMA-402
 
     // 'Intl'  // Unstable
@@ -662,7 +670,7 @@
     // eslint-disable-next-line no-new-func
     const isNode = new Function(
       'try {return this===global}catch(e){return false}'
-    )();
+    )() && typeof document === 'undefined';
 
     if (!isNode) {
       return undefined;
@@ -683,7 +691,6 @@
       return undefined;
     }
     const iframe = document.createElement('iframe');
-    iframe.id = "custom_chart_iframe";
     iframe.style.display = 'none';
 
     document.body.appendChild(iframe);
@@ -773,6 +780,7 @@
 
   /**
    * In JavaScript you cannot use these reserved words as variables.
+   * 在JavaScript中，您不能将这些保留字用作变量
    * See 11.6.1 Identifier Names
    */
   const keywords = new Set([
@@ -907,6 +915,15 @@
    * - ensure the Proxy invariants despite some global properties being frozen.
    *
    * @returns {ProxyHandler<any> & Record<string, any>}
+   */
+  /**
+   * ScopeHandler 管理一个代理，该代理充当 safeEvaluator 操作的全局范围(代理是“with”绑定的参数)。
+   * 如 createSafeEvaluator() 中所述，它具有几个功能：
+   * - 允许首次（也仅是第一次）使用“ eval”映射到实际（不安全的）的eval函数，因此它充当“直接eval”并可以访问其词法范围（映射到“ with” 绑定, ScopeHandler 控制的）。
+   * - 确保随后所有对“ eval”的使用都映射到 safeEvaluator ，后者作为 safeGlobal 的“ eval”属性存在。
+   * - 将所有其他属性查找路由到 safeGlobal 。
+   * - 隐藏不安全全局变量，该变量位于“with”上方的作用域链上。
+   * - 即使某些全局属性被冻结，也要确保 Proxy 不变。
    */
   function buildScopeHandler(
     unsafeRec,
@@ -1310,7 +1327,7 @@
     with (arguments[0]) {
       ${optimizer}
       return function() {
-        'use strict';
+        //'use strict';
         return eval(arguments[0]);
       };
     }

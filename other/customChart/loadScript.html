@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>loadScript</title>
+</head>
+<body>
+  <script>
+  Promise.reduce = function(funcArr) {
+    var sequence = Promise.resolve();
+    funcArr.forEach(function(item){
+      sequence = sequence.then(item);
+    });
+    return sequence;
+  }
+  function getScript(srcs, options) {
+    var srcArr = typeof srcs === 'string' ? [srcs] : srcs;
+    var opts = Object.assign({
+      head: document.head,
+      doneRemove: false
+    }, options);
+    var head = opts.head;
+    var promiseArr = srcArr.map(src => function(){ return new Promise(function(resolve, reject){
+      var script = document.createElement('script');
+      script.type = "text/javascript";
+      script.onload = function() {
+        console.log(script.src);
+        if (opts.doneRemove) {
+          head.removeChild(script);
+        }
+        resolve();
+      };
+      script.onerror = function(e) {
+        if (opts.doneRemove) {
+          head.removeChild(script);
+        }
+        reject(e);
+      };
+      head.appendChild(script);
+      script.src = src;
+    })});
+    return Promise.reduce(promiseArr);
+  }
+  getScript(['https://cdn.bootcss.com/jquery/3.3.1/jquery.js','https://cdn.bootcss.com/jquery-cookie/1.4.1/jquery.cookie.min.js']).then(e => {
+    console.log('success');
+  }, e => {
+    console.error(e);
+  });
+  </script>
+</body>
+</html>
