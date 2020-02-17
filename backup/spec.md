@@ -124,3 +124,16 @@ chartIframe.className = 'J-export-iframe-img';
 分布图-盒形图echarts版、分布图-流线图（抖动-关系图-d3）、分布图-平行坐标图（关系图-d3）
 动态图-航班航迹（地图范围-charts-3.6）
 其他图-子弹图（报错-d3）、其他图-象形条形图（样式-3.6）
+
+9、导出
+mc/static/dashboard-core/chart-operate/chart-operate-directive.js
+mc/static/js/chart/chart-custom-table-spec.js
+
+10、复制
+第三方库未跟着复制。
+
+11、引起自定义图表崩溃或反应慢原因？
+不一定是自身引起，很大可能是使用者代码不规范、或加载过多过大的第三方库。
+比如：动画过多、定时器未释放、死循环、事件为注销造成内存泄露。
+
+echarts: 2.4MB	12.56s
