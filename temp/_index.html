@@ -22,33 +22,41 @@
 <script>
     // var centerPoint = new L.LatLng(39.40, 117.30);
     // +proj=tmerc +lat_0=0 +lon_0=105 +k=1 +x_0=500000 +y_0=0 +ellps=GRS80 +units=m +no_defs 
-    var crs = new L.Proj.CRS("EPSG:4507", "+proj=tmerc +lat_0=0 +lon_0=105 +k=1 +x_0=500000 +y_0=0 +ellps=GRS80 +units=m +no_defs",
-    {
-        origin: [-5123200.0 , 1.00021E7 ],  
-        // bounds: [[-2.561908697762756E7, -2.3305104928035405E7], [2.561908697762756E7, 2.3305104928035382E7]],
-        resolutions: [13229.193125052918,7937.5158750317505,3968.7579375158753,2645.8386250105837,1852.0870375074085,529.1677250021168,264.5838625010584,158.75031750063502,79.37515875031751,26.458386250105836,16.933367200067735,8.466683600033868,4.233341800016934,2.116670900008467,1.0583354500042335,0.5291677250021167,0.26458386250105836,0.13229193125052918,0.06614596562526459,0.03968757937515875]
+    // var crs = new L.Proj.CRS("EPSG:4507", "+proj=tmerc +lat_0=0 +lon_0=105 +k=1 +x_0=500000 +y_0=0 +ellps=GRS80 +units=m +no_defs",
+    // {
+    //     origin: [-5123200.0 , 1.00021E7 ],  
+    //     // bounds: [[-2.561908697762756E7, -2.3305104928035405E7], [2.561908697762756E7, 2.3305104928035382E7]],
+    //     resolutions: [13229.193125052918,7937.5158750317505,3968.7579375158753,2645.8386250105837,1852.0870375074085,529.1677250021168,264.5838625010584,158.75031750063502,79.37515875031751,26.458386250105836,16.933367200067735,8.466683600033868,4.233341800016934,2.116670900008467,1.0583354500042335,0.5291677250021167,0.26458386250105836,0.13229193125052918,0.06614596562526459,0.03968757937515875]
+    // });
+    // var fullextent = [ -3198017.8396689137, 376894.37154088495, 4008227.2236318565, 6412346.620868145];
+    // var minPoint = crs.projection.unproject(L.point(fullextent[0], fullextent[1]));
+    // var maxPoint = crs.projection.unproject(L.point(fullextent[2], fullextent[3]));
+    // var bounds = L.latLngBounds(minPoint, maxPoint);
+    // var centerPoint = bounds.getCenter();
+    // var mapOptions = {
+    //     center: centerPoint,
+    //     zoom: 0,
+    //     crs: crs,
+    //     tileSize: 512,
+    //     attributionControl: true,
+    // };
+    // var map = L.map('map', mapOptions);
+    // var tileLayer = L.esri.tiledMapLayer({
+    //   url: "https://services.arcgisonline.com/ArcGIS/rest/services/USA_Topo_Maps/MapServer",//地址改这里
+    //   maxZoom: 11,
+    //   minZoom: 0,
+    //   continuousWorld: true
+    // });
+    // //L.circle(centerPoint, {radius: 200});
+    // map.addLayer(tileLayer);
+
+    var map = L.map('map', {
+      center: [28.6885984600000, 115.8688118800],
+      zoom: 13,
+      // crs: L.CRS.EPSG4326
     });
-    var fullextent = [ -3198017.8396689137, 376894.37154088495, 4008227.2236318565, 6412346.620868145];
-    var minPoint = crs.projection.unproject(L.point(fullextent[0], fullextent[1]));
-    var maxPoint = crs.projection.unproject(L.point(fullextent[2], fullextent[3]));
-    var bounds = L.latLngBounds(minPoint, maxPoint);
-    var centerPoint = bounds.getCenter();
-    var mapOptions = {
-        center: centerPoint,
-        zoom: 0,
-        crs: crs,
-        tileSize: 512,
-        attributionControl: true,
-    };
-    var map = L.map('map', mapOptions);
-    var tileLayer = L.esri.tiledMapLayer({
-      url: "https://services.arcgisonline.com/ArcGIS/rest/services/USA_Topo_Maps/MapServer",//地址改这里
-      maxZoom: 11,
-      minZoom: 0,
-      continuousWorld: true
-    });
-    //L.circle(centerPoint, {radius: 200});
-    map.addLayer(tileLayer);
+    var url = "http://119.3.231.86/darkblue/tiles/{z}/{x}/{y}.jpg";
+    L.tileLayer(url).addTo(map);
 </script>
 
 </body>
