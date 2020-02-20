@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>otherOrigin</title>
+</head>
+<body>
+<h2>I am otherOrigin Page</h2>
+  <script>
+    window.addEventListener('message', function (params) {
+      console.log('otherOrigin-receiveMessage', params);
+    });
+  </script>
+</body>
+</html>
