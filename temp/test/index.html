@@ -1,7 +1,7 @@
 <html>
 <head>
   <meta charset=utf-8 />
-  <title>Esri Leaflet Quickstart</title>
+  <title>leaflet-test</title>
   <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
 
     <link rel="stylesheet" href="./leaflet.css" />
@@ -27,14 +27,18 @@
         },
 
         getTileUrl: function (tilePoint) {
-            return L.Util.template(this._url, {
-                x: tilePoint.x,
-                y: tilePoint.y,
-                z: tilePoint.z
-            })
+            // var url = L.Util.template(this._url, {
+            //     x: tilePoint.x,
+            //     y: tilePoint.y,
+            //     z: tilePoint.z
+            // });
+            var url = L.TileLayer.prototype.getTileUrl.call(this, tilePoint);
+            // console.log('url:', url);
+            return url;
         },
 
         createTile: function(coords, done) {
+          L.TileLayer.prototype.createTile.call(this, coords, done);
           var div = document.createElement('div');
           var size = this.getTileSize();
           div.style.width = size.x + 'px';
@@ -110,18 +114,18 @@ L.CRS.Baidu = new L.Proj.CRS('EPSG:900913', '+proj=merc +a=6378206 +b=6356584.31
 });
 
 var mapOptions = {
-  center: [29.59,113.53],
+  center: [30.334169247470545,123.18383379946363],
   zoom: 9,
   crs: L.CRS.Baidu
 };
 
 var map = L.map('map', mapOptions);
 
-var url = "http://uat-onlinemap.nbcb.com.cn:30284/maponline2.bdimg.com/tile/?qt=vtile&x={x}&y={-y}&z={z}&styles=pl&scaler=1&udt=20200225";
+var url = "http://uat-onlinemap.nbcb.com.cn:30284/maponline2.bdimg.com/tile/?qt=vtile&x={x}&y={y}&z={z}&styles=pl&scaler=1&udt=20200225";
 // http://uat-onlinemap.nbcb.com.cn:30284/maponline2.bdimg.com/tile/?qt=vtile&x=104&y=27&z=9&styles=pl&scaler=1&udt=20200225
-L.tileLayer(url).addTo(map);
+// L.tileLayer(url, {tms:true}).addTo(map);
 
-new GridLayer(url).addTo(map);
+new GridLayer(url, {tms:true}).addTo(map);
 </script>
 
 </body>
